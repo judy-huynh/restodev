@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memphis Roots — Culture as a Root</title>
+
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/core.css">
+  <link rel="stylesheet" href="css/layouts/story.css">
+</head>
+<body>
+
+  <!-- MASTHEAD -->
+  <header class="masthead">
+    <div class="mh-brand">
+      <div class="mh-logo" id="mhLogo"></div>
+      <div>
+        <h1 class="mh-name" id="mhName"></h1>
+        <div class="mh-tag" id="mhTag"></div>
+      </div>
+    </div>
+    <button class="cta" id="ctaBtn"></button>
+  </header>
+
+  <!-- FEATURED HERO -->
+  <section class="hero" id="hero" hidden></section>
+
+  <!-- EDITORIAL SCROLL beside the sticky companion map; on mobile the map
+       folds into a toggleable top panel -->
+  <div class="editorial" id="editorial">
+    <button class="map-fold" id="mapFold" aria-expanded="false" aria-controls="mapCol"></button>
+    <main class="sections" id="sections"></main>
+    <aside class="map-col" id="mapCol">
+      <div class="map-sticky">
+        <div id="map"></div>
+        <p class="map-src" id="mapSrc"></p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- GALLERY RIBBON: every shared photo in one strip -->
+  <section class="ribbon" id="ribbon" hidden></section>
+
+  <!-- CLOSING CTA BAND -->
+  <section class="cta-band">
+    <h2 class="band-title" id="bandTitle"></h2>
+    <p class="band-sub" id="bandSub"></p>
+    <button class="cta band-cta" id="bandCta"></button>
+  </section>
+
+  <footer class="st-foot">
+    <span id="footOrg"></span>
+    <a class="foot-admin" href="admin.html" target="_blank">Admin ↗</a>
+  </footer>
+
+  <!-- ═══════════════════════════════════════════════════════
+     SHARED INTAKE + STORY-DETAIL OVERLAYS (every layout)
+     Injected by scripts/build.mjs at each layout shell's
+     <!--INTAKE- -> marker. form.js / intake-chat.js / ui.js
+     assume these ids exist in every layout.
+     ═══════════════════════════════════════════════════════ -->
+
+  <div class="pin-hint" id="pinHint"></div>
+
+  <!-- STORY POPUP OVERLAY -->
+  <div class="overlay" id="storyOverlay">
+    <div class="sheet" onclick="event.stopPropagation()">
+      <div class="drag"></div>
+      <div class="sp-head" id="spHead"></div>
+      <div class="sp-body" id="spBody"></div>
+      <div class="sp-foot">
+        <button class="sp-close" id="spClose">← Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBMIT FORM OVERLAY -->
+  <div class="overlay" id="formOverlay">
+    <div class="sheet form-sheet" onclick="event.stopPropagation()">
+      <div class="drag"></div>
+      <div class="sheet-head" id="fHead"></div>
+      <div class="sheet-body" id="fBody"></div>
+      <div class="nav-row" id="fNav"></div>
+    </div>
+  </div>
+
+  <!-- CONVERSATIONAL INTAKE OVERLAY (used when form.intakeMode = "conversational") -->
+  <div class="chat-overlay" id="chatOverlay">
+    <div class="chat-sheet">
+      <div class="chat-head">
+        <div class="cx-logo" id="cxLogo"></div>
+        <div>
+          <div class="cx-t" id="cxTitle"></div>
+          <div class="cx-s">Guided intake</div>
+        </div>
+        <button class="chat-close" id="chatClose" aria-label="Close">✕</button>
+      </div>
+      <div class="chat-scroll" id="chatScroll"></div>
+      <div class="chat-dock" id="chatDock"></div>
+    </div>
+  </div>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-close">✕</div>
+    <img id="lbImg" src="" alt="">
+  </div>
+
+
+  <script type="module" src="js/app.js"></script>
+
+</body>
+</html>

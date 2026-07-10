@@ -1,0 +1,153 @@
+{
+  "slug": "memphis-roots",
+  "name": "The Big We × Memphis",
+  "layout": "story",
+  "org": { "name": "The Big We", "url": "https://thebigwe.org" },
+  "branding": {
+    "logoText": "BW",
+    "title": "Memphis Roots — Culture as a Root",
+    "headerName": "Memphis Roots",
+    "headerSub": "Cultural Memory Map",
+    "tagline": "The cultural memory of Memphis, told corner by corner by the people who lived it.",
+    "storiesBadgeArea": "rooted in Memphis",
+    "language": "en"
+  },
+  "theme": {
+    "primary": "#FF477E",
+    "primaryDark": "#D81E5B",
+    "primaryLight": "#FFE4EC",
+    "accent": "#17C3B2",
+    "danger": "#E5484D",
+    "text": "#241C3B",
+    "muted": "#6E6A80",
+    "border": "#F1D9E3",
+    "bg": "#FFFDF4",
+    "font": "'Plus Jakarta Sans', system-ui, sans-serif",
+    "fontDisplay": "'Unbounded', system-ui, sans-serif",
+    "fontImport": "https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap",
+    "cta": "#FFC300",
+    "ctaText": "#241C3B",
+    "ctaShadow": "rgba(255, 195, 0, .45)",
+    "headerStyle": "clean"
+  },
+  "map": {
+    "styleUrl": "mapbox://styles/mapbox/light-v11",
+    "center": [-90.049, 35.135],
+    "zoom": 12.2,
+    "minZoom": 10,
+    "mapboxToken": "pk.eyJ1IjoiajAwYnkiLCJhIjoiY2x1bHUzbXZnMGhuczJxcG83YXY4czJ3ayJ9.S5PZpU9VDwLMjoX_0x5FDQ"
+  },
+  "overlays": {
+    "title": "Heritage Layers",
+    "attribution": "Illustrative cultural-memory data — The Big We",
+    "layers": [
+      {
+        "id": "landmarks",
+        "label": "Cultural Anchors",
+        "badge": "Sites",
+        "type": "geojson",
+        "renderAs": "circle",
+        "radius": 8,
+        "url": "overlays/cultural-anchors.json",
+        "color": "#FB5607",
+        "opacity": 0.9,
+        "defaultOn": true
+      }
+    ]
+  },
+  "storySchema": {
+    "roles": { "color": "kind", "text": "story", "filter": "place_type", "locationLabel": "corner", "section": "era" },
+    "fields": [
+      {
+        "id": "kind",
+        "kind": "choice",
+        "label": "What are you sharing?",
+        "legendTitle": "Kinds of Memory",
+        "required": true,
+        "options": [
+          { "id": "memory", "label": "A memory of a place", "emoji": "🕯️", "color": "#FF477E", "gradient": ["#FF477E", "#D81E5B"], "tint": "#FFE4EC" },
+          { "id": "lineage", "label": "Family & lineage", "emoji": "🌳", "color": "#17C3B2", "gradient": ["#17C3B2", "#0E9384"], "tint": "#E6FBF8" },
+          { "id": "culture", "label": "Music, art & worship", "emoji": "🎺", "color": "#8338EC", "gradient": ["#8338EC", "#5B21B6"], "tint": "#F3EBFE" },
+          { "id": "future", "label": "What should grow here", "emoji": "✨", "color": "#3A86FF", "gradient": ["#3A86FF", "#1D5FD6"], "tint": "#E8F1FF" }
+        ]
+      },
+      {
+        "id": "place_type",
+        "kind": "select-chips",
+        "label": "What kind of place is it?",
+        "options": [
+          { "id": "church", "label": "Church & Worship", "emoji": "⛪" },
+          { "id": "music", "label": "Music Venue", "emoji": "🎶" },
+          { "id": "food", "label": "Food & Gathering", "emoji": "🍑" },
+          { "id": "school", "label": "School", "emoji": "🏫" },
+          { "id": "business", "label": "Black-owned Business", "emoji": "🏪" },
+          { "id": "street", "label": "Street & Park", "emoji": "🌳" }
+        ]
+      },
+      {
+        "id": "story",
+        "kind": "longtext",
+        "label": "Tell the story",
+        "required": true,
+        "maxLength": 800,
+        "placeholder": "What happened here? Who was there? What did this place mean — and what should it mean next?"
+      },
+      {
+        "id": "era",
+        "kind": "select",
+        "label": "When does this memory live?",
+        "placeholder": "— choose an era —",
+        "options": [
+          { "id": "before1960", "label": "Before 1960" },
+          { "id": "civilrights", "label": "1960s–1970s" },
+          { "id": "eighties", "label": "1980s–1990s" },
+          { "id": "recent", "label": "2000s–2010s" },
+          { "id": "today", "label": "Today" }
+        ]
+      },
+      {
+        "id": "corner",
+        "kind": "shorttext",
+        "label": "Neighborhood or corner",
+        "placeholder": "e.g. Soulsville, Orange Mound, Beale & 4th",
+        "step": "location"
+      }
+    ]
+  },
+  "form": {
+    "steps": {
+      "story": { "title": "Your Memory", "sub": "Culture is a root. Help us map what this city holds." },
+      "media": { "title": "Add Media", "sub": "A photograph, a recording, a voice telling it like it was." },
+      "location": { "title": "Place It", "sub": "Every memory lives somewhere. Put it on the map." },
+      "about": { "title": "You & Your Consent", "sub": "You decide how your name travels with this memory." }
+    },
+    "media": { "photo": true, "video": false, "audio": true },
+    "location": {
+      "enabled": true,
+      "label": "Where does this memory live?",
+      "hint": "Drop a pin on the spot — the corner, the block, the building."
+    },
+    "contactHint": "Only so The Big We can follow up about the heritage record. Never shared publicly."
+  },
+  "consent": {
+    "question": "How should your memory appear?",
+    "explainer": "These stories belong to Memphis. You choose how much of your name travels with yours.",
+    "agreement": "By submitting, you agree your memory may appear on this community heritage map with the visibility you chose above. The collection is owned by the community, and you can request removal at any time.",
+    "levels": {
+      "advocacy_only": {
+        "label": "Heritage record only — not public",
+        "desc": "Your memory never appears on the public map. It joins the community's heritage record, which The Big We may draw on, anonymized, when advocating for restoration."
+      }
+    }
+  },
+  "cta": {
+    "share": "🕯️ Share a Memory",
+    "submit": "Root This Memory 🌳",
+    "successTitle": "Memory rooted!",
+    "successBody": "Thank you. The Big We team will review your memory before it joins the public map, so the collection stays in the community's hands."
+  },
+  "feed": {
+    "title": "Community Memories",
+    "emptyText": "No memories here yet — be the first to root one."
+  }
+}

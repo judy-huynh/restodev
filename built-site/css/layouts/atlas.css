@@ -1,0 +1,489 @@
+/* ═══════════════════════════════════════════════════════
+   Layout: ATLAS — full-bleed map, side story feed, filter
+   chips, layers panel, FAB + floating CTA. The original
+   (and default) layout. Components come from ../core.css.
+   ═══════════════════════════════════════════════════════ */
+
+/* ─── LAYOUT ROOT: full-bleed map, no page scroll ─── */
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ─── MAP ─── */
+#map {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.mapboxgl-ctrl-bottom-right,
+.mapboxgl-ctrl-bottom-left {
+  z-index: 5 !important;
+}
+
+.mapboxgl-popup {
+  z-index: 10 !important;
+}
+
+
+/* ─── HEADER ─── */
+.hdr {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  box-shadow: 0 2px 20px rgba(46, 180, 215, .25);
+}
+
+.hdr-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hdr-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, .25);
+  border: 1.5px solid rgba(255, 255, 255, .4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 13px;
+  color: white;
+  letter-spacing: -.5px;
+}
+
+.hdr-name {
+  font-family: var(--font-display, var(--font, inherit));
+  font-size: .9rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.hdr-sub {
+  font-size: .58rem;
+  color: rgba(255, 255, 255, .75);
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+
+.hdr-rbd {
+  font-size: .62rem;
+  color: rgba(255, 255, 255, .9);
+  background: rgba(255, 255, 255, .2);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .3);
+  white-space: nowrap;
+}
+
+.hdr-admin {
+  font-size: .6rem;
+  color: rgba(255, 255, 255, .55);
+  text-decoration: none;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, .2);
+}
+
+/* Clean header: a light surface with dark text and a solid logo tile,
+   opted into per tenant via theme.headerStyle = "clean". The default
+   (gradient) is untouched, so other tenants are unaffected. */
+[data-header="clean"] .hdr {
+  background: var(--header-bg, var(--bg));
+  box-shadow: none;
+  border-bottom: 1px solid var(--border);
+}
+[data-header="clean"] .hdr-logo {
+  background: var(--primary);
+  border-color: transparent;
+  color: #fff;
+}
+[data-header="clean"] .hdr-name { color: var(--text); }
+[data-header="clean"] .hdr-sub { color: var(--muted); }
+[data-header="clean"] .hdr-rbd {
+  color: var(--primary-d, var(--primary));
+  background: var(--primary-l);
+  border-color: transparent;
+}
+[data-header="clean"] .hdr-admin {
+  color: var(--muted);
+  border-color: var(--border);
+}
+
+.hdr-rbd strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+
+/* ─── BADGE ─── */
+.badge {
+  position: fixed;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  background: rgba(255, 255, 255, .95);
+  color: var(--primary-d);
+  padding: 5px 16px;
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 700;
+  box-shadow: 0 2px 14px rgba(46, 180, 215, .22);
+  pointer-events: none;
+  border: 1.5px solid rgba(46, 180, 215, .25);
+  letter-spacing: .2px;
+}
+
+
+/* ─── LAYER PANEL ─── */
+.layers {
+  position: fixed;
+  top: 68px;
+  right: 12px;
+  z-index: 15;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .1);
+  padding: 11px;
+  min-width: 180px;
+}
+
+.l-title {
+  font-size: .6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+
+.l-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all .15s;
+  margin-bottom: 2px;
+  border: 1.5px solid transparent;
+}
+
+.l-item:hover { background: var(--bg); }
+.l-item.on { background: var(--primary-l); border-color: rgba(46, 180, 215, .35); }
+
+.l-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.l-label {
+  font-size: .72rem;
+  font-weight: 500;
+  flex: 1;
+}
+
+.l-badge {
+  font-size: .58rem;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--bg);
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.l-item.on .l-label {
+  color: var(--primary-d);
+  font-weight: 600;
+}
+
+/* one-line "what am I looking at" caption under a layer's label */
+.l-item { flex-wrap: wrap; }
+.l-cap {
+  width: 100%;
+  font-size: .58rem;
+  color: var(--muted);
+  line-height: 1.35;
+  padding-left: 18px;
+  margin-top: 1px;
+}
+
+.l-src {
+  font-size: .6rem;
+  color: var(--muted);
+  padding: 4px 2px;
+}
+
+.l-sep {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.leg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.leg-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(255, 255, 255, .6);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .1);
+}
+
+.leg-lbl {
+  font-size: .65rem;
+  color: var(--muted);
+}
+
+
+/* ─── SIDE PANEL ─── */
+.side {
+  position: fixed;
+  left: 0;
+  top: 58px;
+  bottom: 0;
+  width: 340px;
+  z-index: 10;
+  background: white;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform .35s cubic-bezier(.34, 1.2, .64, 1);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, .07);
+}
+
+.side.open { transform: translateX(0); }
+
+.side-hdr {
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.side-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.side-title { font-family: var(--font-display, var(--font, inherit)); font-size: .92rem; font-weight: 700; }
+.side-sub { font-size: .65rem; color: var(--muted); margin-top: 1px; }
+
+.close-side {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: .9rem;
+  transition: all .15s;
+}
+
+.close-side:hover { background: var(--border); }
+
+/* View toggle (list / gallery) */
+.view-toggle {
+  display: flex;
+  gap: 3px;
+  margin-top: 8px;
+}
+
+.view-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: .75rem;
+  background: var(--bg);
+  color: var(--muted);
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.view-btn:hover { border-color: var(--primary); color: var(--primary-d); }
+.view-btn.on { background: var(--primary-l); border-color: var(--primary); color: var(--primary-d); }
+
+
+/* Category filter chips */
+.cat-row {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.cat-row::-webkit-scrollbar { display: none; }
+
+.cat-chip {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: .65rem;
+  font-weight: 600;
+  background: var(--bg);
+  color: var(--muted);
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+
+.cat-chip:hover { border-color: var(--primary); color: var(--primary-d); }
+.cat-chip.on { background: var(--primary-l); border-color: var(--primary); color: var(--primary-d); }
+
+/* live per-category count inside a chip */
+.chip-n {
+  display: inline-block;
+  min-width: 15px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .07);
+  font-size: .58rem;
+  text-align: center;
+}
+.cat-chip.on .chip-n { background: var(--primary); color: #fff; }
+
+.feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+/* ─── GALLERY VIEW ─── */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  padding: 6px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ─── FABS ─── */
+.fab {
+  position: fixed;
+  left: 12px;
+  bottom: 88px;
+  z-index: 15;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--text);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .1);
+  transition: all .15s;
+}
+
+.fab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .15);
+}
+
+.fab-n {
+  background: var(--primary);
+  color: white;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: .62rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cta {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  background: var(--cta, linear-gradient(135deg, var(--primary), var(--accent)));
+  color: var(--cta-text, white);
+  padding: 14px 30px;
+  border-radius: 999px;
+  font-size: .88rem;
+  font-weight: 700;
+  box-shadow: 0 8px 28px var(--cta-shadow, rgba(0, 0, 0, .22));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all .2s;
+  white-space: nowrap;
+}
+
+.cta:hover {
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: 0 12px 36px rgba(46, 180, 215, .45);
+}
+
+/* ─── RESPONSIVE ─── */
+@media (min-width: 768px) {
+  .cta { left: auto; right: 214px; transform: none; bottom: 28px; }
+  .cta:hover { transform: translateY(-2px); }
+  .fab { display: none; }
+}
+
+@media (max-width: 767px) {
+  .layers { right: 8px; top: 64px; min-width: 160px; }
+
+  /* phones: the panel starts folded to its tappable title */
+  .layers > .l-title { cursor: pointer; margin-bottom: 0; }
+  .layers > .l-title::after { content: ' ▾'; color: var(--muted); }
+  .layers:not(.collapsed) > .l-title { margin-bottom: 7px; }
+  .layers:not(.collapsed) > .l-title::after { content: ' ▴'; }
+  .layers.collapsed #layerItems,
+  .layers.collapsed .l-src,
+  .layers.collapsed .l-sep { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   OPERATING MODES (?mode=kiosk / ?mode=share)
+   Same engine, same questions — different chrome.
+   ═══════════════════════════════════════════════════════ */
+
+/* Both focused modes strip the explore chrome down to the task. */
+body[data-mode="kiosk"] .side,
+body[data-mode="kiosk"] .fab,
+body[data-mode="kiosk"] .badge,
+body[data-mode="kiosk"] .layers,
+body[data-mode="kiosk"] .cta,
+body[data-mode="kiosk"] .hdr-admin,
+body[data-mode="share"] .side,
+body[data-mode="share"] .fab,
+body[data-mode="share"] .badge,
+body[data-mode="share"] .layers,
+body[data-mode="share"] .hdr-admin {
+  display: none !important;
+}
+

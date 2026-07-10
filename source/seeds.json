@@ -1,0 +1,82 @@
+{
+  "_note": "Synthetic-but-believable seed memories. All names fictional. Photos are openly licensed (see seed-media/ATTRIBUTION.md); the voice note is TTS-generated.",
+  "stories": [
+    {
+      "id": "5eed0003-0000-4000-8000-000000000001",
+      "status": "approved", "consent": "full_name", "name": "Dorothy Jenkins",
+      "locationLabel": "Soulsville", "lat": 35.1148, "lng": -90.0292,
+      "at": "2026-03-08T15:20:00-06:00",
+      "answers": { "kind": "culture", "place_type": "music", "era": "civilrights", "story": "My brother worked the counter at the Satellite Record Shop in front of the Stax studio. Summers, I'd sit on the stoop with a cold drink and hear the horn sections bleeding through the wall — you didn't need a ticket to know history was being cut fifty feet away. When they tore the first building down it felt like losing a relative. The museum brought some of it back, but the neighborhood that made that sound still needs its due." },
+      "media": [{ "file": "stax-records.jpg", "kind": "photo" }],
+      "contact": { "email": "d.jenkins@example.org" }
+    },
+    {
+      "id": "5eed0003-0000-4000-8000-000000000002",
+      "status": "approved", "consent": "first_name", "name": "Charlene Woods",
+      "locationLabel": "Beale & 4th", "lat": 35.1399, "lng": -90.0521,
+      "at": "2026-03-15T11:45:00-06:00",
+      "answers": { "kind": "culture", "place_type": "music", "era": "civilrights", "story": "My daddy played trumpet on Beale Street every Friday night, 1962 to 1971. Mama would let me stay up so we could hear him warming up out the back window of the club. Whenever I pass that corner now, I swear the brass is still in the bricks. I recorded myself telling it the way I tell my grandkids." },
+      "media": [
+        { "file": "beale-street.jpg", "kind": "photo" },
+        { "file": "voice-beale.m4a", "kind": "audio" }
+      ]
+    },
+    {
+      "id": "5eed0003-0000-4000-8000-000000000003",
+      "status": "approved", "consent": "full_name", "name": "Marcus Bell",
+      "locationLabel": "Clayborn Temple", "lat": 35.1338, "lng": -90.0565,
+      "at": "2026-03-22T09:30:00-06:00",
+      "answers": { "kind": "memory", "place_type": "church", "era": "civilrights", "story": "My grandfather assembled here with the sanitation workers in 1968, the morning they handed out the I AM A MAN signs. He kept his sign folded in the family Bible until the day he died. Every time I walk past Clayborn I stop for a second — this building watched Memphis decide who it was going to be." },
+      "media": [{ "file": "clayborn-temple.jpg", "kind": "photo" }]
+    },
+    {
+      "id": "5eed0003-0000-4000-8000-000000000004",
+      "status": "approved", "consent": "first_name", "name": "Tonya Rhodes",
+      "locationLabel": "Beale Street Baptist", "lat": 35.1391, "lng": -90.0507,
+      "at": "2026-04-05T13:10:00-05:00",
+      "answers": { "kind": "lineage", "place_type": "church", "era": "eighties", "story": "Four generations of my family sang in this choir. My grandmother's pew was third row, left side — nobody sat there even years after she passed. I learned to read music off a hymnal with her thumbprints on the corners. The building needs work now, and I worry the history goes when the roof does." },
+      "media": [{ "file": "memphis-church.jpg", "kind": "photo" }]
+    },
+    {
+      "id": "5eed0003-0000-4000-8000-000000000005",
+      "status": "approved", "consent": "first_name", "name": "Gerald Price",
+      "locationLabel": "Overton Park Shell", "lat": 35.1445, "lng": -90.0116,
+      "at": "2026-04-18T19:40:00-05:00",
+      "answers": { "kind": "memory", "place_type": "street", "era": "recent", "story": "First date with my wife was a free show at the Shell — we split a lemonade because that's what I could afford. Thirty-one years later we still bring lawn chairs to the same spot on the hill, stage left. A city that gives you free music under the trees is a city telling you that you belong in it." },
+      "media": [{ "file": "levitt-shell.jpg", "kind": "photo" }]
+    },
+    {
+      "id": "5eed0003-0000-4000-8000-000000000006",
+      "status": "approved", "consent": "full_name", "name": "Andre Mitchell",
+      "locationLabel": "Midtown", "lat": 35.1382, "lng": -89.9905,
+      "at": "2026-05-02T12:05:00-05:00",
+      "answers": { "kind": "lineage", "place_type": "food", "era": "today", "story": "Sunday after church, four generations of us around two pushed-together tables at the rib place — that neon sign means family to me more than any photo album. My uncle worked the pit for twenty years and he still grades everybody else's smoke ring like a school teacher. When a place feeds a family that long, it stops being a restaurant." },
+      "media": [{ "file": "memphis-bbq.jpg", "kind": "photo" }]
+    },
+    {
+      "id": "5eed0003-0000-4000-8000-000000000007",
+      "status": "approved", "consent": "first_name", "name": "Beverly Hastings",
+      "locationLabel": "Orange Mound", "lat": 35.1195, "lng": -90.0072,
+      "at": "2026-05-27T10:50:00-05:00",
+      "answers": { "kind": "lineage", "place_type": "street", "era": "before1960", "story": "Orange Mound was built by Black families, for Black families, on their own dollar — first neighborhood of its kind in this country. My great-grandparents' house is still standing, porch and all. When people talk about this area like it's only what the news says, I bring them here and tell them what these streets built with no help from anybody." },
+      "media": [{ "file": "orange-mound.jpg", "kind": "photo" }]
+    },
+    {
+      "id": "5eed0003-0000-4000-8000-000000000008",
+      "status": "approved", "consent": "anonymous", "name": null,
+      "locationLabel": "Binghampton", "lat": 35.1465, "lng": -89.98,
+      "at": "2026-06-10T16:15:00-05:00",
+      "answers": { "kind": "future", "place_type": "street", "era": "today", "story": "The kids in this neighborhood painted this wall themselves, with a muralist teaching them on weekends. What should grow here? More of that. Paint, instruments, a stage that doesn't get rained out. Give them walls, not warnings." },
+      "media": [{ "file": "memphis-mural.jpg", "kind": "photo" }]
+    },
+    {
+      "id": "5eed0003-0000-4000-8000-000000000009",
+      "status": "pending", "consent": "first_name", "name": "Otis Greer",
+      "locationLabel": "South Memphis", "lat": 35.1069, "lng": -90.0341,
+      "at": "2026-06-29T14:20:00-05:00",
+      "answers": { "kind": "memory", "place_type": "school", "era": "eighties", "story": "Booker T. Washington High marching band practice, fall of 1986 — you could hear the drumline from six blocks out, and the whole neighborhood kept time to it. Coach Simms made you carry your grades to carry a horn. Half the men I grew up with will tell you that band room did more for them than any program the city ever ran." },
+      "contact": { "email": "o.greer@example.org", "phone": "901-555-0142" },
+      "source": { "mode": "kiosk", "campaign": "juneteenth-festival" }
+    }
+  ]
+}

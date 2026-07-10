@@ -1,0 +1,11 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [-90.0517, 35.1339] }, "properties": { "name": "Clayborn Temple" } },
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [-90.0526, 35.1398] }, "properties": { "name": "Beale Street Historic District" } },
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [-90.0575, 35.1345] }, "properties": { "name": "National Civil Rights Museum (Lorraine Motel)" } },
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [-90.0289, 35.1187] }, "properties": { "name": "Stax Museum of American Soul Music (Soulsville)" } },
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [-90.0107, 35.1246] }, "properties": { "name": "Orange Mound" } },
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [-90.0489, 35.1454] }, "properties": { "name": "Church Park (Robert R. Church Sr.)" } }
+  ]
+}
