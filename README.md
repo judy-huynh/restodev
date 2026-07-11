@@ -1,38 +1,47 @@
-# Culture as an Anchor — Memphis Roots
+# Memphis Roots — The Big We
 
-A cultural memory map for **[The Big We](https://thebigwe.org)**, gathering the
-memory of Memphis corner by corner — churches, record shops, family blocks, music
-venues — and asking what should grow there next. Part of the Restorative
-Development work in Memphis, Tennessee.
+A community **cultural-memory map** for [The Big We](https://thebigwe.org), part of the
+Restorative Development work anchored on **Clayborn Temple** in Memphis, Tennessee.
+*Culture as the root of healing — memories, visions, and open spaces, told corner by corner
+by the people who lived it.*
 
-**Live site:** https://judy-huynh.github.io/restodev/
+**Live:** https://judy-huynh.github.io/restodev/
 
-## What's in here
+## What's here
+The published site lives in [`built-site/`](built-site) (deployed to GitHub Pages by
+`.github/workflows/pages.yml`):
 
-| Folder | What it is |
-|--------|-----------|
-| `built-site/` | The map itself — the static site published to the live link above |
-| `source/` | The editable configuration (`tenant.json`), the starter stories (`seeds.json`), seed media, and map overlays |
-| `screenshots/` | Reference images (laptop + phone) |
+| File | What it is |
+|---|---|
+| `built-site/index.html` | **The Clayborn Time Machine** — a scrollytelling landing page that opens into the live map |
+| `built-site/app.html` | **The living map** — story panel, filters, capture, moderation, an Impact dashboard, an Open-Spaces commons, and shared-dreams futures |
+| `built-site/media/` | Seed photos + one audio clip |
 
-## How it works
-
-Residents share a memory tied to a specific Memphis place, choose what it's about
-(a memory, family & lineage, music/art/worship, or *what should grow here*), pick
-an era, and drop a pin. The result is a living community heritage map. Contributors
-choose how their name appears, including a private "heritage record only" option,
-and the collection belongs to the community.
-
-The map loads its stories from a hosted database, so the site needs an internet
-connection. It renders on a Mapbox base map.
-
-## Running it locally
-
-The site uses JavaScript modules, so serve it over `http://` rather than opening
-the file directly:
-
+## Run locally
 ```bash
 cd built-site
 python3 -m http.server 8000
-# open http://localhost:8000/
+# open http://localhost:8000/index.html   (landing)
+#   or http://localhost:8000/app.html      (map)
 ```
+
+`app.html` URL parameters: `?mode=share` (capture) · `?mode=kiosk` (event) · `?mode=admin`
+(moderation) · `?campaign=juneteenth&event=Alley%20Days` · `?kind=memory|future`.
+
+## About the data
+This build is **self-contained** — everything lives in the browser's `localStorage`, with no
+backend and no login. Submissions are per-device only; it is **not** yet a shared database. A
+shared version (Supabase → later Cloudflare) is planned.
+
+> **The seed stories are illustrative.** Names are fictional, photos are openly licensed, and
+> the sample audio is generated. They set the tone; they are not real community testimony yet.
+
+## Inspiration & credits
+- **The Big We** — Anasa Troutman; the Restorative Development model.
+- **Jayne Engle** — *Sacred Civics: Building Seven Generation Cities*, **7GenCities**, and
+  **Permissioning the City** (Dark Matter Labs) — inspiring the Open-Spaces commons, the
+  "shared dreams, made visible" feature, and *Imagining 2068*.
+- **Rebuild by Design** — Judy Huynh.
+
+---
+*The previous "Culture as an Anchor" (V2) build is preserved on the [`v2-archive`](../../tree/v2-archive) branch.*

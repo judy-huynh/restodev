@@ -1,116 +1,385 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Memphis Roots — Culture as a Root</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Clayborn Time Machine — Memphis Roots</title>
+<meta name="description" content="From a sacred commons, through I AM A MAN, through fire — and into a future you can move with your own hand. Clayborn Temple's story, and the living cultural-memory map of Memphis. For The Big We.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E🕯️%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="The Clayborn Time Machine — Memphis Roots">
+<meta property="og:description" content="Clayborn Temple has watched Memphis decide who it would be. Travel its story — and enter the living cultural-memory map of Memphis.">
+<meta property="og:image" content="https://judy-huynh.github.io/restodev/media/clayborn-temple.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#FF477E; --primaryDark:#D81E5B; --primaryLight:#FFE4EC;
+    --accent:#17C3B2; --gold:#FFC300; --future:#3A86FF; --purple:#8338EC;
+    --text:#241C3B; --muted:#6E6A80; --bg:#FFFDF4; --border:#F1D9E3;
+    --font:'Plus Jakarta Sans',system-ui,sans-serif;
+    --display:'Unbounded',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:var(--font);color:var(--text);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+  img{max-width:100%;display:block}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
 
-  <link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet">
-  <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="css/core.css">
-  <link rel="stylesheet" href="css/layouts/story.css">
+  /* ---- Prototype ribbon ---- */
+  .protobar{background:var(--text);color:#fff;font-size:12.5px;letter-spacing:.02em;padding:8px 16px;text-align:center}
+  .protobar b{color:var(--gold)}
+
+  /* ---- Hero ---- */
+  .hero{position:relative;min-height:92vh;display:flex;align-items:flex-end;color:#fff;overflow:hidden}
+  .hero .bg{position:absolute;inset:0;background:#241C3B center/cover no-repeat;filter:saturate(1.05)}
+  .hero .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(36,28,59,.35) 0%,rgba(36,28,59,.15) 40%,rgba(36,28,59,.88) 100%)}
+  .hero .inner{position:relative;padding:0 24px 8vh;max-width:1180px;margin:0 auto;width:100%}
+  .brandrow{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .logo{width:44px;height:44px;border-radius:12px;background:var(--primary);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:16px;color:#fff;box-shadow:0 6px 20px rgba(255,71,126,.45)}
+  .brandrow .sub{font-size:13px;letter-spacing:.16em;text-transform:uppercase;opacity:.85}
+  .hero h1{font-family:var(--display);font-weight:700;font-size:clamp(2.4rem,6vw,4.6rem);line-height:1.02;margin:0 0 18px;max-width:15ch;text-shadow:0 2px 30px rgba(0,0,0,.35)}
+  .hero p.lede{font-size:clamp(1.05rem,2vw,1.4rem);max-width:44ch;margin:0 0 26px;opacity:.95}
+  .cue{display:inline-flex;align-items:center;gap:10px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;opacity:.9}
+  .cue .dot{width:26px;height:26px;border:1.5px solid rgba(255,255,255,.7);border-radius:50%;display:grid;place-items:center;animation:bob 1.8s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+
+  /* ---- Intro strip ---- */
+  .intro{padding:9vh 0 4vh}
+  .kicker{font-family:var(--display);font-weight:500;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--primaryDark)}
+  .intro h2{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,3.4vw,2.6rem);line-height:1.1;margin:14px 0 0;max-width:20ch}
+  .intro .two{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:26px;font-size:1.08rem;color:#443c5c}
+  @media(max-width:760px){.intro .two{grid-template-columns:1fr;gap:18px}}
+
+  /* ---- Scrolly ---- */
+  .scrolly{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:56px;padding:6vh 0}
+  .stage-col{position:relative}
+  .stage{position:sticky;top:6vh;height:88vh;border-radius:22px;overflow:hidden;box-shadow:0 24px 60px -24px rgba(36,28,59,.5);background:#241C3B}
+  .stage .frame{position:absolute;inset:0;background:center/cover no-repeat;transition:opacity .6s ease,transform 6s ease;transform:scale(1.04)}
+  .stage .grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(36,28,59,0) 45%,rgba(36,28,59,.9) 100%)}
+  .stage .cap{position:absolute;left:0;right:0;bottom:0;padding:26px;color:#fff}
+  .stage .yr{display:inline-block;font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.12em;padding:5px 12px;border-radius:999px;background:var(--primary);margin-bottom:12px}
+  .stage .cap h4{font-family:var(--display);font-weight:700;font-size:1.4rem;margin:0 0 6px}
+  .stage .cap p{margin:0;opacity:.92;font-size:.98rem;max-width:38ch}
+  .stage .ribbon{position:absolute;top:16px;right:-40px;transform:rotate(45deg);background:var(--gold);color:var(--text);font-weight:700;font-size:11px;letter-spacing:.08em;padding:6px 52px;box-shadow:0 4px 12px rgba(0,0,0,.2);display:none}
+  .stage.is-render .ribbon{display:block}
+
+  /* timeline rail */
+  .rail{position:absolute;left:-30px;top:0;bottom:0;width:2px;background:var(--border)}
+  .rail .prog{position:absolute;left:-3px;top:0;width:8px;height:8px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 4px var(--primaryLight);transition:top .3s ease}
+
+  .steps{display:flex;flex-direction:column;gap:0}
+  .step{min-height:82vh;display:flex;flex-direction:column;justify-content:center;padding:4vh 0}
+  .step .era{font-family:var(--display);font-weight:500;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
+  .step h3{font-family:var(--display);font-weight:700;font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.12;margin:10px 0 14px}
+  .step p{font-size:1.1rem;color:#403a55;margin:0 0 14px}
+  .quote{border-left:3px solid var(--primary);padding:6px 0 6px 18px;margin:18px 0;font-size:1.06rem;color:var(--text)}
+  .quote cite{display:block;margin-top:8px;font-style:normal;font-size:.9rem;color:var(--muted);letter-spacing:.02em}
+  .pill{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.03em;color:var(--primaryDark);background:var(--primaryLight);padding:4px 12px;border-radius:999px}
+
+  /* ---- Phase slider ---- */
+  .future-card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:24px;box-shadow:0 18px 50px -30px rgba(36,28,59,.55);margin-top:8px}
+  .future-card h4{font-family:var(--display);font-weight:700;margin:0 0 4px;font-size:1.15rem}
+  .future-card .hint{font-size:.9rem;color:var(--muted);margin:0 0 18px}
+  .track{position:relative;margin:26px 6px 30px}
+  .track input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--gold),var(--accent),var(--future));outline:none}
+  .track input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--primaryDark);cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.25);transition:transform .15s}
+  .track input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.12)}
+  .track input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--primaryDark);cursor:pointer}
+  .ticks{display:flex;justify-content:space-between;margin-top:12px}
+  .ticks button{background:none;border:none;font-family:var(--font);font-weight:600;font-size:12.5px;color:var(--muted);cursor:pointer;padding:4px 2px;letter-spacing:.02em;transition:color .2s;text-align:center;flex:1}
+  .ticks button.on{color:var(--primaryDark)}
+  .phase-body{margin-top:6px}
+  .phase-body .ptag{display:inline-block;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.1em;padding:5px 12px;border-radius:999px;color:#fff;margin-bottom:12px}
+  .phase-body h5{font-size:1.25rem;margin:0 0 10px;font-family:var(--display);font-weight:700}
+  .phase-body>p{margin:0 0 14px;color:#403a55}
+  .phase-body ul{margin:0;padding:0;list-style:none}
+  .phase-body li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;font-size:1rem;border-top:1px dashed var(--border)}
+  .phase-body li:first-child{border-top:none}
+  .phase-body li .mk{flex:none;font-size:1.1rem}
+
+  /* ---- Close / CTA ---- */
+  .close{position:relative;color:#fff;overflow:hidden;margin-top:4vh}
+  .close .bg{position:absolute;inset:0;background:#241C3B center/cover no-repeat}
+  .close .scrim{position:absolute;inset:0;background:linear-gradient(120deg,rgba(216,30,91,.85),rgba(131,56,236,.8))}
+  .close .inner{position:relative;padding:12vh 24px;max-width:820px;margin:0 auto;text-align:center}
+  .close h2{font-family:var(--display);font-weight:700;font-size:clamp(1.8rem,4vw,3rem);margin:0 0 16px}
+  .close p{font-size:1.15rem;opacity:.95;max-width:52ch;margin:0 auto 30px}
+  .btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .btn{font-family:var(--font);font-weight:700;font-size:1rem;padding:15px 26px;border-radius:14px;border:none;cursor:pointer;text-decoration:none;display:inline-flex;gap:8px;align-items:center}
+  .btn.gold{background:var(--gold);color:var(--text);box-shadow:0 10px 24px rgba(255,195,0,.4)}
+  .btn.ghost{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.5)}
+  .elaine{margin-top:34px;font-size:.95rem;opacity:.85;font-style:italic}
+
+  /* Living map reveal */
+  .livingmap{padding:12vh 0 6vh;text-align:center}
+  .livingmap .kicker{color:var(--primaryDark)}
+  .livingmap h2{font-family:var(--display);font-weight:700;font-size:clamp(1.7rem,4vw,2.8rem);line-height:1.08;margin:14px auto 0;max-width:16ch}
+  .livingmap p.lead{font-size:clamp(1.02rem,2vw,1.2rem);color:#4c4463;max-width:52ch;margin:18px auto 0}
+  .mapframe{position:relative;margin:38px auto 0;max-width:1120px;border-radius:22px;overflow:hidden;border:1px solid #ecd9e2;box-shadow:0 40px 90px -50px rgba(36,28,59,.7);background:#EDE7E0}
+  .mapframe iframe{width:100%;height:min(74vh,680px);border:0;display:block}
+  .mapframe .openbar{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:linear-gradient(180deg,rgba(36,28,59,.55),transparent);pointer-events:none}
+  .mapframe .openbar .tag{color:#fff;font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+  .mapframe .openbar a{pointer-events:auto;background:var(--gold);color:var(--text);font-weight:700;font-size:13.5px;padding:11px 18px;border-radius:11px;text-decoration:none;box-shadow:0 8px 22px -8px rgba(255,195,0,.7)}
+  .mapframe .openbar a:hover{transform:translateY(-1px)}
+  .livingmap .undernote{font-size:13px;color:var(--muted);margin-top:16px}
+
+  footer{padding:34px 24px 60px;text-align:center;color:var(--muted);font-size:13px}
+  footer a{color:var(--primaryDark)}
+
+  @media(max-width:900px){
+    .scrolly{grid-template-columns:1fr;gap:0}
+    .stage-col{order:-1}
+    .stage{position:relative;top:0;height:56vh;margin-bottom:8px}
+    .rail{display:none}
+    .step{min-height:auto;padding:5vh 0}
+  }
+</style>
 </head>
 <body>
+<div class="protobar">✦ <b>V3 PROTOTYPE</b> · The Clayborn Time Machine — a design direction for Memphis Roots. Photos are V2 seeds; future scenes are <b>placeholder renders to commission</b>.</div>
 
-  <!-- MASTHEAD -->
-  <header class="masthead">
-    <div class="mh-brand">
-      <div class="mh-logo" id="mhLogo"></div>
+<!-- HERO -->
+<header class="hero">
+  <div class="bg" id="heroBg"></div>
+  <div class="scrim"></div>
+  <div class="inner">
+    <div class="brandrow">
+      <div class="logo">BW</div>
       <div>
-        <h1 class="mh-name" id="mhName"></h1>
-        <div class="mh-tag" id="mhTag"></div>
+        <div style="font-family:var(--display);font-weight:700;font-size:15px">Memphis Roots</div>
+        <div class="sub">Culture as a Root · The Big We</div>
       </div>
     </div>
-    <button class="cta" id="ctaBtn"></button>
-  </header>
-
-  <!-- FEATURED HERO -->
-  <section class="hero" id="hero" hidden></section>
-
-  <!-- EDITORIAL SCROLL beside the sticky companion map; on mobile the map
-       folds into a toggleable top panel -->
-  <div class="editorial" id="editorial">
-    <button class="map-fold" id="mapFold" aria-expanded="false" aria-controls="mapCol"></button>
-    <main class="sections" id="sections"></main>
-    <aside class="map-col" id="mapCol">
-      <div class="map-sticky">
-        <div id="map"></div>
-        <p class="map-src" id="mapSrc"></p>
-      </div>
-    </aside>
+    <h1>Clayborn Temple has watched Memphis decide who it would be.</h1>
+    <p class="lede">From a sacred commons, through <em>I AM A MAN</em>, through fire — and into a future you can move with your own hand.</p>
+    <span class="cue"><span class="dot">↓</span> Scroll to travel through time</span>
   </div>
+</header>
 
-  <!-- GALLERY RIBBON: every shared photo in one strip -->
-  <section class="ribbon" id="ribbon" hidden></section>
+<!-- INTRO -->
+<section class="intro wrap">
+  <div class="kicker">Designing the future by honoring the past</div>
+  <h2>One place. Seventy years. And the next five, on a slider.</h2>
+  <div class="two">
+    <p>Most maps collect what was lost. This one holds memory, the present, and possibility together — so a story doesn't end in the archive. It becomes a claim on what grows here next.</p>
+    <p>Below is Clayborn's arc, told corner by corner by the people who lived it. At the end, pull the slider and watch the 2.5 acres beside the temple become something Memphis can believe in.</p>
+  </div>
+  <p style="margin:36px auto 0;max-width:62ch;font-size:1.06rem;line-height:1.72;color:#3a2f57;border-left:3px solid var(--primary);padding-left:22px">This is restorative development — <b>embodied, spiritual, and quick where the city has been slow.</b> Memphis still carries systems built to exclude, and its people are tired of being interviewed while the streets stay the same. So Clayborn Temple becomes the anchor: a model for healing where storytelling, place, and the people themselves do the restoring. City agencies move at the speed of bureaucracy. The Big We moves at the speed of trust.</p>
+</section>
 
-  <!-- CLOSING CTA BAND -->
-  <section class="cta-band">
-    <h2 class="band-title" id="bandTitle"></h2>
-    <p class="band-sub" id="bandSub"></p>
-    <button class="cta band-cta" id="bandCta"></button>
-  </section>
-
-  <footer class="st-foot">
-    <span id="footOrg"></span>
-    <a class="foot-admin" href="admin.html" target="_blank">Admin ↗</a>
-  </footer>
-
-  <!-- ═══════════════════════════════════════════════════════
-     SHARED INTAKE + STORY-DETAIL OVERLAYS (every layout)
-     Injected by scripts/build.mjs at each layout shell's
-     <!--INTAKE- -> marker. form.js / intake-chat.js / ui.js
-     assume these ids exist in every layout.
-     ═══════════════════════════════════════════════════════ -->
-
-  <div class="pin-hint" id="pinHint"></div>
-
-  <!-- STORY POPUP OVERLAY -->
-  <div class="overlay" id="storyOverlay">
-    <div class="sheet" onclick="event.stopPropagation()">
-      <div class="drag"></div>
-      <div class="sp-head" id="spHead"></div>
-      <div class="sp-body" id="spBody"></div>
-      <div class="sp-foot">
-        <button class="sp-close" id="spClose">← Back</button>
+<!-- SCROLLY -->
+<section class="scrolly wrap">
+  <div class="stage-col">
+    <div class="rail"><span class="prog" id="prog"></span></div>
+    <div class="stage" id="stage">
+      <div class="frame" id="frame"></div>
+      <div class="grad"></div>
+      <div class="ribbon">Render to commission</div>
+      <div class="cap">
+        <span class="yr" id="capYr">Before 1960</span>
+        <h4 id="capTitle">A sacred commons</h4>
+        <p id="capText">The heart of Black civic life in Memphis.</p>
       </div>
     </div>
   </div>
 
-  <!-- SUBMIT FORM OVERLAY -->
-  <div class="overlay" id="formOverlay">
-    <div class="sheet form-sheet" onclick="event.stopPropagation()">
-      <div class="drag"></div>
-      <div class="sheet-head" id="fHead"></div>
-      <div class="sheet-body" id="fBody"></div>
-      <div class="nav-row" id="fNav"></div>
-    </div>
-  </div>
+  <div class="steps" id="steps">
 
-  <!-- CONVERSATIONAL INTAKE OVERLAY (used when form.intakeMode = "conversational") -->
-  <div class="chat-overlay" id="chatOverlay">
-    <div class="chat-sheet">
-      <div class="chat-head">
-        <div class="cx-logo" id="cxLogo"></div>
-        <div>
-          <div class="cx-t" id="cxTitle"></div>
-          <div class="cx-s">Guided intake</div>
+    <article class="step" data-img="clayborn-temple.jpg" data-yr="Before 1960" data-cap="A sacred commons" data-captext="Built as a grand Victorian church, Clayborn became the heart of Black civic life in Memphis.">
+      <div class="era">Before 1960</div>
+      <h3>A sacred commons</h3>
+      <p>Before it was a symbol, Clayborn was a gathering place — a grand sanctuary where a community organized its own dignity. Culture was the root here long before anyone called it strategy.</p>
+      <span class="pill">Pillar · Storytelling &amp; Placemaking</span>
+    </article>
+
+    <article class="step" data-img="clayborn-temple.jpg" data-yr="1968" data-cap="I AM A MAN" data-captext="The sanitation workers gathered here in 1968 — the morning they handed out the signs.">
+      <div class="era">1968</div>
+      <h3>I AM A MAN</h3>
+      <p>In 1968, the sanitation workers assembled at Clayborn and marched out carrying signs that declared their humanity. Frontline workers — the first environmental-justice workers — demanding to be seen. This building watched Memphis decide who it was going to be.</p>
+      <div class="quote">"My grandfather assembled here with the sanitation workers in 1968, the morning they handed out the <em>I AM A MAN</em> signs. He kept his sign folded in the family Bible until the day he died."<cite>— Marcus Bell, Clayborn Temple · a Memphis Roots memory</cite></div>
+    </article>
+
+    <article class="step" data-img="memphis-church.jpg" data-yr="1970s–2010s" data-cap="The long quiet" data-captext="Decades of disinvestment. The roof aged; the history waited.">
+      <div class="era">The long quiet</div>
+      <h3>Decades of waiting</h3>
+      <p>After the assassination of Dr. King that same year, the light dimmed for the city. Disinvestment settled in. The building that held so much history sat waiting — its roof aging, its stories folded away like a sign in a Bible.</p>
+    </article>
+
+    <article class="step" data-img="memphis-church.jpg" data-yr="2025" data-cap="The night it burned" data-captext="A triple arson took roughly 75% of Clayborn — the moment of success became a moment of attack.">
+      <div class="era">2025 · the stakes</div>
+      <h3>The night it burned</h3>
+      <p>When the community moved to restore Clayborn, the moment of success became a moment of attack. A triple arson tore through the temple and two nearby properties — roughly <strong>75% damage</strong>. It could have been the end of the story.</p>
+    </article>
+
+    <article class="step" data-img="orange-mound.jpg" data-yr="2025" data-cap="The city answered" data-captext="Nearly the whole city rallied. Strangers were activated. People came together in tears.">
+      <div class="era">2025 · the turn</div>
+      <h3>The city answered</h3>
+      <p>Instead, Memphis answered. Nearly the entire city amplified the project. Strangers were activated; people came together in tears. The near-loss transformed the work — and drew in stakeholders, governance, and the will to rebuild.</p>
+      <span class="pill">Pillar · Community Ownership &amp; Governance</span>
+    </article>
+
+    <article class="step" data-img="clayborn-temple.jpg" data-yr="Today" data-cap="Rebuilding" data-captext="From Victorian home to urban revival — shared ownership, equity, a place of refuge.">
+      <div class="era">Today</div>
+      <h3>Rebuilding, on the community's terms</h3>
+      <p>Now the work is restoration — not just of a building, but of a model: shared ownership, equity, a community land trust, a place of refuge and food in a neighborhood the market forgot. And right beside the temple sit <strong>2.5 acres</strong> waiting for a purpose.</p>
+    </article>
+
+    <!-- FUTURE / SLIDER STEP -->
+    <article class="step" id="futureStep" data-future="true" data-img="memphis-bbq.jpg" data-yr="Tomorrow" data-cap="What grows here next" data-captext="Pull the slider — the 2.5 acres beside Clayborn, phase by phase.">
+      <div class="era">Tomorrow · you decide the pace</div>
+      <h3>What grows here next</h3>
+      <p>The future can't be a paragraph — it has to be something you can see. Move the slider and watch the 2.5 acres beside Clayborn become a bridge to what will one day live inside the temple.</p>
+
+      <div class="future-card">
+        <h4>The 2.5 acres beside Clayborn</h4>
+        <p class="hint">Drag, or tap a milestone.</p>
+        <div class="track">
+          <input type="range" id="slider" min="0" max="3" step="1" value="0" aria-label="Timeline phase" />
+          <div class="ticks" id="ticks">
+            <button data-i="0" class="on">Today</button>
+            <button data-i="1">+6 months</button>
+            <button data-i="2">+1 year</button>
+            <button data-i="3">+5 years</button>
+          </div>
         </div>
-        <button class="chat-close" id="chatClose" aria-label="Close">✕</button>
+        <div class="phase-body" id="phaseBody"></div>
       </div>
-      <div class="chat-scroll" id="chatScroll"></div>
-      <div class="chat-dock" id="chatDock"></div>
+    </article>
+
+  </div>
+</section>
+
+<!-- LIVING MAP REVEAL -->
+<section class="livingmap wrap">
+  <div class="kicker">The living map</div>
+  <h2>Clayborn is one story. Here are all of them.</h2>
+  <p class="lead">Every memory finds its corner. Explore the community's cultural memory — filter by neighborhood, listen to the voices, and watch the map grow as Memphis tells its own story.</p>
+  <div class="mapframe">
+    <div class="openbar"><span class="tag">✦ Live map</span><a href="app.html">Open full experience ↗</a></div>
+    <iframe src="app.html" loading="lazy" title="Memphis Roots — the living cultural memory map"></iframe>
+  </div>
+  <p class="undernote">The map above is the real, interactive app — the same one used to collect and moderate stories at events.</p>
+</section>
+
+<!-- CLOSE -->
+<section class="close">
+  <div class="bg" id="closeBg"></div>
+  <div class="scrim"></div>
+  <div class="inner">
+    <div class="kicker" style="color:#fff;opacity:.9">Root your own</div>
+    <h2>Your memory belongs on this map. So does your vision.</h2>
+    <p>Tell us when you fell in love with Memphis, when you were scared, when you were hopeful — and what should grow here next. Every story is stewarded in the open and belongs to the community: you choose how your name travels with it, and what The Big We may carry to the city on your behalf. This is how healing gets built — in public, at the speed of trust.</p>
+    <div class="btns">
+      <a class="btn gold" href="app.html?mode=share&amp;kind=memory">🕯️ Share a Memory</a>
+      <a class="btn ghost" href="app.html?mode=share&amp;kind=future">✨ Add a Vision for Clayborn</a>
     </div>
+    <div class="elaine">This map centers the stories of elders like Elaine Turner — tying the past to the future we're co-creating.</div>
   </div>
+</section>
 
-  <!-- LIGHTBOX -->
-  <div class="lightbox" id="lightbox">
-    <div class="lightbox-close">✕</div>
-    <img id="lbImg" src="" alt="">
-  </div>
+<footer>
+  V3 design-direction prototype · <strong>The Clayborn Time Machine</strong> · Memphis Roots × The Big We.<br>
+  Reuses V2 seed photos &amp; brand tokens. Future scenes are placeholders for renders to commission.
+  See <em>08 — Direction C Build Brief</em>.
+</footer>
 
+<script>
+  var IMG = "media/";
+  function url(f){ return IMG + f; }
 
-  <script type="module" src="js/app.js"></script>
+  // set hero + close backgrounds
+  document.getElementById('heroBg').style.backgroundImage  = "url('"+url('clayborn-temple.jpg')+"')";
+  document.getElementById('closeBg').style.backgroundImage = "url('"+url('memphis-mural.jpg')+"')";
 
+  var frame  = document.getElementById('frame');
+  var stage  = document.getElementById('stage');
+  var capYr  = document.getElementById('capYr');
+  var capT   = document.getElementById('capTitle');
+  var capTx  = document.getElementById('capText');
+  var prog   = document.getElementById('prog');
+  var steps  = Array.prototype.slice.call(document.querySelectorAll('.step'));
+
+  function setFrame(f){ frame.style.backgroundImage = "url('"+url(f)+"')"; }
+  setFrame('clayborn-temple.jpg');
+
+  // ---- Phase data for the slider ----
+  var PHASES = [
+    { tag:'Today', color:'#6E6A80', img:'clayborn-temple.jpg', render:false,
+      title:'City-controlled, waiting',
+      blurb:'The lot next to Clayborn is owned by the City and controlled by a developer whose plan no longer serves the community. The first move is getting control turned over to Clayborn / The Big We.',
+      items:[['🚧','2.5 acres of underused land'],['⏳','Advocacy underway to return control to the community'],['🗺️','The blank canvas for everything below']] },
+    { tag:'+6 months', color:'#FFC300', img:'memphis-bbq.jpg', render:true,
+      title:'A market &amp; a tent',
+      blurb:'Food is the fulcrum. A weekly market and a gathering tent turn the lot into a living room — nourishment, commerce, and community while the temple is rebuilt.',
+      items:[['🍑','Weekly farmers &amp; creative-economy market'],['⛺','"We-vival" / Resto-Tent — a nondenominational weekly gathering'],['🎺','Live culture: bbq, music, placemaking']] },
+    { tag:'+1 year', color:'#17C3B2', img:'memphis-church.jpg', render:true,
+      title:'A resilience hub, externalized',
+      blurb:'The services that will one day live inside Clayborn get a trial run on the lot — a hub of care and opportunity that reaches the neighborhoods the market forgot.',
+      items:[['🚐','Transport to &amp; from structurally excluded neighborhoods'],['🧰','Job training, career resources, community services'],['🌱','Community gardening, greening, safety training']] },
+    { tag:'+5 years', color:'#3A86FF', img:'clayborn-temple.jpg', render:true,
+      title:'Clayborn, reopened',
+      blurb:'The temple reopens as a cultural and resilience hub at the center of a special district — a place of refuge, ownership, and joy, with MLK Reflection Park at its side.',
+      items:[['⛪','Clayborn as a cultural + resilience hub'],['🏛️','A special-district overlay anchoring the cultural economy'],['🕊️','MLK Reflection Park adjacent · shared ownership &amp; equity']] }
+  ];
+
+  var slider   = document.getElementById('slider');
+  var ticks    = document.getElementById('ticks');
+  var phaseBody= document.getElementById('phaseBody');
+  var futureActive = false;
+
+  function renderPhase(i){
+    var p = PHASES[i];
+    var li = p.items.map(function(it){ return '<li><span class="mk">'+it[0]+'</span><span>'+it[1]+'</span></li>'; }).join('');
+    phaseBody.innerHTML =
+      '<span class="ptag" style="background:'+p.color+';color:'+(i===1?'#241C3B':'#fff')+'">'+p.tag+'</span>'+
+      '<h5>'+p.title+'</h5><p>'+p.blurb+'</p><ul>'+li+'</ul>';
+    Array.prototype.forEach.call(ticks.children, function(b,idx){ b.classList.toggle('on', idx===i); });
+    // if the future step is the active scrolly step, reflect the phase in the sticky stage
+    if(futureActive){
+      setFrame(p.img);
+      capYr.textContent = p.tag;
+      capT.innerHTML = p.title;
+      capTx.innerHTML = p.blurb.replace(/<[^>]+>/g,'').slice(0,80)+'…';
+      stage.classList.toggle('is-render', p.render);
+    }
+  }
+  slider.addEventListener('input', function(){ renderPhase(parseInt(slider.value,10)); });
+  Array.prototype.forEach.call(ticks.children, function(b){
+    b.addEventListener('click', function(){ slider.value=b.dataset.i; renderPhase(parseInt(b.dataset.i,10)); });
+  });
+  renderPhase(0);
+
+  // ---- Scrollytelling: update sticky stage as steps enter ----
+  var railH = 0;
+  function updateProg(activeIdx){
+    var pct = steps.length>1 ? activeIdx/(steps.length-1) : 0;
+    prog.style.top = (pct*100)+'%';
+  }
+
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(!e.isIntersecting) return;
+      var s = e.target;
+      var idx = steps.indexOf(s);
+      updateProg(idx);
+      if(s.dataset.future){
+        futureActive = true;
+        renderPhase(parseInt(slider.value,10)); // stage follows slider
+      } else {
+        futureActive = false;
+        stage.classList.remove('is-render');
+        setFrame(s.dataset.img);
+        capYr.textContent = s.dataset.yr;
+        capT.innerHTML = s.dataset.cap;
+        capTx.innerHTML = s.dataset.captext;
+      }
+    });
+  }, { rootMargin:'-45% 0px -45% 0px', threshold:0 });
+
+  steps.forEach(function(s){ io.observe(s); });
+</script>
 </body>
 </html>
