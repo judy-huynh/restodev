@@ -260,6 +260,18 @@
     .spotlight{display:none}
     .detail{border-radius:20px 20px 0 0}
   }
+  @media(max-width:860px){
+    .appbar{gap:8px;padding:0 12px;height:54px}
+    .bk span{display:none}
+    .bk b{font-size:14.5px;white-space:nowrap}
+    .back-story{display:none}
+    .modlink{padding:6px 9px;font-size:12.5px}
+    .addbtn{padding:9px 13px;font-size:13px}
+    .addtail{display:none}
+    .fab{display:none}
+    .maptools{top:10px;right:10px}
+    .p-head h1{font-size:17px}
+  }
 </style>
 </head>
 <body>
@@ -271,7 +283,7 @@
   <div class="sp"></div>
   <button class="modlink" id="navImpact">Impact</button>
   <button class="modlink" id="navMod">Moderate</button>
-  <button class="addbtn" id="navAdd">＋ Share your story</button>
+  <button class="addbtn" id="navAdd">＋ Share<span class="addtail"> your story</span></button>
 </div>
 
 <main>
@@ -552,7 +564,7 @@ function openDetail(s){
       (s.campaign&&CAMPAIGNS[s.campaign]&&s.campaign!=="web"?'<div class="r"><span>Collected at</span><b>'+esc(CAMPAIGNS[s.campaign].label)+'</b></div>':"")+
     '</div>'+
     '<button class="d-locate" id="dLocate">📍 Show on the map</button></div>';
-  $("detail").classList.add("open");
+  $("detail").classList.add("open");$("panel").classList.add("up");
   $("dClose").addEventListener("click",closeDetail);
   var ab=$("affirmBtn");if(ab)ab.addEventListener("click",function(){s.affirms=(s.affirms||0)+1;save();renderMarkers();openDetail(s);toast("✨ You share this dream — "+s.affirms+" now");});
   $("dLocate").addEventListener("click",function(){if(map)map.flyTo([s.lat,s.lng],16,{duration:1.1});});
@@ -582,7 +594,7 @@ function openSpace(sp){
       '<button class="d-locate" id="proposeBtn" style="background:var(--gold);color:var(--text)">＋ Propose a use</button>'+
       '<div id="proposeForm"></div>'+
     '</div>';
-  $("detail").classList.add("open");
+  $("detail").classList.add("open");$("panel").classList.add("up");
   $("dClose").addEventListener("click",closeDetail);
   $("detail").querySelectorAll("[data-cosign]").forEach(function(b){b.addEventListener("click",function(){cosign(sp,b.dataset.cosign);});});
   $("proposeBtn").addEventListener("click",function(){showProposeForm(sp);});
