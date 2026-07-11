@@ -275,7 +275,7 @@
 </style>
 </head>
 <body>
-<div class="protobar">✦ <b>MEMPHIS ROOTS V3</b> · self-contained demo · no backend, no login</div>
+<div class="protobar">✦ <b>MEMPHIS ROOTS</b> · The Big We · live stories via Supabase &amp; moderated · commons &amp; dreams saved on this device</div>
 <div class="appbar">
   <div class="logo">BW</div>
   <div class="bk"><b>Memphis Roots</b><span>Culture as a Root · The Big We</span></div>
@@ -347,7 +347,7 @@
         <button data-tab="rejected">✕ Rejected</button>
       </div>
       <div id="adminList"></div>
-      <div class="adminbar"><span style="font-size:12px;color:var(--muted)">Demo controls:</span><button id="reseed">↻ Reset demo data</button><button id="backExplore">← Back to map</button></div>
+      <div class="adminbar"><button id="reseed">↻ Reload stories</button><button id="signout" style="display:none">Sign out</button><button id="backExplore">← Back to map</button></div>
     </div>
   </section>
   <!-- IMPACT -->
@@ -427,8 +427,27 @@ SPACES.forEach(function(sp){(sp.proposals||[]).forEach(function(p){if(!p.status)
 var KEY="mr_v3c_stories";
 function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&s.length)return s;}catch(e){}return null;}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(STORIES));}catch(e){}}
-var STORIES=load()||SEEDS.map(function(s){return Object.assign({},s);});save();
+var STORIES=SEEDS.map(function(s){return Object.assign({},s);}); // local fallback until Supabase loads
 function publicStories(){return STORIES.filter(function(s){return s.status==="approved"&&s.vis!=="heritage";});}
+
+/* ── Supabase: shared Ground Truth store · tenant memphis-roots ── */
+var AFF={};try{AFF=JSON.parse(localStorage.getItem("mr_aff"))||{};}catch(e){}
+function saveAff(){try{localStorage.setItem("mr_aff",JSON.stringify(AFF));}catch(e){}}
+var SUPA={url:"https://vhadxjbivhwfponuamrr.supabase.co",key:"sb_publishable_Vwq1aejqQH389yVwJf8jUQ_G21GQ7YX",tid:"fca03eae-2cbc-4f3e-b65e-cdbb9acfdb12",session:null};
+try{SUPA.session=JSON.parse(sessionStorage.getItem("mr_sess"))||null;}catch(e){}
+var VIS2CONSENT={full:"full_name",first:"first_name",anon:"anonymous",heritage:"advocacy_only"};
+var CONSENT2VIS={full_name:"full",first_name:"first",anonymous:"anon",advocacy_only:"heritage"};
+function supaHeaders(tok){return{apikey:SUPA.key,Authorization:"Bearer "+(tok||SUPA.key),"Content-Type":"application/json"};}
+function rowToStory(r){var a=r.answers||{},photo=null,audio=null;(r.media||[]).forEach(function(m){if(m.kind==="photo"&&!photo)photo=m.url;if(m.kind==="audio"&&!audio)audio=m.url;});var src=r.source||{};return{id:r.id,kind:a.kind||"memory",place:a.place_type||"",hood:r.location_label||a.corner||"Memphis",corner:a.corner||r.location_label||"",era:a.era||"today",story:a.story||"",lat:r.lat,lng:r.lng,name:r.display_name,vis:CONSENT2VIS[r.consent_level]||"first",inst:!!a.inst,photo:photo,audio:audio,campaign:src.campaign||"web",mode:src.mode||"web",affirms:AFF[r.id]||0,status:r.status||"approved"};}
+async function supaFetchApproved(){var res=await fetch(SUPA.url+"/rest/v1/stories?tenant_id=eq."+SUPA.tid+"&status=eq.approved&select=id,status,display_name,consent_level,answers,lat,lng,location_label,media,source,submitted_at&order=submitted_at.desc&limit=500",{headers:supaHeaders()});if(!res.ok)throw new Error("load "+res.status);return (await res.json()).map(rowToStory);}
+async function supaUpload(dataUrl,kind){var blob=await (await fetch(dataUrl)).blob();var ext=kind==="audio"?"webm":"jpg";var path="memphis-roots/"+Date.now()+"-"+Math.random().toString(36).slice(2,10)+"."+ext;var res=await fetch(SUPA.url+"/storage/v1/object/story-media/"+path,{method:"POST",headers:{apikey:SUPA.key,Authorization:"Bearer "+SUPA.key,"Content-Type":blob.type||"application/octet-stream"},body:blob});if(!res.ok)throw new Error("media "+res.status);return{url:SUPA.url+"/storage/v1/object/public/story-media/"+path,kind:kind};}
+async function supaSubmit(d){var media=[];if(d.photo){try{media.push(await supaUpload(d.photo,"photo"));}catch(e){}}if(d.audio){try{media.push(await supaUpload(d.audio,"audio"));}catch(e){}}var row={id:(window.crypto&&crypto.randomUUID?crypto.randomUUID():uid()),tenant_id:SUPA.tid,status:"pending",consent_level:VIS2CONSENT[d.vis]||"first_name",display_name:(d.vis==="anon"||d.vis==="heritage")?null:(d.name||null),answers:{kind:d.kind,place_type:d.place||null,era:d.era,story:d.story,corner:d.corner||null,inst:!!d.inst},lat:d.lat,lng:d.lng,location_label:d.hood||d.corner||null,media:media,source:{campaign:d.campaign,mode:d.mode}};var res=await fetch(SUPA.url+"/rest/v1/stories",{method:"POST",headers:Object.assign(supaHeaders(),{Prefer:"return=minimal"}),body:JSON.stringify(row)});if(!res.ok&&res.status!==409)throw new Error("submit "+res.status+": "+(await res.text()).slice(0,140));return true;}
+async function supaLogin(email,password){var res=await fetch(SUPA.url+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:SUPA.key,"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password})});var d=await res.json();if(!res.ok||!d.access_token)throw new Error(d.error_description||d.msg||"sign-in failed");SUPA.session=d;try{sessionStorage.setItem("mr_sess",JSON.stringify(d));}catch(e){}}
+function supaLogout(){SUPA.session=null;try{sessionStorage.removeItem("mr_sess");}catch(e){}}
+async function supaAuthed(path,opts){opts=opts||{};var res=await fetch(SUPA.url+"/rest/v1/"+path,Object.assign({},opts,{headers:Object.assign(supaHeaders(SUPA.session&&SUPA.session.access_token),opts.headers||{})}));if(res.status===401){supaLogout();throw new Error("SESSION");}if(!res.ok)throw new Error((opts.method||"GET")+" "+res.status);var t=await res.text();return t?JSON.parse(t):null;}
+async function supaByStatus(st){return supaAuthed("stories?tenant_id=eq."+SUPA.tid+"&status=eq."+st+"&select=id,status,display_name,consent_level,answers,lat,lng,location_label,media,source,submitted_at&order=submitted_at.desc&limit=300");}
+async function supaSetStatus(id,st){await supaAuthed("stories?id=eq."+id,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(st==="approved"?{status:"approved",approved_at:new Date().toISOString(),rejected_at:null}:{status:"rejected",rejected_at:new Date().toISOString(),approved_at:null})});}
+async function refreshStories(){try{STORIES=await supaFetchApproved();}catch(e){console.warn("refresh failed",e);}renderSelects();apply();}
 
 /* helpers */
 function $(id){return document.getElementById(id);}
@@ -566,7 +585,7 @@ function openDetail(s){
     '<button class="d-locate" id="dLocate">📍 Show on the map</button></div>';
   $("detail").classList.add("open");$("panel").classList.add("up");
   $("dClose").addEventListener("click",closeDetail);
-  var ab=$("affirmBtn");if(ab)ab.addEventListener("click",function(){s.affirms=(s.affirms||0)+1;save();renderMarkers();openDetail(s);toast("✨ You share this dream — "+s.affirms+" now");});
+  var ab=$("affirmBtn");if(ab)ab.addEventListener("click",function(){AFF[s.id]=(AFF[s.id]||0)+1;saveAff();s.affirms=AFF[s.id];renderMarkers();openDetail(s);toast("✨ You share this dream — "+s.affirms+" now");});
   $("dLocate").addEventListener("click",function(){if(map)map.flyTo([s.lat,s.lng],16,{duration:1.1});});
   $("detail").querySelectorAll("[data-tag]").forEach(function(el){el.addEventListener("click",function(){
     var t=el.dataset.tag;if(t==="hood")F.hood=s.hood;else if(t==="era")F.era=s.era;else if(t==="place")F.place=s.place;else if(t==="kind"){F.kinds=new Set([s.kind]);}
@@ -699,7 +718,7 @@ function wirePhoto(){var btn=$("photoBtn"),inp=$("photoIn");if(draft.photo)$("ph
   inp.addEventListener("change",function(){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var img=new Image();img.onload=function(){var max=1000,sc=Math.min(1,max/Math.max(img.width,img.height));var cv=document.createElement("canvas");cv.width=img.width*sc;cv.height=img.height*sc;cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);draft.photo=cv.toDataURL("image/jpeg",0.82);$("photoPrev").innerHTML='<img class="prev" src="'+draft.photo+'">';};img.src=r.result;};r.readAsDataURL(f);});
 }
 function initPinMap(){if(pinMap){pinMap.remove();pinMap=null;}pinMap=L.map("pinmap").setView([draft.lat,draft.lng],14);L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19}).addTo(pinMap);pinMarker=L.marker([draft.lat,draft.lng],{draggable:true,icon:mkIcon(KIND[draft.kind].color)}).addTo(pinMap);pinMarker.on("dragend",function(){var p=pinMarker.getLatLng();draft.lat=p.lat;draft.lng=p.lng;});pinMap.on("click",function(e){draft.lat=e.latlng.lat;draft.lng=e.latlng.lng;pinMarker.setLatLng(e.latlng);});setTimeout(function(){pinMap.invalidateSize();},80);}
-function submitDraft(){if(!draft.hood)draft.hood=draft.corner||"Memphis";draft.status="pending";STORIES.unshift(draft);save();var d=draft;draft=null;renderThanks(d);showView("thanks");}
+async function submitDraft(){if(!draft)return;if(!draft.hood)draft.hood=draft.corner||"Memphis";var d=draft;var btn=$("submitBtn");if(btn){btn.disabled=true;btn.textContent="Sending…";}try{await supaSubmit(d);}catch(e){toast("⚠️ Couldn't send — "+((e&&e.message)||"try again"));if(btn){btn.disabled=false;btn.textContent="🌳 Root this "+(d.kind==="future"?"vision":"memory");}console.warn(e);return;}draft=null;renderThanks(d);showView("thanks");}
 function renderThanks(s){var isV=s.kind==="future";
   var na=isV?publicStories().filter(function(x){return x.kind==="future"&&x.hood===s.hood&&x.id!==s.id;}).length:0;
   $("thanksInner").innerHTML='<div class="thanks"><div class="big">🌳</div><h2>'+(isV?"Vision":"Memory")+' rooted!</h2><p>Thank you'+(s.name?", "+esc(s.name.split(" ")[0]):"")+'. The Big We will review it before it joins the public map — so the collection stays in the community\'s hands.</p>'+(na>0?'<div class="notalone">✨ You\'re not alone — '+na+' neighbor'+(na===1?'':'s')+' already dream near '+esc(s.hood)+'. This is how a shared future becomes visible.</div>':"")+'<div class="thanksmap" id="thanksmap"></div><div class="cardmini"><div style="font-size:12px;font-weight:700;color:'+KIND[s.kind].color+'">'+KIND[s.kind].emoji+' '+esc(KIND[s.kind].label)+'</div><div style="font-size:14px;margin:6px 0">'+esc(s.story)+'</div>'+(s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+'<div style="font-size:12px;color:var(--muted)">'+esc(s.corner)+' · '+esc(eraLabel(s.era))+'</div></div><div class="row" style="justify-content:center"><button class="btn ghost" id="tMap">See the map</button><button class="btn prim" id="tAgain" style="flex:none;padding:14px 22px">Add another</button></div><p style="margin-top:20px;font-size:12px">Want to watch it go live? Open <b>Moderate</b> and approve it.</p></div>';
@@ -710,25 +729,31 @@ function renderThanks(s){var isV=s.kind==="future";
 /* ── admin ── */
 var adminTab="pending";
 document.querySelectorAll(".tabs button").forEach(function(b){b.addEventListener("click",function(){adminTab=b.dataset.tab;document.querySelectorAll(".tabs button").forEach(function(x){x.classList.remove("on");});b.classList.add("on");renderAdmin();});});
-function renderAdmin(){
-  var nP=STORIES.filter(function(s){return s.status==="pending";}).length,nA=STORIES.filter(function(s){return s.status==="approved";}).length;
+async function renderAdmin(){
+  var tabsEl=document.querySelector("#v-admin .tabs"),sb=$("signout");
+  if(!SUPA.session){ if(tabsEl)tabsEl.style.display="none"; if(sb)sb.style.display="none"; renderLogin(); return; }
+  if(tabsEl)tabsEl.style.display=""; if(sb)sb.style.display="";
   var pend=[];SPACES.forEach(function(sp){(sp.proposals||[]).forEach(function(p){if(p.status==="pending")pend.push({sp:sp,p:p});});});
-  $("nPend").textContent=(nP+pend.length)?"("+(nP+pend.length)+")":"";$("nAppr").textContent=nA?"("+nA+")":"";
-  var propsHtml=(adminTab==="pending"&&pend.length)?('<div class="prophead" style="color:var(--anchor)">🏗️ Space ideas awaiting review · '+pend.length+'</div>'+pend.map(function(x){return '<div class="scard"><div class="thumb ph" style="background:#FFF4D6">🏗️</div><div style="flex:1;min-width:0"><div class="meta"><b>'+esc(x.sp.name)+'</b></div><div class="txt">"'+esc(x.p.text)+'"</div><div class="meta">proposed by '+esc(x.p.name||"a neighbor")+'</div><div class="acts"><button class="approve" data-approveprop="'+x.sp.id+'~'+x.p.id+'">✓ Approve idea</button><button class="reject" data-rejectprop="'+x.sp.id+'~'+x.p.id+'">✕ Reject</button></div></div></div>';}).join("")+'<div class="prophead" style="margin-top:18px">Stories</div>'):"";
-  var list=STORIES.filter(function(s){return s.status===adminTab;});
-  var storiesHtml=list.length?list.map(function(s){var k=KIND[s.kind]||KIND.memory,src=photoSrc(s.photo);
-    var thumb=src?'<img class="thumb" src="'+src+'">':'<div class="thumb ph">'+k.emoji+'</div>';
-    return '<div class="scard">'+thumb+'<div style="flex:1;min-width:0"><div class="kline"><span class="ktag" style="background:'+k.color+'">'+k.emoji+' '+esc(k.label)+'</span><span class="pill-status '+s.status+'">'+s.status+'</span>'+(s.vis==="heritage"?'<span class="pill-status heritage">heritage-only</span>':"")+(s.inst?'<span class="meta">✓ ok to share w/ city</span>':'<span class="meta">community-only</span>')+'</div><div class="meta">'+esc(displayName(s))+' · '+esc(s.hood)+' · '+esc(eraLabel(s.era))+(s.campaign&&CAMPAIGNS[s.campaign]&&s.campaign!=="web"?' · '+CAMPAIGNS[s.campaign].icon+' '+esc(CAMPAIGNS[s.campaign].label):"")+'</div><div class="txt">'+esc(s.story)+'</div>'+(s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+'<div class="acts">'+(s.status!=="approved"?'<button class="approve" data-appr="'+s.id+'">✓ Approve</button>':"")+(s.status!=="rejected"?'<button class="reject" data-rej="'+s.id+'">✕ Reject</button>':"")+'</div></div></div>';
-  }).join(""):'<div class="empty">'+(adminTab==="pending"?"No stories pending review. 🎉":adminTab==="approved"?"No approved stories yet.":"No rejected stories.")+'</div>';
+  var propsHtml=(adminTab==="pending"&&pend.length)?('<div class="prophead" style="color:var(--anchor)">🏗️ Space ideas awaiting review · '+pend.length+' <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint)">(this device)</span></div>'+pend.map(function(x){return '<div class="scard"><div class="thumb ph" style="background:#FFF4D6">🏗️</div><div style="flex:1;min-width:0"><div class="meta"><b>'+esc(x.sp.name)+'</b></div><div class="txt">"'+esc(x.p.text)+'"</div><div class="meta">proposed by '+esc(x.p.name||"a neighbor")+'</div><div class="acts"><button class="approve" data-approveprop="'+x.sp.id+'~'+x.p.id+'">✓ Approve idea</button><button class="reject" data-rejectprop="'+x.sp.id+'~'+x.p.id+'">✕ Reject</button></div></div></div>';}).join("")+'<div class="prophead" style="margin-top:18px">Stories · Supabase</div>'):"";
+  $("adminList").innerHTML=propsHtml+'<div class="empty">Loading…</div>';wireProps();
+  var rows;
+  try{ rows=await supaByStatus(adminTab); }
+  catch(e){ if(e.message==="SESSION"){renderLogin("Session expired — please sign in again.");return;} $("adminList").innerHTML=propsHtml+'<div class="empty">⚠️ Couldn\'t load ('+esc(e.message)+')</div>';wireProps();return; }
+  if(adminTab==="pending")$("nPend").textContent=(rows.length+pend.length)?"("+(rows.length+pend.length)+")":"";
+  if(adminTab==="approved")$("nAppr").textContent=rows.length?"("+rows.length+")":"";
+  var storiesHtml=rows.length?rows.map(function(r){var s=rowToStory(r),k=KIND[s.kind]||KIND.memory,src=photoSrc(s.photo);var thumb=src?'<img class="thumb" src="'+src+'">':'<div class="thumb ph">'+k.emoji+'</div>';return '<div class="scard">'+thumb+'<div style="flex:1;min-width:0"><div class="kline"><span class="ktag" style="background:'+k.color+'">'+k.emoji+' '+esc(k.label)+'</span><span class="pill-status '+s.status+'">'+s.status+'</span>'+(s.vis==="heritage"?'<span class="pill-status heritage">heritage-only</span>':"")+(s.inst?'<span class="meta">✓ ok to share w/ city</span>':'<span class="meta">community-only</span>')+'</div><div class="meta">'+esc(displayName(s))+' · '+esc(s.hood)+' · '+esc(eraLabel(s.era))+(s.campaign&&CAMPAIGNS[s.campaign]&&s.campaign!=="web"?' · '+CAMPAIGNS[s.campaign].icon+' '+esc(CAMPAIGNS[s.campaign].label):"")+'</div><div class="txt">'+esc(s.story)+'</div>'+(s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+'<div class="acts">'+(s.status!=="approved"?'<button class="approve" data-appr="'+s.id+'">✓ Approve</button>':"")+(s.status!=="rejected"?'<button class="reject" data-rej="'+s.id+'">✕ Reject</button>':"")+'</div></div></div>';}).join(""):'<div class="empty">'+(adminTab==="pending"?"No stories pending review. 🎉":adminTab==="approved"?"No approved stories yet.":"No rejected stories.")+'</div>';
   $("adminList").innerHTML=propsHtml+storiesHtml;
-  $("adminList").querySelectorAll("[data-appr]").forEach(function(b){b.addEventListener("click",function(){setStatus(b.dataset.appr,"approved");});});
-  $("adminList").querySelectorAll("[data-rej]").forEach(function(b){b.addEventListener("click",function(){setStatus(b.dataset.rej,"rejected");});});
-  $("adminList").querySelectorAll("[data-approveprop]").forEach(function(b){b.addEventListener("click",function(){var a=b.dataset.approveprop.split("~");setPropStatus(a[0],a[1],"approved");});});
-  $("adminList").querySelectorAll("[data-rejectprop]").forEach(function(b){b.addEventListener("click",function(){var a=b.dataset.rejectprop.split("~");setPropStatus(a[0],a[1],"rejected");});});
+  $("adminList").querySelectorAll("[data-appr]").forEach(function(b){b.addEventListener("click",function(){modStory(b.dataset.appr,"approved");});});
+  $("adminList").querySelectorAll("[data-rej]").forEach(function(b){b.addEventListener("click",function(){modStory(b.dataset.rej,"rejected");});});
+  wireProps();
 }
+function wireProps(){$("adminList").querySelectorAll("[data-approveprop]").forEach(function(b){b.addEventListener("click",function(){var a=b.dataset.approveprop.split("~");setPropStatus(a[0],a[1],"approved");});});$("adminList").querySelectorAll("[data-rejectprop]").forEach(function(b){b.addEventListener("click",function(){var a=b.dataset.rejectprop.split("~");setPropStatus(a[0],a[1],"rejected");});});}
+async function modStory(id,st){try{await supaSetStatus(id,st);}catch(e){if(e.message==="SESSION"){renderLogin("Session expired — please sign in again.");return;}toast("⚠️ "+e.message);return;}toast(st==="approved"?"✓ Approved — now live on the map":"Story rejected");await refreshStories();renderAdmin();}
+function renderLogin(msg){$("adminList").innerHTML='<div style="max-width:360px;margin:8px auto 0;background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px"><h3 style="margin:0 0 4px;font-family:var(--display)">Moderator sign-in</h3><p style="font-size:13px;color:var(--muted);margin:0 0 16px">Sign in with your Ground Truth moderator account to review and approve community stories.</p><input type="email" class="ti" id="mEmail" placeholder="Email" autocomplete="username" style="margin-bottom:10px"><input type="password" class="ti" id="mPass" placeholder="Password" autocomplete="current-password" style="margin-bottom:6px"><div id="mErr" style="color:#B42318;font-size:12.5px;min-height:17px">'+(msg?esc(msg):"")+'</div><button class="btn prim" id="mLogin" style="width:100%;margin-top:8px">Sign in</button></div>';$("mLogin").addEventListener("click",async function(){var em=$("mEmail").value.trim(),pw=$("mPass").value;if(!em||!pw)return;$("mErr").textContent="";this.disabled=true;this.textContent="Signing in…";try{await supaLogin(em,pw);}catch(err){$("mErr").textContent=err.message;this.disabled=false;this.textContent="Sign in";return;}renderAdmin();});$("mPass").addEventListener("keydown",function(e){if(e.key==="Enter")$("mLogin").click();});}
 function setPropStatus(sid,pid,st){var sp=SPACES.find(function(x){return x.id===sid;});if(!sp)return;var p=(sp.proposals||[]).find(function(x){return x.id===pid;});if(!p)return;p.status=st;saveSpaces();renderAdmin();toast(st==="approved"?"✓ Space idea approved — now on the commons":"Space idea rejected");}
 function setStatus(id,st){var s=STORIES.find(function(x){return x.id===id;});if(!s)return;s.status=st;save();renderAdmin();apply();toast(st==="approved"?(s.vis==="heritage"?"✓ Approved — added to the private heritage record":"✓ Approved — now live on the map"):"Story hidden from the map");}
-$("reseed").addEventListener("click",function(){if(!confirm("Reset to the original demo data? This clears anything you added."))return;STORIES=SEEDS.map(function(s){return Object.assign({},s);});SPACES=JSON.parse(JSON.stringify(SEED_SPACES));save();saveSpaces();renderAdmin();apply();toast("↻ Demo data reset");});
+$("reseed").addEventListener("click",async function(){await refreshStories();toast("↻ Reloaded stories from Supabase");});
+$("signout").addEventListener("click",function(){supaLogout();toast("Signed out");renderAdmin();});
 
 /* ── impact dashboard ── */
 function renderImpact(){
@@ -787,6 +812,7 @@ if(mode==="share"||mode==="kiosk"){showView("explore");startCapture(kindParam||n
 else if(mode==="admin"){showView("admin");}
 else{showView("explore");}
 setTimeout(renderSpotlight,400);
+(async function(){try{STORIES=await supaFetchApproved();renderSelects();apply();renderSpotlight();}catch(e){console.warn("Supabase load failed; showing local seed stories.",e);}})();
 </script>
 </body>
 </html>
