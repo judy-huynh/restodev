@@ -480,10 +480,14 @@ function filtered(){return publicStories().filter(passes);}
 
 /* ── map ── */
 var map,anchorLayer,spacesLayer,markersById={},anchorsOn=true,spacesOn=true,ctxLayers={};
+/* Base map tiles: Mapbox. Swap MAP_STYLE to your own Mapbox Studio style to restyle everything. */
+var MAPBOX_TOKEN="pk.eyJ1IjoiajAwYnkiLCJhIjoiY2x1bHUzbXZnMGhuczJxcG83YXY4czJ3ayJ9.S5PZpU9VDwLMjoX_0x5FDQ";
+var MAP_STYLE="mapbox/light-v11"; // Mapbox Studio: change to "j00by/<your-style-id>" for a custom style
+function baseTiles(){return L.tileLayer("https://api.mapbox.com/styles/v1/"+MAP_STYLE+"/tiles/{z}/{x}/{y}?access_token="+MAPBOX_TOKEN,{tileSize:512,zoomOffset:-1,maxZoom:19,attribution:'&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'});}
 function initMap(){
   if(map)return;
   map=L.map("map",{zoomControl:true,attributionControl:true}).setView([35.132,-90.02],12.6);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+  baseTiles().addTo(map);
   map.createPane("ctx");map.getPane("ctx").style.zIndex=350; // context data sits below story pins
   anchorLayer=L.layerGroup();
   ANCHORS.forEach(function(a){
@@ -741,13 +745,13 @@ function wirePhoto(){var btn=$("photoBtn"),inp=$("photoIn");if(draft.photo)$("ph
   btn.addEventListener("click",function(){inp.click();});
   inp.addEventListener("change",function(){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var img=new Image();img.onload=function(){var max=1000,sc=Math.min(1,max/Math.max(img.width,img.height));var cv=document.createElement("canvas");cv.width=img.width*sc;cv.height=img.height*sc;cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);draft.photo=cv.toDataURL("image/jpeg",0.82);$("photoPrev").innerHTML='<img class="prev" src="'+draft.photo+'">';};img.src=r.result;};r.readAsDataURL(f);});
 }
-function initPinMap(){if(pinMap){pinMap.remove();pinMap=null;}pinMap=L.map("pinmap").setView([draft.lat,draft.lng],14);L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19}).addTo(pinMap);pinMarker=L.marker([draft.lat,draft.lng],{draggable:true,icon:mkIcon(KIND[draft.kind].color)}).addTo(pinMap);pinMarker.on("dragend",function(){var p=pinMarker.getLatLng();draft.lat=p.lat;draft.lng=p.lng;});pinMap.on("click",function(e){draft.lat=e.latlng.lat;draft.lng=e.latlng.lng;pinMarker.setLatLng(e.latlng);});setTimeout(function(){pinMap.invalidateSize();},80);}
+function initPinMap(){if(pinMap){pinMap.remove();pinMap=null;}pinMap=L.map("pinmap").setView([draft.lat,draft.lng],14);baseTiles().addTo(pinMap);pinMarker=L.marker([draft.lat,draft.lng],{draggable:true,icon:mkIcon(KIND[draft.kind].color)}).addTo(pinMap);pinMarker.on("dragend",function(){var p=pinMarker.getLatLng();draft.lat=p.lat;draft.lng=p.lng;});pinMap.on("click",function(e){draft.lat=e.latlng.lat;draft.lng=e.latlng.lng;pinMarker.setLatLng(e.latlng);});setTimeout(function(){pinMap.invalidateSize();},80);}
 async function submitDraft(){if(!draft)return;if(!draft.hood)draft.hood=draft.corner||"Memphis";var d=draft;var btn=$("submitBtn");if(btn){btn.disabled=true;btn.textContent="Sending…";}try{await supaSubmit(d);}catch(e){toast("⚠️ Couldn't send — "+((e&&e.message)||"try again"));if(btn){btn.disabled=false;btn.textContent="🌳 Root this "+(d.kind==="future"?"vision":"memory");}console.warn(e);return;}draft=null;renderThanks(d);showView("thanks");}
 function renderThanks(s){var isV=s.kind==="future";
   var na=isV?publicStories().filter(function(x){return x.kind==="future"&&x.hood===s.hood&&x.id!==s.id;}).length:0;
   $("thanksInner").innerHTML='<div class="thanks"><div class="big">🌳</div><h2>'+(isV?"Vision":"Memory")+' rooted!</h2><p>Thank you'+(s.name?", "+esc(s.name.split(" ")[0]):"")+'. The Big We will review it before it joins the public map — so the collection stays in the community\'s hands.</p>'+(na>0?'<div class="notalone">✨ You\'re not alone — '+na+' neighbor'+(na===1?'':'s')+' already dream near '+esc(s.hood)+'. This is how a shared future becomes visible.</div>':"")+'<div class="thanksmap" id="thanksmap"></div><div class="cardmini"><div style="font-size:12px;font-weight:700;color:'+KIND[s.kind].color+'">'+KIND[s.kind].emoji+' '+esc(KIND[s.kind].label)+'</div><div style="font-size:14px;margin:6px 0">'+esc(s.story)+'</div>'+(s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+'<div style="font-size:12px;color:var(--muted)">'+esc(s.corner)+' · '+esc(eraLabel(s.era))+'</div></div><div class="row" style="justify-content:center"><button class="btn ghost" id="tMap">See the map</button><button class="btn prim" id="tAgain" style="flex:none;padding:14px 22px">Add another</button></div><p style="margin-top:20px;font-size:12px">Want to watch it go live? Open <b>Moderate</b> and approve it.</p></div>';
   $("tMap").addEventListener("click",function(){showView("explore");apply();});$("tAgain").addEventListener("click",function(){startCapture();});
-  setTimeout(function(){if(thanksMap){thanksMap.remove();thanksMap=null;}thanksMap=L.map("thanksmap",{zoomControl:false,dragging:false,scrollWheelZoom:false}).setView([s.lat,s.lng],15);L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd"}).addTo(thanksMap);L.marker([s.lat,s.lng],{icon:mkIcon(KIND[s.kind].color)}).addTo(thanksMap);setTimeout(function(){thanksMap.invalidateSize();},80);},60);
+  setTimeout(function(){if(thanksMap){thanksMap.remove();thanksMap=null;}thanksMap=L.map("thanksmap",{zoomControl:false,dragging:false,scrollWheelZoom:false}).setView([s.lat,s.lng],15);baseTiles().addTo(thanksMap);L.marker([s.lat,s.lng],{icon:mkIcon(KIND[s.kind].color)}).addTo(thanksMap);setTimeout(function(){thanksMap.invalidateSize();},80);},60);
 }
 
 /* ── admin ── */

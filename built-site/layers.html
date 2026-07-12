@@ -75,8 +75,11 @@
 <script>
 "use strict";
 var CLAYBORN=[35.1338,-90.0565];
+var MAPBOX_TOKEN="pk.eyJ1IjoiajAwYnkiLCJhIjoiY2x1bHUzbXZnMGhuczJxcG83YXY4czJ3ayJ9.S5PZpU9VDwLMjoX_0x5FDQ";
+var MAP_STYLE="mapbox/light-v11"; // Mapbox Studio: change to "j00by/<your-style-id>" for a custom style
+function baseTiles(){return L.tileLayer("https://api.mapbox.com/styles/v1/"+MAP_STYLE+"/tiles/{z}/{x}/{y}?access_token="+MAPBOX_TOKEN,{tileSize:512,zoomOffset:-1,maxZoom:19,attribution:'&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'});}
 var map=L.map("map",{zoomControl:true}).setView([35.128,-90.03],12.4);
-L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+baseTiles().addTo(map);
 
 /* cultural anchors (real Memphis places) */
 var ANCHORS=[
