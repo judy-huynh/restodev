@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Memphis Roots: Base Map (real Memphis layers)</title>
+<meta name="description" content="A base map for the Memphis Roots workshop, layering real Memphis GIS data (flood risk, food access, parks, community centers) under the cultural anchors.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E🗺️%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#FF477E;--accent:#17C3B2;--gold:#FFC300;--future:#3A86FF;--purple:#8338EC;
+    --anchor:#FB5607;--green:#1B7A3D;--amber:#E0A100;--text:#241C3B;--muted:#6E6A80;
+    --bg:#FFFDF4;--border:#EEE3E9;--font:'Plus Jakarta Sans',system-ui,sans-serif;--display:'Unbounded',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:var(--font);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+  .protobar{background:var(--text);color:#fff;font-size:11.5px;text-align:center;padding:5px;flex:none}
+  .protobar b{color:var(--gold)}
+  header{display:flex;align-items:center;gap:13px;padding:11px 18px;background:#fff;border-bottom:1px solid var(--border);flex:none;z-index:600}
+  .logo{width:36px;height:36px;border-radius:10px;background:var(--primary);display:grid;place-items:center;font-family:var(--display);font-weight:700;color:#fff;font-size:13px}
+  header b{font-family:var(--display);font-size:15px;display:block;line-height:1.1}
+  header span{font-size:11.5px;color:var(--muted)}
+  header .back{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:8px 13px;border-radius:10px}
+  header .back:hover{color:var(--primary)}
+  main{flex:1;position:relative}
+  #map{position:absolute;inset:0;background:#EDE7E0}
+  .panel{position:absolute;top:14px;right:14px;z-index:500;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 34px -18px rgba(36,28,59,.5);width:250px;max-height:calc(100% - 28px);overflow:auto}
+  .panel h2{font-family:var(--display);font-size:13px;margin:0;padding:14px 16px 4px}
+  .panel .sub{font-size:11px;color:var(--muted);padding:0 16px 10px;margin:0}
+  .row{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;border-top:1px solid var(--border)}
+  .row:hover{background:var(--bg)}
+  .row input{margin:0;cursor:pointer}
+  .sw{width:14px;height:14px;border-radius:4px;flex:none}
+  .sw.line{border-radius:3px;border:1.5px solid}
+  .row .lab{font-size:12.5px;font-weight:600;flex:1;min-width:0}
+  .row .lab small{display:block;font-weight:400;color:var(--muted);font-size:10.5px}
+  .row .ct{font-size:11px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+  .foodkey{padding:8px 16px 12px;font-size:10.5px;color:var(--muted);border-top:1px solid var(--border);line-height:1.7}
+  .foodkey i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  footer{flex:none;background:#fff;border-top:1px solid var(--border);padding:8px 18px;font-size:10.5px;color:var(--muted);line-height:1.5;max-height:74px;overflow:auto}
+  footer b{color:var(--text)}
+  .leaflet-popup-content{font-family:var(--font);font-size:13px;margin:11px 13px}
+  .leaflet-popup-content b{font-family:var(--display);font-weight:600}
+  .anchor-ico{width:15px;height:15px;background:var(--anchor);border:2px solid #fff;transform:rotate(45deg);box-shadow:0 2px 5px rgba(0,0,0,.4)}
+  @media(max-width:640px){.panel{width:210px;top:10px;right:10px}}
+</style>
+</head>
+<body>
+<div class="protobar">✦ <b>MEMPHIS ROOTS</b> · base map for the workshop · real Memphis GIS layers under the cultural anchors</div>
+<header>
+  <div class="logo">BW</div>
+  <div><b>Memphis Roots: Base Map</b><span>Culture as a Root · The Big We</span></div>
+  <a class="back" href="index.html">← The story</a>
+</header>
+<main>
+  <div id="map"></div>
+  <div class="panel">
+    <h2>Layers</h2>
+    <p class="sub">Real Memphis data. Toggle to build the counter-map.</p>
+    <label class="row"><input type="checkbox" id="l-anchors" checked><span class="sw" style="background:var(--anchor)"></span><span class="lab">Cultural anchors<small>Clayborn, Beale, Stax, and more</small></span><span class="ct" id="c-anchors"></span></label>
+    <label class="row"><input type="checkbox" id="l-flood" checked><span class="sw line" style="border-color:var(--future);background:rgba(58,134,255,.25)"></span><span class="lab">Flood risk<small>FEMA zones A and AE</small></span><span class="ct" id="c-flood"></span></label>
+    <label class="row"><input type="checkbox" id="l-food" checked><span class="sw" style="background:var(--green)"></span><span class="lab">Food access<small>SNAP-authorized retailers</small></span><span class="ct" id="c-food"></span></label>
+    <label class="row"><input type="checkbox" id="l-parks"><span class="sw" style="background:var(--accent)"></span><span class="lab">Parks<small>City of Memphis</small></span><span class="ct" id="c-parks"></span></label>
+    <label class="row"><input type="checkbox" id="l-comm"><span class="sw" style="background:var(--purple)"></span><span class="lab">Community centers<small>City of Memphis</small></span><span class="ct" id="c-comm"></span></label>
+    <div class="foodkey"><b style="color:var(--text)">Food key:</b><br><i style="background:var(--green)"></i>Grocery, supermarket, farmers market<br><i style="background:var(--amber)"></i>Convenience or other (limited food)</div>
+  </div>
+</main>
+<footer>
+  <b>Sources (snapshots, 2026):</b> Flood, FEMA National Flood Hazard Layer. Food, USDA FNS SNAP Retailer Locations. Parks and community centers, City of Memphis Data Hub. Cultural anchors, Memphis Roots. Full inventory with dates and links is in the project notes. These are static snapshots for the workshop, not a live feed.
+</footer>
+<script>
+"use strict";
+var CLAYBORN=[35.1338,-90.0565];
+var map=L.map("map",{zoomControl:true}).setView([35.128,-90.03],12.4);
+L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+
+/* cultural anchors (real Memphis places) */
+var ANCHORS=[
+ {n:"Clayborn Temple",lat:35.1338,lng:-90.0565},{n:"Beale Street Historic District",lat:35.1400,lng:-90.0510},
+ {n:"National Civil Rights Museum (Lorraine Motel)",lat:35.1341,lng:-90.0577},{n:"Stax Museum · Soulsville",lat:35.1148,lng:-90.0292},
+ {n:"Orange Mound",lat:35.1195,lng:-90.0072},{n:"Robert Church Park",lat:35.1372,lng:-90.0489}
+];
+var anchorLayer=L.layerGroup();
+ANCHORS.forEach(function(a){
+  L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="anchor-ico"></div>',iconSize:[15,15],iconAnchor:[7,7]})}).bindPopup("<b>"+a.n+"</b><br>Cultural anchor").addTo(anchorLayer);
+});
+anchorLayer.addTo(map);
+document.getElementById("c-anchors").textContent=ANCHORS.length;
+
+/* generic loader */
+function load(file,onData){
+  return fetch("data/"+file).then(function(r){return r.json();}).then(onData).catch(function(e){console.warn("layer failed:",file,e);});
+}
+function circle(color,r){return {radius:r||5,fillColor:color,color:"#fff",weight:1,fillOpacity:.9};}
+
+/* flood polygons */
+var floodLayer=L.geoJSON(null,{style:function(){return {color:"#2b6cb0",weight:1,fillColor:"#3A86FF",fillOpacity:.22};},
+  onEachFeature:function(f,l){l.bindPopup("<b>Flood zone "+(f.properties.zone||"")+"</b><br>FEMA high-risk area");}});
+load("flood.geojson",function(d){floodLayer.addData(d);floodLayer.addTo(map);document.getElementById("c-flood").textContent=(d.features||[]).length;});
+
+/* food (SNAP) colored by type */
+var FULL={"Grocery Store":1,"Supermarket":1,"Super Store":1,"Farmers and Markets":1};
+var foodLayer=L.geoJSON(null,{pointToLayer:function(f,ll){var full=FULL[f.properties.type];return L.circleMarker(ll,circle(full?"#1B7A3D":"#E0A100",5));},
+  onEachFeature:function(f,l){l.bindPopup("<b>"+(f.properties.name||"Food retailer")+"</b><br>"+(f.properties.type||""));}});
+load("food.geojson",function(d){foodLayer.addData(d);foodLayer.addTo(map);document.getElementById("c-food").textContent=(d.features||[]).length;});
+
+/* parks */
+var parksLayer=L.geoJSON(null,{pointToLayer:function(f,ll){return L.circleMarker(ll,circle("#17C3B2",4));},
+  onEachFeature:function(f,l){l.bindPopup("<b>"+(f.properties.name||"Park")+"</b><br>City of Memphis park");}});
+load("parks.geojson",function(d){parksLayer.addData(d);document.getElementById("c-parks").textContent=(d.features||[]).length;});
+
+/* community centers */
+var commLayer=L.geoJSON(null,{pointToLayer:function(f,ll){return L.circleMarker(ll,circle("#8338EC",6));},
+  onEachFeature:function(f,l){l.bindPopup("<b>"+(f.properties.name||"Community center")+"</b>"+(f.properties.street?"<br>"+f.properties.street:""));}});
+load("community.geojson",function(d){commLayer.addData(d);document.getElementById("c-comm").textContent=(d.features||[]).length;});
+
+/* toggles */
+function wire(id,layer){document.getElementById(id).addEventListener("change",function(){if(this.checked)layer.addTo(map);else map.removeLayer(layer);});}
+wire("l-anchors",anchorLayer);wire("l-flood",floodLayer);wire("l-food",foodLayer);wire("l-parks",parksLayer);wire("l-comm",commLayer);
+</script>
+</body>
+</html>
