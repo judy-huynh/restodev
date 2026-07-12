@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Memphis Roots — The Big We</title>
-<meta name="description" content="A community cultural-memory map for The Big We. Culture as the root of healing — memories, visions, and open spaces across Memphis, corner by corner.">
+<title>Memphis Roots · The Big We</title>
+<meta name="description" content="A community cultural-memory map for The Big We. Culture as the root of healing: memories, visions, and open spaces across Memphis, corner by corner.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E🌳%3C/text%3E%3C/svg%3E">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Memphis Roots — The Big We">
+<meta property="og:title" content="Memphis Roots · The Big We">
 <meta property="og:description" content="The cultural memory of Memphis, told corner by corner by the people who lived it.">
 <meta property="og:image" content="https://judy-huynh.github.io/restodev/media/clayborn-temple.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -297,7 +297,7 @@
         <div class="p-head">
           <h1>Community Memories</h1>
           <p class="meta" id="panelMeta"></p>
-          <p style="font-size:11.5px;color:var(--faint);margin:5px 0 0;line-height:1.5">A community-owned record — culture as the root of healing. Stewarded by The Big We.</p>
+          <p style="font-size:11.5px;color:var(--faint);margin:5px 0 0;line-height:1.5">A community-owned record, culture as the root of healing. Stewarded by The Big We.</p>
           <div class="search"><span class="ic">🔍</span><input id="searchIn" placeholder="Search stories, names, corners…"></div>
         </div>
         <div class="filters">
@@ -348,7 +348,7 @@
   <section class="view hidden" id="v-admin">
     <div class="admin">
       <h2>Moderation</h2>
-      <p class="sub">Nothing goes public until The Big We approves it — the collection stays in the community's hands.</p>
+      <p class="sub">Nothing goes public until The Big We approves it. The collection stays in the community's hands.</p>
       <div class="tabs">
         <button data-tab="pending" class="on">⏳ Pending <span id="nPend"></span></button>
         <button data-tab="approved">✓ Live <span id="nAppr"></span></button>
@@ -370,7 +370,7 @@ var KIND={
   memory:{label:"Memory of a place",short:"Memory",emoji:"🕯️",color:"#FF477E",sub:"Something that happened here"},
   lineage:{label:"Family & lineage",short:"Family",emoji:"🌳",color:"#17C3B2",sub:"Who came before, who came after"},
   culture:{label:"Music, art & worship",short:"Music",emoji:"🎺",color:"#8338EC",sub:"The sound and soul of the place"},
-  future:{label:"A vision — what should grow",short:"Vision",emoji:"✨",color:"#3A86FF",sub:"What you want next"}
+  future:{label:"A vision: what should grow",short:"Vision",emoji:"✨",color:"#3A86FF",sub:"What you want next"}
 };
 var PLACE={church:{l:"Church & Worship",e:"⛪"},music:{l:"Music Venue",e:"🎶"},food:{l:"Food & Gathering",e:"🍑"},school:{l:"School",e:"🏫"},business:{l:"Black-owned Business",e:"🏪"},street:{l:"Street & Park",e:"🌳"}};
 var ERAS=[["before1960","Before 1960"],["civilrights","1960s–70s"],["eighties","1980s–90s"],["recent","2000s–10s"],["today","Today"],["tomorrow","Tomorrow"],["future2065","Memphis 2068"]];
@@ -389,38 +389,38 @@ var ANCHORS=[
   {n:"National Civil Rights Museum",lat:35.1341,lng:-90.0577},{n:"Stax Museum · Soulsville",lat:35.1148,lng:-90.0292},
   {n:"Orange Mound",lat:35.1195,lng:-90.0072},{n:"Robert Church Park",lat:35.1372,lng:-90.0489}
 ];
-// Integration #1 — Permissioning the City (Jayne Engle / Dark Matter Labs): underused space as a commons
+// Integration #1, Permissioning the City (Jayne Engle / Dark Matter Labs): underused space as a commons
 var SEED_SPACES=[
- {id:"sp1",name:"The 2.5 acres beside Clayborn",status:"City-owned",lat:35.1330,lng:-90.0556,blurb:"Underused land next to the temple — the bridge to what Clayborn will hold.",
+ {id:"sp1",name:"The 2.5 acres beside Clayborn",status:"City-owned",lat:35.1330,lng:-90.0556,blurb:"Underused land next to the temple, the bridge to what Clayborn will hold.",
   proposals:[{id:"sp1p1",text:"A weekly farmers & creative-economy market.",name:"Bertram",cosigns:14},{id:"sp1p2",text:"A community garden and a shaded gathering tent.",name:"Dorothy",cosigns:9}]},
- {id:"sp2",name:"The old greenhouse",status:"Access granted",lat:35.1082,lng:-90.0360,blurb:"Dormant city greenhouse — the water's back on and seedlings are already growing.",
+ {id:"sp2",name:"The old greenhouse",status:"Access granted",lat:35.1082,lng:-90.0360,blurb:"Dormant city greenhouse, the water's back on and seedlings are already growing.",
   proposals:[{id:"sp2p1",text:"An arts + growing residency, open to the neighborhood.",name:"Bertram",cosigns:6}]},
  {id:"sp3",name:"Vacant storefront · Soulsville",status:"Vacant",lat:35.1150,lng:-90.0305,blurb:"Empty since the record shop closed. Big windows, good corner.",proposals:[]},
  {id:"sp4",name:"Empty lot · Orange Mound",status:"Vacant",lat:35.1205,lng:-90.0085,blurb:"Grass lot the block keeps mowed. Kids cut through it every day.",
   proposals:[{id:"sp4p1",text:"A pocket park with a small stage that doesn't rain out.",name:null,cosigns:5}]},
- {id:"sp5",name:"Alley off Main · Downtown",status:"Underused",lat:35.1392,lng:-90.0525,blurb:"One of the downtown alleys — made for Alley Days activations.",proposals:[]}
+ {id:"sp5",name:"Alley off Main · Downtown",status:"Underused",lat:35.1392,lng:-90.0525,blurb:"One of the downtown alleys, made for Alley Days activations.",proposals:[]}
 ];
 var SEEDS=[
  {id:"s1",kind:"culture",place:"music",hood:"Soulsville",name:"Dorothy Jenkins",vis:"full",inst:true,corner:"Soulsville",era:"civilrights",lat:35.1148,lng:-90.0292,photo:"stax-records.jpg",status:"approved",
-  story:"My brother worked the counter at the Satellite Record Shop in front of the Stax studio. Summers, I'd sit on the stoop with a cold drink and hear the horn sections bleeding through the wall — you didn't need a ticket to know history was being cut fifty feet away. When they tore the first building down it felt like losing a relative."},
+  story:"My brother worked the counter at the Satellite Record Shop in front of the Stax studio. Summers, I'd sit on the stoop with a cold drink and hear the horn sections bleeding through the wall, you didn't need a ticket to know history was being cut fifty feet away. When they tore the first building down it felt like losing a relative."},
  {id:"s2",kind:"culture",place:"music",hood:"Beale Street",name:"Charlene",vis:"first",inst:true,corner:"Beale & 4th",era:"civilrights",lat:35.1399,lng:-90.0521,photo:"beale-street.jpg",audio:PHOTO+"voice-beale.m4a",status:"approved",
   story:"My daddy played trumpet on Beale Street every Friday night, 1962 to 1971. Mama would let me stay up so we could hear him warming up out the back window of the club. Whenever I pass that corner now, I swear the brass is still in the bricks."},
  {id:"s3",kind:"memory",place:"church",hood:"Downtown / Clayborn",name:"Marcus Bell",vis:"full",inst:true,corner:"Clayborn Temple",era:"civilrights",lat:35.1338,lng:-90.0565,photo:"clayborn-temple.jpg",status:"approved",
-  story:"My grandfather assembled here with the sanitation workers in 1968, the morning they handed out the I AM A MAN signs. He kept his sign folded in the family Bible until the day he died. Every time I walk past Clayborn I stop for a second — this building watched Memphis decide who it was going to be."},
+  story:"My grandfather assembled here with the sanitation workers in 1968, the morning they handed out the I AM A MAN signs. He kept his sign folded in the family Bible until the day he died. Every time I walk past Clayborn I stop for a second, this building watched Memphis decide who it was going to be."},
  {id:"s4",kind:"lineage",place:"church",hood:"Beale Street",name:"Tonya",vis:"first",inst:false,corner:"Beale Street Baptist",era:"eighties",lat:35.1391,lng:-90.0507,photo:"memphis-church.jpg",status:"approved",
-  story:"Four generations of my family sang in this choir. My grandmother's pew was third row, left side — nobody sat there even years after she passed. I learned to read music off a hymnal with her thumbprints on the corners. The building needs work now, and I worry the history goes when the roof does."},
+  story:"Four generations of my family sang in this choir. My grandmother's pew was third row, left side, nobody sat there even years after she passed. I learned to read music off a hymnal with her thumbprints on the corners. The building needs work now, and I worry the history goes when the roof does."},
  {id:"s5",kind:"memory",place:"street",hood:"Overton Park",name:"Gerald",vis:"first",inst:true,corner:"Overton Park Shell",era:"recent",lat:35.1445,lng:-90.0116,photo:"levitt-shell.jpg",status:"approved",
-  story:"First date with my wife was a free show at the Shell — we split a lemonade because that's what I could afford. Thirty-one years later we still bring lawn chairs to the same spot on the hill. A city that gives you free music under the trees is telling you that you belong in it."},
+  story:"First date with my wife was a free show at the Shell, we split a lemonade because that's what I could afford. Thirty-one years later we still bring lawn chairs to the same spot on the hill. A city that gives you free music under the trees is telling you that you belong in it."},
  {id:"s6",kind:"lineage",place:"food",hood:"Midtown",name:"Andre Mitchell",vis:"full",inst:true,corner:"Midtown",era:"today",lat:35.1382,lng:-89.9905,photo:"memphis-bbq.jpg",status:"approved",
-  story:"Sunday after church, four generations of us around two pushed-together tables at the rib place — that neon sign means family to me more than any photo album. My uncle worked the pit twenty years and still grades everybody's smoke ring like a school teacher. When a place feeds a family that long, it stops being a restaurant."},
+  story:"Sunday after church, four generations of us around two pushed-together tables at the rib place, that neon sign means family to me more than any photo album. My uncle worked the pit twenty years and still grades everybody's smoke ring like a school teacher. When a place feeds a family that long, it stops being a restaurant."},
  {id:"s7",kind:"lineage",place:"street",hood:"Orange Mound",name:"Beverly Hastings",vis:"full",inst:true,corner:"Orange Mound",era:"before1960",lat:35.1195,lng:-90.0072,photo:"orange-mound.jpg",status:"approved",
-  story:"Orange Mound was built by Black families, for Black families, on their own dollar — first neighborhood of its kind in this country. My great-grandparents' house is still standing, porch and all. When people talk about this area like it's only what the news says, I bring them here and tell them what these streets built with no help from anybody."},
+  story:"Orange Mound was built by Black families, for Black families, on their own dollar, first neighborhood of its kind in this country. My great-grandparents' house is still standing, porch and all. When people talk about this area like it's only what the news says, I bring them here and tell them what these streets built with no help from anybody."},
  {id:"s8",kind:"future",place:"street",hood:"Binghampton",name:null,vis:"anon",inst:true,corner:"Binghampton",era:"tomorrow",lat:35.1465,lng:-89.98,photo:"memphis-mural.jpg",status:"approved",affirms:12,
   story:"The kids in this neighborhood painted this wall themselves, with a muralist teaching them on weekends. What should grow here? More of that. Paint, instruments, a stage that doesn't get rained out. Give them walls, not warnings."},
  {id:"s9",kind:"memory",place:"school",hood:"South Memphis",name:"Otis Greer",vis:"first",inst:true,corner:"South Memphis",era:"eighties",lat:35.1069,lng:-90.0341,photo:null,status:"pending",
-  story:"Booker T. Washington High marching band practice, fall of 1986 — you could hear the drumline from six blocks out, and the whole neighborhood kept time to it. Coach Simms made you carry your grades to carry a horn. Half the men I grew up with will tell you that band room did more for them than any program the city ever ran."},
+  story:"Booker T. Washington High marching band practice, fall of 1986, you could hear the drumline from six blocks out, and the whole neighborhood kept time to it. Coach Simms made you carry your grades to carry a horn. Half the men I grew up with will tell you that band room did more for them than any program the city ever ran."},
  {id:"s10",kind:"future",place:"street",hood:"Downtown / Clayborn",name:"Imani",vis:"first",inst:true,corner:"Clayborn Temple",era:"future2065",lat:35.1335,lng:-90.0560,photo:null,status:"approved",affirms:7,
-  story:"It's 2068. My granddaughter learns her history inside the temple my mother helped rebuild — not from a plaque, but from the people who never left. The block that used to flood is a garden now. Nobody here asks permission to belong."}
+  story:"It's 2068. My granddaughter learns her history inside the temple my mother helped rebuild, not from a plaque, but from the people who never left. The block that used to flood is a garden now. Nobody here asks permission to belong."}
 ];
 var SEED_CAMPAIGN={s1:"porch",s2:"porch",s3:"web",s4:"web",s5:"juneteenth",s6:"market",s7:"porch",s8:"reimagine2065",s9:"juneteenth",s10:"reimagine2065"};
 var SEED_MODE={s1:"ambassador",s2:"ambassador",s3:"web",s4:"web",s5:"kiosk",s6:"kiosk",s7:"ambassador",s8:"kiosk",s9:"kiosk",s10:"kiosk"};
@@ -609,7 +609,7 @@ function openDetail(s){
     '<button class="d-locate" id="dLocate">📍 Show on the map</button></div>';
   $("detail").classList.add("open");$("panel").classList.add("up");
   $("dClose").addEventListener("click",closeDetail);
-  var ab=$("affirmBtn");if(ab)ab.addEventListener("click",function(){AFF[s.id]=(AFF[s.id]||0)+1;saveAff();s.affirms=AFF[s.id];renderMarkers();openDetail(s);toast("✨ You share this dream — "+s.affirms+" now");});
+  var ab=$("affirmBtn");if(ab)ab.addEventListener("click",function(){AFF[s.id]=(AFF[s.id]||0)+1;saveAff();s.affirms=AFF[s.id];renderMarkers();openDetail(s);toast("✨ You share this dream: "+s.affirms+" now");});
   $("dLocate").addEventListener("click",function(){if(map)map.flyTo([s.lat,s.lng],16,{duration:1.1});});
   $("detail").querySelectorAll("[data-tag]").forEach(function(el){el.addEventListener("click",function(){
     var t=el.dataset.tag;if(t==="hood")F.hood=s.hood;else if(t==="era")F.era=s.era;else if(t==="place")F.place=s.place;else if(t==="kind"){F.kinds=new Set([s.kind]);}
@@ -618,7 +618,7 @@ function openDetail(s){
 }
 function closeDetail(){$("detail").classList.remove("open");selMarker(null);}
 
-/* ── Integration #1: Permissioning — claim a space ── */
+/* ── Integration #1: Permissioning, claim a space ── */
 function openSpace(sp){
   selMarker(null);
   var appr=(sp.proposals||[]).filter(function(p){return p.status==="approved";});
@@ -642,17 +642,17 @@ function openSpace(sp){
   $("detail").querySelectorAll("[data-cosign]").forEach(function(b){b.addEventListener("click",function(){cosign(sp,b.dataset.cosign);});});
   $("proposeBtn").addEventListener("click",function(){showProposeForm(sp);});
 }
-function cosign(sp,pid){var p=sp.proposals.find(function(x){return x.id===pid;});if(p){p.cosigns++;saveSpaces();openSpace(sp);toast("🤝 Constituency growing — "+p.cosigns+" now behind this");}}
+function cosign(sp,pid){var p=sp.proposals.find(function(x){return x.id===pid;});if(p){p.cosigns++;saveSpaces();openSpace(sp);toast("🤝 Constituency growing, "+p.cosigns+" now behind this");}}
 function showProposeForm(sp){
   $("proposeForm").innerHTML='<div class="propform"><textarea id="propText" rows="3" placeholder="What would you do with this space?"></textarea><input type="text" class="ti" id="propName" placeholder="Your name (optional)" style="margin-top:8px"><div class="row"><button class="btn ghost" id="propCancel">Cancel</button><button class="btn gold" id="propSubmit">Propose it</button></div></div>';
   $("propText").focus();
   $("propCancel").addEventListener("click",function(){$("proposeForm").innerHTML="";});
-  $("propSubmit").addEventListener("click",function(){var t=$("propText").value.trim();if(!t)return;sp.proposals.push({id:uid(),text:t,name:$("propName").value.trim()||null,cosigns:1,status:"pending"});saveSpaces();openSpace(sp);toast("✨ Sent to The Big We for review — it appears once approved");});
+  $("propSubmit").addEventListener("click",function(){var t=$("propText").value.trim();if(!t)return;sp.proposals.push({id:uid(),text:t,name:$("propName").value.trim()||null,cosigns:1,status:"pending"});saveSpaces();openSpace(sp);toast("✨ Sent to The Big We for review, it appears once approved");});
 }
 /* ── Integration #2: Shared dreams, made visible ── */
 function dreamBox(s){
   var n=s.affirms||0;
-  var msg=n>0?("You're not alone — "+n+" "+(n===1?"person shares":"people share")+" this dream."):"Be the first to say you share this dream.";
+  var msg=n>0?("You're not alone. "+n+" "+(n===1?"person shares":"people share")+" this dream."):"Be the first to say you share this dream.";
   return '<div class="dream-affirm"><div class="dn">✨ '+esc(msg)+'</div><button id="affirmBtn">I dream this too</button></div>';
 }
 
@@ -689,7 +689,7 @@ function startCapture(kind){
   STEPS=draft.kind?["story","corner","era","media","location","consent"]:["kind","story","corner","era","media","location","consent"];
   stepIdx=0;showView("capture");renderBanner();renderStep();
 }
-function renderBanner(){var el=$("capBanner");if(!el)return;var m=CAMPAIGNS[draft.campaign];if(draft.campaign&&draft.campaign!=="web"&&m){el.className="capbanner";el.innerHTML=m.icon+'&nbsp; Collecting for <b style="margin:0 5px">'+esc(m.label)+'</b>'+(eventParam?'<span style="opacity:.75">— '+esc(eventParam)+'</span>':'')+'<span style="opacity:.55;font-weight:500;margin-left:8px">· '+(MODES[draft.mode]||draft.mode)+'</span>';}else{el.className="capbanner hidden";el.innerHTML="";}}
+function renderBanner(){var el=$("capBanner");if(!el)return;var m=CAMPAIGNS[draft.campaign];if(draft.campaign&&draft.campaign!=="web"&&m){el.className="capbanner";el.innerHTML=m.icon+'&nbsp; Collecting for <b style="margin:0 5px">'+esc(m.label)+'</b>'+(eventParam?'<span style="opacity:.75">· '+esc(eventParam)+'</span>':'')+'<span style="opacity:.55;font-weight:500;margin-left:8px">· '+(MODES[draft.mode]||draft.mode)+'</span>';}else{el.className="capbanner hidden";el.innerHTML="";}}
 function renderProg(){$("prog").innerHTML=STEPS.map(function(_,i){return '<i class="'+(i<stepIdx?"done":i===stepIdx?"now":"")+'"></i>';}).join("");}
 function goNext(){stepIdx++;if(stepIdx>=STEPS.length)submitDraft();else renderStep();}
 function goBack(){if(stepIdx>0){stepIdx--;renderStep();}else showView("explore");}
@@ -704,11 +704,11 @@ function renderStep(){
   } else if(step==="story"){
     var isV=draft.kind==="future",is65=isV&&draft.campaign==="reimagine2065";
     var q=is65?"It's 2068. What does Memphis feel like?":isV?"What should grow here?":"Tell the story.";
-    var sub=is65?"Clayborn's grandchildren are grown. Dream out loud — what did we build, what finally healed, what changed for good? (No dream is too big — you may not know it yet, but others share it.)":isV?"In five years, when you walk past this place — what do you want to see, hear, or feel?":"What happened here? Who was there? What did this place mean — and what should it mean next?";
+    var sub=is65?"Clayborn's grandchildren are grown. Dream out loud: what did we build, what finally healed, what changed for good? (No dream is too big. You may not know it yet, but others share it.)":isV?"In five years, when you walk past this place, what do you want to see, hear, or feel?":"What happened here? Who was there? What did this place mean, and what should it mean next?";
     b.innerHTML='<h2 class="q">'+q+'</h2><p class="qsub">'+sub+'</p><textarea id="story" rows="6" placeholder="'+(isV?"I want to see…":"Take your time…")+'">'+esc(draft.story)+'</textarea>'+navRow(true);
     wireNav();var ta=$("story");ta.focus();ta.addEventListener("input",function(){draft.story=ta.value;$("nextBtn").disabled=!ta.value.trim();});$("nextBtn").disabled=!draft.story.trim();
   } else if(step==="corner"){
-    b.innerHTML='<h2 class="q">Which corner?</h2><p class="qsub">The neighborhood, block, or building — so it lands in the right spot.</p><input type="text" class="ti" id="corner" placeholder="e.g. Soulsville, Orange Mound, Beale &amp; 4th" value="'+esc(draft.corner)+'">'+navRow(true);
+    b.innerHTML='<h2 class="q">Which corner?</h2><p class="qsub">The neighborhood, block, or building, so it lands in the right spot.</p><input type="text" class="ti" id="corner" placeholder="e.g. Soulsville, Orange Mound, Beale &amp; 4th" value="'+esc(draft.corner)+'">'+navRow(true);
     wireNav();var ci=$("corner");ci.focus();ci.addEventListener("input",function(){draft.corner=ci.value;draft.hood=ci.value;$("nextBtn").disabled=!ci.value.trim();});$("nextBtn").disabled=!draft.corner.trim();
   } else if(step==="era"){
     b.innerHTML='<h2 class="q">When does this live?</h2><p class="qsub">Place it on the timeline.</p><div class="chips" id="er"></div>'+navRow(false);
@@ -716,14 +716,14 @@ function renderStep(){
     b.querySelectorAll("[data-e]").forEach(function(el){el.addEventListener("click",function(){draft.era=el.dataset.e;b.querySelectorAll(".chip").forEach(function(c){c.classList.remove("on");});el.classList.add("on");$("nextBtn").disabled=false;});});
     wireNav();$("nextBtn").disabled=!draft.era;
   } else if(step==="media"){
-    b.innerHTML='<h2 class="q">Add a voice or a photo.</h2><p class="qsub">Optional — but a voice is how a memory really travels. This works beautifully for elders.</p><div class="media-row"><div class="rec"><button class="mic" id="micBtn" type="button">🎙️</button><div class="lbl" id="recLbl">Tap to record</div><div id="audioPrev"></div></div><div class="rec"><button class="mic" id="photoBtn" type="button" style="background:var(--accent)">📷</button><div class="lbl">Add a photo</div><input type="file" id="photoIn" accept="image/*" capture="environment" hidden><div id="photoPrev"></div></div></div>'+navRow(false)+'<div style="text-align:center"><button class="skip" id="skipMedia">Skip — no media</button></div>';
+    b.innerHTML='<h2 class="q">Add a voice or a photo.</h2><p class="qsub">Optional, but a voice is how a memory really travels. This works beautifully for elders.</p><div class="media-row"><div class="rec"><button class="mic" id="micBtn" type="button">🎙️</button><div class="lbl" id="recLbl">Tap to record</div><div id="audioPrev"></div></div><div class="rec"><button class="mic" id="photoBtn" type="button" style="background:var(--accent)">📷</button><div class="lbl">Add a photo</div><input type="file" id="photoIn" accept="image/*" capture="environment" hidden><div id="photoPrev"></div></div></div>'+navRow(false)+'<div style="text-align:center"><button class="skip" id="skipMedia">Skip, no media</button></div>';
     wireNav();$("nextBtn").disabled=false;$("skipMedia").addEventListener("click",goNext);wireRecorder();wirePhoto();
   } else if(step==="location"){
     b.innerHTML='<h2 class="q">Place it on the map.</h2><p class="qsub">Drag the pin to the exact spot. It starts at Clayborn.</p><div class="pinmap" id="pinmap"></div>'+navRow(false);
     wireNav();$("nextBtn").disabled=false;setTimeout(initPinMap,60);
   } else if(step==="consent"){
-    b.innerHTML='<h2 class="q">You &amp; your consent.</h2><p class="qsub">These stories belong to Memphis. You choose how much of your name travels with yours.</p><input type="text" class="ti" id="cname" placeholder="Your name (optional)" value="'+esc(draft.name)+'" style="margin-bottom:14px"><div id="visOpts"></div><label class="inst"><input type="checkbox" id="instChk" '+(draft.inst?"checked":"")+' style="margin-top:3px"><span><b>Data for freedom.</b> OK for The Big We to share this — anonymized — with city partners when advocating for restoration. You can say no and it still lives on the community map.</span></label><div class="row"><button class="btn ghost" id="backBtn">Back</button><button class="btn gold" id="submitBtn">🌳 Root this '+(draft.kind==="future"?"vision":"memory")+'</button></div>';
-    var VIS=[["full","Full name","Shown with your full name on the public map"],["first","First name only","Shown with just your first name"],["anon","Anonymous","On the public map, but no name attached"],["heritage","Heritage record only — not public","Never shown publicly; joins the community's private heritage record"]];
+    b.innerHTML='<h2 class="q">You &amp; your consent.</h2><p class="qsub">These stories belong to Memphis. You choose how much of your name travels with yours.</p><input type="text" class="ti" id="cname" placeholder="Your name (optional)" value="'+esc(draft.name)+'" style="margin-bottom:14px"><div id="visOpts"></div><label class="inst"><input type="checkbox" id="instChk" '+(draft.inst?"checked":"")+' style="margin-top:3px"><span><b>Data for freedom.</b> OK for The Big We to share this, anonymized, with city partners when advocating for restoration. You can say no and it still lives on the community map.</span></label><div class="row"><button class="btn ghost" id="backBtn">Back</button><button class="btn gold" id="submitBtn">🌳 Root this '+(draft.kind==="future"?"vision":"memory")+'</button></div>';
+    var VIS=[["full","Full name","Shown with your full name on the public map"],["first","First name only","Shown with just your first name"],["anon","Anonymous","On the public map, but no name attached"],["heritage","Heritage record only, not public","Never shown publicly; joins the community's private heritage record"]];
     $("visOpts").innerHTML=VIS.map(function(v){return '<label class="consent-opt'+(draft.vis===v[0]?" on":"")+'" data-v="'+v[0]+'"><input type="radio" name="vis" '+(draft.vis===v[0]?"checked":"")+' style="margin-top:3px"><span><b>'+esc(v[1])+'</b><small>'+esc(v[2])+'</small></span></label>';}).join("");
     $("visOpts").querySelectorAll("[data-v]").forEach(function(el){el.addEventListener("click",function(){draft.vis=el.dataset.v;$("visOpts").querySelectorAll(".consent-opt").forEach(function(c){c.classList.remove("on");});el.classList.add("on");el.querySelector("input").checked=true;});});
     $("cname").addEventListener("input",function(){draft.name=this.value;});$("instChk").addEventListener("change",function(){draft.inst=this.checked;});
@@ -746,10 +746,10 @@ function wirePhoto(){var btn=$("photoBtn"),inp=$("photoIn");if(draft.photo)$("ph
   inp.addEventListener("change",function(){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var img=new Image();img.onload=function(){var max=1000,sc=Math.min(1,max/Math.max(img.width,img.height));var cv=document.createElement("canvas");cv.width=img.width*sc;cv.height=img.height*sc;cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);draft.photo=cv.toDataURL("image/jpeg",0.82);$("photoPrev").innerHTML='<img class="prev" src="'+draft.photo+'">';};img.src=r.result;};r.readAsDataURL(f);});
 }
 function initPinMap(){if(pinMap){pinMap.remove();pinMap=null;}pinMap=L.map("pinmap").setView([draft.lat,draft.lng],14);baseTiles().addTo(pinMap);pinMarker=L.marker([draft.lat,draft.lng],{draggable:true,icon:mkIcon(KIND[draft.kind].color)}).addTo(pinMap);pinMarker.on("dragend",function(){var p=pinMarker.getLatLng();draft.lat=p.lat;draft.lng=p.lng;});pinMap.on("click",function(e){draft.lat=e.latlng.lat;draft.lng=e.latlng.lng;pinMarker.setLatLng(e.latlng);});setTimeout(function(){pinMap.invalidateSize();},80);}
-async function submitDraft(){if(!draft)return;if(!draft.hood)draft.hood=draft.corner||"Memphis";var d=draft;var btn=$("submitBtn");if(btn){btn.disabled=true;btn.textContent="Sending…";}try{await supaSubmit(d);}catch(e){toast("⚠️ Couldn't send — "+((e&&e.message)||"try again"));if(btn){btn.disabled=false;btn.textContent="🌳 Root this "+(d.kind==="future"?"vision":"memory");}console.warn(e);return;}draft=null;renderThanks(d);showView("thanks");}
+async function submitDraft(){if(!draft)return;if(!draft.hood)draft.hood=draft.corner||"Memphis";var d=draft;var btn=$("submitBtn");if(btn){btn.disabled=true;btn.textContent="Sending…";}try{await supaSubmit(d);}catch(e){toast("⚠️ Couldn't send, "+((e&&e.message)||"try again"));if(btn){btn.disabled=false;btn.textContent="🌳 Root this "+(d.kind==="future"?"vision":"memory");}console.warn(e);return;}draft=null;renderThanks(d);showView("thanks");}
 function renderThanks(s){var isV=s.kind==="future";
   var na=isV?publicStories().filter(function(x){return x.kind==="future"&&x.hood===s.hood&&x.id!==s.id;}).length:0;
-  $("thanksInner").innerHTML='<div class="thanks"><div class="big">🌳</div><h2>'+(isV?"Vision":"Memory")+' rooted!</h2><p>Thank you'+(s.name?", "+esc(s.name.split(" ")[0]):"")+'. The Big We will review it before it joins the public map — so the collection stays in the community\'s hands.</p>'+(na>0?'<div class="notalone">✨ You\'re not alone — '+na+' neighbor'+(na===1?'':'s')+' already dream near '+esc(s.hood)+'. This is how a shared future becomes visible.</div>':"")+'<div class="thanksmap" id="thanksmap"></div><div class="cardmini"><div style="font-size:12px;font-weight:700;color:'+KIND[s.kind].color+'">'+KIND[s.kind].emoji+' '+esc(KIND[s.kind].label)+'</div><div style="font-size:14px;margin:6px 0">'+esc(s.story)+'</div>'+(s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+'<div style="font-size:12px;color:var(--muted)">'+esc(s.corner)+' · '+esc(eraLabel(s.era))+'</div></div><div class="row" style="justify-content:center"><button class="btn ghost" id="tMap">See the map</button><button class="btn prim" id="tAgain" style="flex:none;padding:14px 22px">Add another</button></div><p style="margin-top:20px;font-size:12px">Want to watch it go live? Open <b>Moderate</b> and approve it.</p></div>';
+  $("thanksInner").innerHTML='<div class="thanks"><div class="big">🌳</div><h2>'+(isV?"Vision":"Memory")+' rooted!</h2><p>Thank you'+(s.name?", "+esc(s.name.split(" ")[0]):"")+'. The Big We will review it before it joins the public map. The collection stays in the community\'s hands.</p>'+(na>0?'<div class="notalone">✨ You\'re not alone, '+na+' neighbor'+(na===1?'':'s')+' already dream near '+esc(s.hood)+'. This is how a shared future becomes visible.</div>':"")+'<div class="thanksmap" id="thanksmap"></div><div class="cardmini"><div style="font-size:12px;font-weight:700;color:'+KIND[s.kind].color+'">'+KIND[s.kind].emoji+' '+esc(KIND[s.kind].label)+'</div><div style="font-size:14px;margin:6px 0">'+esc(s.story)+'</div>'+(s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+'<div style="font-size:12px;color:var(--muted)">'+esc(s.corner)+' · '+esc(eraLabel(s.era))+'</div></div><div class="row" style="justify-content:center"><button class="btn ghost" id="tMap">See the map</button><button class="btn prim" id="tAgain" style="flex:none;padding:14px 22px">Add another</button></div><p style="margin-top:20px;font-size:12px">Want to watch it go live? Open <b>Moderate</b> and approve it.</p></div>';
   $("tMap").addEventListener("click",function(){showView("explore");apply();});$("tAgain").addEventListener("click",function(){startCapture();});
   setTimeout(function(){if(thanksMap){thanksMap.remove();thanksMap=null;}thanksMap=L.map("thanksmap",{zoomControl:false,dragging:false,scrollWheelZoom:false}).setView([s.lat,s.lng],15);baseTiles().addTo(thanksMap);L.marker([s.lat,s.lng],{icon:mkIcon(KIND[s.kind].color)}).addTo(thanksMap);setTimeout(function(){thanksMap.invalidateSize();},80);},60);
 }
@@ -766,7 +766,7 @@ async function renderAdmin(){
   $("adminList").innerHTML=propsHtml+'<div class="empty">Loading…</div>';wireProps();
   var rows;
   try{ rows=await supaByStatus(adminTab); }
-  catch(e){ if(e.message==="SESSION"){renderLogin("Session expired — please sign in again.");return;} $("adminList").innerHTML=propsHtml+'<div class="empty">⚠️ Couldn\'t load ('+esc(e.message)+')</div>';wireProps();return; }
+  catch(e){ if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;} $("adminList").innerHTML=propsHtml+'<div class="empty">⚠️ Couldn\'t load ('+esc(e.message)+')</div>';wireProps();return; }
   if(adminTab==="pending")$("nPend").textContent=(rows.length+pend.length)?"("+(rows.length+pend.length)+")":"";
   if(adminTab==="approved")$("nAppr").textContent=rows.length?"("+rows.length+")":"";
   var storiesHtml=rows.length?rows.map(function(r){var s=rowToStory(r),k=KIND[s.kind]||KIND.memory,src=photoSrc(s.photo);var thumb=src?'<img class="thumb" src="'+src+'">':'<div class="thumb ph">'+k.emoji+'</div>';return '<div class="scard">'+thumb+'<div style="flex:1;min-width:0"><div class="kline"><span class="ktag" style="background:'+k.color+'">'+k.emoji+' '+esc(k.label)+'</span><span class="pill-status '+s.status+'">'+s.status+'</span>'+(s.vis==="heritage"?'<span class="pill-status heritage">heritage-only</span>':"")+(s.inst?'<span class="meta">✓ ok to share w/ city</span>':'<span class="meta">community-only</span>')+'</div><div class="meta">'+esc(displayName(s))+' · '+esc(s.hood)+' · '+esc(eraLabel(s.era))+(s.campaign&&CAMPAIGNS[s.campaign]&&s.campaign!=="web"?' · '+CAMPAIGNS[s.campaign].icon+' '+esc(CAMPAIGNS[s.campaign].label):"")+'</div><div class="txt">'+esc(s.story)+'</div>'+(s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+'<div class="acts">'+(s.status!=="approved"?'<button class="approve" data-appr="'+s.id+'">✓ Approve</button>':"")+(s.status!=="rejected"?'<button class="reject" data-rej="'+s.id+'">✕ Reject</button>':"")+'</div></div></div>';}).join(""):'<div class="empty">'+(adminTab==="pending"?"No stories pending review. 🎉":adminTab==="approved"?"No approved stories yet.":"No rejected stories.")+'</div>';
@@ -776,10 +776,10 @@ async function renderAdmin(){
   wireProps();
 }
 function wireProps(){$("adminList").querySelectorAll("[data-approveprop]").forEach(function(b){b.addEventListener("click",function(){var a=b.dataset.approveprop.split("~");setPropStatus(a[0],a[1],"approved");});});$("adminList").querySelectorAll("[data-rejectprop]").forEach(function(b){b.addEventListener("click",function(){var a=b.dataset.rejectprop.split("~");setPropStatus(a[0],a[1],"rejected");});});}
-async function modStory(id,st){try{await supaSetStatus(id,st);}catch(e){if(e.message==="SESSION"){renderLogin("Session expired — please sign in again.");return;}toast("⚠️ "+e.message);return;}toast(st==="approved"?"✓ Approved — now live on the map":"Story rejected");await refreshStories();renderAdmin();}
+async function modStory(id,st){try{await supaSetStatus(id,st);}catch(e){if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;}toast("⚠️ "+e.message);return;}toast(st==="approved"?"✓ Approved, now live on the map":"Story rejected");await refreshStories();renderAdmin();}
 function renderLogin(msg){$("adminList").innerHTML='<div style="max-width:360px;margin:8px auto 0;background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px"><h3 style="margin:0 0 4px;font-family:var(--display)">Moderator sign-in</h3><p style="font-size:13px;color:var(--muted);margin:0 0 16px">Sign in with your Ground Truth moderator account to review and approve community stories.</p><input type="email" class="ti" id="mEmail" placeholder="Email" autocomplete="username" style="margin-bottom:10px"><input type="password" class="ti" id="mPass" placeholder="Password" autocomplete="current-password" style="margin-bottom:6px"><div id="mErr" style="color:#B42318;font-size:12.5px;min-height:17px">'+(msg?esc(msg):"")+'</div><button class="btn prim" id="mLogin" style="width:100%;margin-top:8px">Sign in</button></div>';$("mLogin").addEventListener("click",async function(){var em=$("mEmail").value.trim(),pw=$("mPass").value;if(!em||!pw)return;$("mErr").textContent="";this.disabled=true;this.textContent="Signing in…";try{await supaLogin(em,pw);}catch(err){$("mErr").textContent=err.message;this.disabled=false;this.textContent="Sign in";return;}renderAdmin();});$("mPass").addEventListener("keydown",function(e){if(e.key==="Enter")$("mLogin").click();});}
-function setPropStatus(sid,pid,st){var sp=SPACES.find(function(x){return x.id===sid;});if(!sp)return;var p=(sp.proposals||[]).find(function(x){return x.id===pid;});if(!p)return;p.status=st;saveSpaces();renderAdmin();toast(st==="approved"?"✓ Space idea approved — now on the commons":"Space idea rejected");}
-function setStatus(id,st){var s=STORIES.find(function(x){return x.id===id;});if(!s)return;s.status=st;save();renderAdmin();apply();toast(st==="approved"?(s.vis==="heritage"?"✓ Approved — added to the private heritage record":"✓ Approved — now live on the map"):"Story hidden from the map");}
+function setPropStatus(sid,pid,st){var sp=SPACES.find(function(x){return x.id===sid;});if(!sp)return;var p=(sp.proposals||[]).find(function(x){return x.id===pid;});if(!p)return;p.status=st;saveSpaces();renderAdmin();toast(st==="approved"?"✓ Space idea approved, now on the commons":"Space idea rejected");}
+function setStatus(id,st){var s=STORIES.find(function(x){return x.id===id;});if(!s)return;s.status=st;save();renderAdmin();apply();toast(st==="approved"?(s.vis==="heritage"?"✓ Approved, added to the private heritage record":"✓ Approved, now live on the map"):"Story hidden from the map");}
 $("reseed").addEventListener("click",async function(){await refreshStories();toast("↻ Reloaded stories from Supabase");});
 $("signout").addEventListener("click",function(){supaLogout();toast("Signed out");renderAdmin();});
 
@@ -807,8 +807,8 @@ function renderImpact(){
   function kpi(n,l,s){return '<div class="kpi"><div class="n">'+n+'</div><div class="l">'+l+'</div>'+(s?'<div class="s">'+s+'</div>':"")+'</div>';}
   $("impactBody").innerHTML=
     '<h2>Impact &amp; Transparency</h2>'+
-    '<p class="sub">A living account of what this collection holds — for The Big We, for funders, and for the community itself. Memphis is tired of being studied while the streets stay the same. This page exists so the people who give their stories can see what those stories are building.</p>'+
-    '<div class="ethos-note">✦ <b>Every number here is a person who trusted us with a memory or a dream.</b> The Big We stewards each one — nothing reaches a funder or a city agency except what a contributor said it could. That is what "data for freedom" means, and it is measured below.</div>'+
+    '<p class="sub">A living account of what this collection holds: for The Big We, for funders, and for the community itself. Memphis is tired of being studied while the streets stay the same. This page exists so the people who give their stories can see what those stories are building.</p>'+
+    '<div class="ethos-note">✦ <b>Every number here is a person who trusted us with a memory or a dream.</b> The Big We stewards each one. Nothing reaches a funder or a city agency except what a contributor said it could. That is what "data for freedom" means, and it is measured below.</div>'+
     '<div class="kpis">'+
       kpi(pub.length,"Stories rooted","live on the public map")+
       kpi(hoods.size,"Neighborhoods","across Memphis")+
@@ -822,8 +822,8 @@ function renderImpact(){
     '<div class="ipanel"><h3>Stories by event &amp; campaign <span>where they were collected</span></h3>'+bars(campRows,"#17C3B2")+'</div>'+
     '<div class="ipanel"><h3>Neighborhood coverage <span>where more listening is needed</span></h3>'+bars(hoodRows,"#8338EC")+'</div>'+
     '<div class="ipanel"><h3>Honoring the past · imagining 2068 <span>memories vs. visions</span></h3><div class="split"><div class="seg" style="background:'+KIND.memory.color+';flex:'+Math.max(memories,0.001)+'">'+memories+' past</div><div class="seg" style="background:'+KIND.future.color+';flex:'+Math.max(visions,0.001)+'">'+visions+' future</div></div></div>'+
-    '<div class="ipanel"><h3>Data for freedom <span>consent, in the open</span></h3><div class="bar"><span class="bl">OK to cite to city partners</span><div class="bt"><div class="bf" style="width:'+pct+'%;background:var(--ok)"></div></div><span class="bv">'+pct+'%</span></div><p style="font-size:12px;color:var(--muted);margin:9px 0 0">'+freedom+' of '+approved.length+' contributors opted in to let The Big We cite their story (anonymized) when advocating with the city. '+heritage+' chose heritage-record-only — held privately, never public.</p></div>'+
-    '<div class="ipanel"><h3>Commons — space being re-permissioned <span>after Jayne Engle · Permissioning the City</span></h3>'+SPACES.map(function(sp){var pc=sp.proposals?sp.proposals.length:0;var cc=sp.proposals?sp.proposals.reduce(function(b,p){return b+p.cosigns;},0):0;return '<div class="bar"><span class="bl">'+esc(sp.name)+'</span><div class="bt"><div class="bf" style="width:'+Math.min(100,cc*6+pc*4)+'%;background:var(--gold)"></div></div><span class="bv">'+pc+'💡</span></div>';}).join("")+'<p style="font-size:12px;color:var(--muted);margin:9px 0 0">'+propCount+' proposed uses · '+cosignCount+' co-signs · '+dreamsAffirmed+' dreams affirmed. Underused space claimed back as a commons.</p></div>';
+    '<div class="ipanel"><h3>Data for freedom <span>consent, in the open</span></h3><div class="bar"><span class="bl">OK to cite to city partners</span><div class="bt"><div class="bf" style="width:'+pct+'%;background:var(--ok)"></div></div><span class="bv">'+pct+'%</span></div><p style="font-size:12px;color:var(--muted);margin:9px 0 0">'+freedom+' of '+approved.length+' contributors opted in to let The Big We cite their story (anonymized) when advocating with the city. '+heritage+' chose heritage-record-only, held privately, never public.</p></div>'+
+    '<div class="ipanel"><h3>Commons: space being re-permissioned <span>after Jayne Engle · Permissioning the City</span></h3>'+SPACES.map(function(sp){var pc=sp.proposals?sp.proposals.length:0;var cc=sp.proposals?sp.proposals.reduce(function(b,p){return b+p.cosigns;},0):0;return '<div class="bar"><span class="bl">'+esc(sp.name)+'</span><div class="bt"><div class="bf" style="width:'+Math.min(100,cc*6+pc*4)+'%;background:var(--gold)"></div></div><span class="bv">'+pc+'💡</span></div>';}).join("")+'<p style="font-size:12px;color:var(--muted);margin:9px 0 0">'+propCount+' proposed uses · '+cosignCount+' co-signs · '+dreamsAffirmed+' dreams affirmed. Underused space claimed back as a commons.</p></div>';
 }
 
 /* ── spotlight ── */
