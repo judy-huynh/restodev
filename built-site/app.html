@@ -98,6 +98,8 @@
   .vignette{position:absolute;inset:0;pointer-events:none;z-index:400;box-shadow:inset 0 0 120px -40px rgba(36,28,59,.25)}
   .maptools{position:absolute;top:14px;right:14px;z-index:500;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
   .layer-toggle{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:9px 13px;font-size:12px;font-weight:600;box-shadow:var(--shadow-sm)}
+  .maptools .ctx-head{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:8px 4px 1px;text-align:right}
+  .layer-toggle.ctxbtn{padding:7px 11px;font-size:11.5px}
   .layer-toggle .sw{width:30px;height:17px;border-radius:999px;background:#DED5DD;position:relative;transition:.16s;flex:none}
   .layer-toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;transition:.16s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
   .layer-toggle.on .sw{background:var(--anchor)}
@@ -319,6 +321,11 @@
         <div class="maptools">
           <button class="layer-toggle on" id="anchorToggle"><span class="sw"></span> Heritage Anchors</button>
           <button class="layer-toggle on" id="spaceToggle"><span class="sw"></span> Open Spaces</button>
+          <div class="ctx-head">City data (context)</div>
+          <button class="layer-toggle ctxbtn" id="floodToggle"><span class="sw"></span> Flood risk</button>
+          <button class="layer-toggle ctxbtn" id="foodToggle"><span class="sw"></span> Food access</button>
+          <button class="layer-toggle ctxbtn" id="parksToggle"><span class="sw"></span> Parks</button>
+          <button class="layer-toggle ctxbtn" id="commToggle"><span class="sw"></span> Community centers</button>
         </div>
         <div class="spotlight hidden" id="spotlight"></div>
         <button class="fab" id="fabAdd">＋</button>
@@ -472,11 +479,12 @@ function passes(s){
 function filtered(){return publicStories().filter(passes);}
 
 /* ── map ── */
-var map,anchorLayer,spacesLayer,markersById={},anchorsOn=true,spacesOn=true;
+var map,anchorLayer,spacesLayer,markersById={},anchorsOn=true,spacesOn=true,ctxLayers={};
 function initMap(){
   if(map)return;
   map=L.map("map",{zoomControl:true,attributionControl:true}).setView([35.132,-90.02],12.6);
   L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+  map.createPane("ctx");map.getPane("ctx").style.zIndex=350; // context data sits below story pins
   anchorLayer=L.layerGroup();
   ANCHORS.forEach(function(a){
     L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="mk-anchor"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(anchorLayer);
@@ -490,7 +498,18 @@ function initMap(){
   });
   if(spacesOn)spacesLayer.addTo(map);
   renderMarkers();
+  loadContext();
 }
+/* context layers (real Memphis city data), off by default, below story pins */
+function ctxCircle(color,r){return {radius:r||5,fillColor:color,color:"#fff",weight:1,fillOpacity:.9,pane:"ctx"};}
+function loadCtx(file,key,builder){fetch("data/"+file).then(function(r){return r.json();}).then(function(d){ctxLayers[key]=builder(d);}).catch(function(e){console.warn("context layer failed:",file,e);});}
+function loadContext(){
+  loadCtx("flood.geojson","flood",function(d){return L.geoJSON(d,{pane:"ctx",style:function(){return{color:"#2b6cb0",weight:1,fillColor:"#3A86FF",fillOpacity:.22,pane:"ctx"};},onEachFeature:function(f,l){l.bindPopup("<b>Flood zone "+(f.properties.zone||"")+"</b><br>FEMA high-risk area");}});});
+  loadCtx("food.geojson","food",function(d){var FULL={"Grocery Store":1,"Supermarket":1,"Super Store":1,"Farmers and Markets":1};return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle(FULL[f.properties.type]?"#1B7A3D":"#E0A100",5));},onEachFeature:function(f,l){l.bindPopup("<b>"+(f.properties.name||"Food retailer")+"</b><br>"+(f.properties.type||""));}});});
+  loadCtx("parks.geojson","parks",function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#17C3B2",4));},onEachFeature:function(f,l){l.bindPopup("<b>"+(f.properties.name||"Park")+"</b><br>City of Memphis park");}});});
+  loadCtx("community.geojson","comm",function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#8338EC",6));},onEachFeature:function(f,l){l.bindPopup("<b>"+(f.properties.name||"Community center")+"</b>"+(f.properties.street?"<br>"+f.properties.street:""));}});});
+}
+function toggleCtx(key,btn){var on=btn.classList.toggle("on");var l=ctxLayers[key];if(!l){return;}if(on)l.addTo(map);else map.removeLayer(l);}
 function mkIcon(color){return L.divIcon({className:"mk-wrap",html:'<div class="mk" style="background:'+color+'"></div>',iconSize:[18,18],iconAnchor:[9,16]});}
 function renderMarkers(){
   if(!map)return;
@@ -645,6 +664,10 @@ $("backExplore").addEventListener("click",function(){showView("explore");});
 $("capX").addEventListener("click",function(){showView("explore");});
 $("anchorToggle").addEventListener("click",function(){anchorsOn=!anchorsOn;this.classList.toggle("on",anchorsOn);if(anchorsOn)anchorLayer.addTo(map);else map.removeLayer(anchorLayer);});
 $("spaceToggle").addEventListener("click",function(){spacesOn=!spacesOn;this.classList.toggle("on",spacesOn);if(spacesOn)spacesLayer.addTo(map);else map.removeLayer(spacesLayer);});
+$("floodToggle").addEventListener("click",function(){toggleCtx("flood",this);});
+$("foodToggle").addEventListener("click",function(){toggleCtx("food",this);});
+$("parksToggle").addEventListener("click",function(){toggleCtx("parks",this);});
+$("commToggle").addEventListener("click",function(){toggleCtx("comm",this);});
 $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMeta();renderCards();renderMarkers();renderActiveF();});
 $("hoodSel").addEventListener("change",function(){F.hood=this.value;apply();});
 $("eraSel").addEventListener("change",function(){F.era=this.value;apply();});

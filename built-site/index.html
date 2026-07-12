@@ -126,6 +126,20 @@
   .mapframe .openbar a:hover{transform:translateY(-1px)}
   .livingmap .undernote{font-size:13px;color:var(--muted);margin-top:16px}
 
+  /* Context: why this matters */
+  .context{padding:12vh 0 2vh;text-align:center}
+  .context .kicker{color:var(--primaryDark)}
+  .context h2{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,3.6vw,2.6rem);line-height:1.1;margin:14px auto 0;max-width:18ch}
+  .context .lead{font-size:clamp(1rem,2vw,1.18rem);color:#4c4463;max-width:56ch;margin:18px auto 0}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:40px auto 0;max-width:940px;text-align:left}
+  .stat{background:#fff;border:1px solid var(--border);border-radius:18px;padding:22px 22px 24px;box-shadow:0 14px 40px -30px rgba(36,28,59,.6)}
+  .stat .n{font-family:var(--display);font-weight:700;font-size:2.5rem;line-height:1}
+  .stat .n .of{font-size:.95rem;color:var(--muted);font-weight:600;margin-left:5px}
+  .stat .l{font-size:13.5px;color:#4c4463;margin-top:12px;line-height:1.55}
+  .context .undernote2{font-size:14px;color:#4c4463;max-width:62ch;margin:34px auto 0;line-height:1.6}
+  .context .undernote2 a{color:var(--primaryDark);font-weight:600;text-decoration:none}
+  @media(max-width:760px){.stats{grid-template-columns:1fr}}
+
   footer{padding:34px 24px 60px;text-align:center;color:var(--muted);font-size:13px}
   footer a{color:var(--primaryDark)}
 
@@ -250,6 +264,19 @@
     </article>
 
   </div>
+</section>
+
+<!-- CONTEXT: WHY THIS MATTERS -->
+<section class="context wrap">
+  <div class="kicker">Why this matters</div>
+  <h2>The memories sit on real ground.</h2>
+  <p class="lead">Around Clayborn, the city's own data tells the harder story the memories already know.</p>
+  <div class="stats">
+    <div class="stat"><div class="n" style="color:#1B7A3D">20<span class="of">of 147</span></div><div class="l">nearby food outlets sell full groceries. The other 127 are convenience stores or gas stations. That is a food desert.</div></div>
+    <div class="stat"><div class="n" style="color:#17C3B2">193</div><div class="l">City of Memphis parks: the green space that restoration protects and grows.</div></div>
+    <div class="stat"><div class="n" style="color:#8338EC">25</div><div class="l">community centers, the third spaces that still hold shared life.</div></div>
+  </div>
+  <p class="undernote2">FEMA maps high-risk flood zones through these blocks, and 1930s redlining still shapes who was left behind. These are the streets the stories come from. <a href="layers.html">Explore the layers on the base map →</a></p>
 </section>
 
 <!-- LIVING MAP REVEAL -->
