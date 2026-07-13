@@ -178,7 +178,7 @@
   .mk-wrap{transition:.16s}
   .mk-wrap.hi .mk,.mk-wrap.sel .mk{transform:scale(1.42);filter:drop-shadow(0 6px 10px rgba(36,28,59,.55))}
   .mk-anchor{width:14px;height:14px;transform:rotate(45deg);background:var(--anchor);border:2px solid #fff;opacity:.92;box-shadow:0 2px 6px rgba(0,0,0,.4)}
-  .mk-star{width:36px;height:36px;filter:drop-shadow(0 2px 5px rgba(36,28,59,.5))}
+  .mk-star{width:32px;height:32px;filter:drop-shadow(0 2px 5px rgba(36,28,59,.5))}
   .mk-star svg{width:100%;height:100%;display:block}
   .anchor-lbl{font-size:11px;font-weight:700;color:var(--anchor);white-space:nowrap;text-shadow:0 1px 3px #fff,0 0 3px #fff,0 0 3px #fff;transform:translate(10px,-6px)}
   .anchor-lbl.star-lbl{font-size:13.5px;font-weight:800;color:var(--primaryDark);transform:translate(20px,-9px)}
@@ -647,8 +647,8 @@ function initMap(){
   anchorLayer=L.layerGroup();
   ANCHORS.forEach(function(a){
     if(a.star){
-      L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="mk-star">'+STAR_SVG+'</div>',iconSize:[36,36],iconAnchor:[18,18]}),interactive:false,zIndexOffset:600}).addTo(anchorLayer);
-      L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="anchor-lbl star-lbl">'+esc(a.n)+'</div>',iconSize:[0,0]}),interactive:false,zIndexOffset:600}).addTo(anchorLayer);
+      L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="mk-star">'+STAR_SVG+'</div>',iconSize:[32,32],iconAnchor:[16,16]}),interactive:false,zIndexOffset:-600}).addTo(anchorLayer);
+      L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="anchor-lbl star-lbl">'+esc(a.n)+'</div>',iconSize:[0,0]}),interactive:false,zIndexOffset:800}).addTo(anchorLayer);
       return;
     }
     L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="mk-anchor" title="'+esc(a.n)+'"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:true,title:a.n}).addTo(anchorLayer);
@@ -679,7 +679,7 @@ function renderMarkers(){
   Object.keys(markersById).forEach(function(id){map.removeLayer(markersById[id]);});markersById={};
   filtered().forEach(function(s){
     var k=KIND[s.kind]||KIND.memory;
-    var m=L.marker([s.lat,s.lng],{icon:mkIcon(k.color)}).addTo(map);
+    var m=L.marker([s.lat,s.lng],{icon:mkIcon(k.color),zIndexOffset:400}).addTo(map);
     m.on("click",function(){selectStory(s.id,false);});
     m.on("mouseover",function(){hiCard(s.id,true);});
     m.on("mouseout",function(){hiCard(s.id,false);});
