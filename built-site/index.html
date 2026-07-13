@@ -140,6 +140,49 @@
   .context .undernote2 a{color:var(--primaryDark);font-weight:600;text-decoration:none}
   @media(max-width:760px){.stats{grid-template-columns:1fr}}
 
+  /* ---- Ground: the data hook ---- */
+  .ground{padding:11vh 0 5vh}
+  .ground .kicker{color:var(--primaryDark)}
+  .ground h2{font-family:var(--display);font-weight:700;font-size:clamp(1.7rem,4.2vw,2.8rem);line-height:1.06;margin:14px 0 0;max-width:15ch}
+  .ground .lead{font-size:clamp(1.02rem,2vw,1.22rem);color:#4c4463;max-width:56ch;margin:18px 0 0;line-height:1.55}
+  .ground-grid{display:grid;grid-template-columns:1.12fr .88fr;gap:20px;margin-top:40px;align-items:stretch}
+  @media(max-width:860px){.ground-grid{grid-template-columns:1fr}}
+  .dcard{background:#fff;border:1px solid var(--border);border-radius:20px;padding:24px 24px 22px;box-shadow:0 18px 50px -34px rgba(36,28,59,.6)}
+  .dcard .dh{display:flex;justify-content:space-between;align-items:baseline;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+  .dcard .dh h3{font-family:var(--display);font-weight:600;font-size:1.02rem;margin:0;letter-spacing:-.01em}
+  .dcard .dh .sub{font-size:12.5px;color:var(--muted);margin:3px 0 0}
+  .dcard .dh .tot{font-size:12.5px;color:var(--muted);text-align:right}
+  .dcard .dh .tot b{display:block;font-size:1.35rem;color:var(--text);font-family:var(--display);font-weight:700}
+  .dbars{display:flex;flex-direction:column;gap:13px}
+  .dbar{display:grid;grid-template-columns:112px 1fr;align-items:center;gap:14px}
+  .dbar .dl{font-size:13.5px;display:flex;align-items:center;gap:8px;color:var(--text)}
+  .dbar .dl .c{width:11px;height:11px;border-radius:3px;flex:none}
+  .dtrack{position:relative;height:30px;background:#F4EEF1;border-radius:8px}
+  .dfill{height:100%;border-radius:8px;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;min-width:38px;transition:filter .15s}
+  .dfill:hover{filter:brightness(1.05) saturate(1.05)}
+  .dfill .v{color:#fff;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;text-shadow:0 1px 1px rgba(0,0,0,.28)}
+  .dcap{margin-top:18px;padding-top:15px;border-top:1px dashed var(--border);font-size:13px;color:#4c4463;line-height:1.55}
+  .dcap b{color:var(--text)}
+  .stat-col{display:flex;flex-direction:column;gap:16px}
+  .bigstat{background:#fff;border:1px solid var(--border);border-radius:20px;padding:22px 22px 20px;box-shadow:0 18px 50px -34px rgba(36,28,59,.6);flex:1;display:flex;flex-direction:column;justify-content:center}
+  .bigstat.flag{background:#FFF2F0;border-color:#F6C5BD}
+  .bigstat .bn{font-family:var(--display);font-weight:700;font-size:3.1rem;line-height:1;letter-spacing:-.02em}
+  .bigstat.flag .bn{color:#C0341A}
+  .bigstat .bl{font-size:14.5px;color:var(--text);margin-top:9px;font-weight:700}
+  .bigstat .bs{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+  .bigstat .warn{display:inline-flex;align-items:center;gap:6px;margin-top:13px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#C0341A}
+  .ground-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+  @media(max-width:620px){.ground-tiles{grid-template-columns:1fr}}
+  .mini{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px 18px 17px;box-shadow:0 14px 40px -34px rgba(36,28,59,.6)}
+  .mini .mn{font-family:var(--display);font-weight:700;font-size:1.75rem;line-height:1;letter-spacing:-.01em}
+  .mini .mn.ok{color:#1B7A3D}
+  .mini .ml{font-size:12.5px;color:#4c4463;margin-top:9px;line-height:1.5}
+  .mini .ml b{color:var(--text)}
+  .ground-cta{font-size:14.5px;color:#4c4463;max-width:66ch;margin:32px 0 0;line-height:1.7}
+  .ground-cta b{color:var(--text)}
+  .ground-cta a{color:var(--primaryDark);font-weight:700;text-decoration:none;border-bottom:1.5px solid transparent;white-space:nowrap}
+  .ground-cta a:hover{border-bottom-color:var(--primaryDark)}
+
   footer{padding:34px 24px 60px;text-align:center;color:var(--muted);font-size:13px}
   footer a{color:var(--primaryDark)}
 
@@ -182,6 +225,64 @@
     <p>Below is Clayborn's arc, told corner by corner by the people who lived it. At the end, pull the slider and watch the 2.5 acres beside the temple become something Memphis can believe in.</p>
   </div>
   <p style="margin:36px auto 0;max-width:62ch;font-size:1.06rem;line-height:1.72;color:#3a2f57;border-left:3px solid var(--primary);padding-left:22px">This is restorative development: <b>embodied, spiritual, and quick where the city has been slow.</b> Memphis still carries systems built to exclude, and its people are tired of being interviewed while the streets stay the same. So Clayborn Temple becomes the anchor: a model for healing where storytelling, place, and the people themselves do the restoring. City agencies move at the speed of bureaucracy. The Big We moves at the speed of trust.</p>
+</section>
+
+<!-- GROUND: THE DATA HOOK -->
+<section class="ground wrap" id="data">
+  <div class="kicker">Follow the data</div>
+  <h2>These memories sit on real ground.</h2>
+  <p class="lead">Around Clayborn, the city's own numbers tell the harder story the memories already know. Every figure below is read within one mile of the temple.</p>
+
+  <div class="ground-grid">
+    <!-- food chart -->
+    <div class="dcard">
+      <div class="dh">
+        <div>
+          <h3>A neighborhood of corner stores</h3>
+          <p class="sub">Food retailers by type, citywide</p>
+        </div>
+        <div class="tot">of <b>147</b> outlets</div>
+      </div>
+      <div class="dbars">
+        <div class="dbar">
+          <div class="dl"><span class="c" style="background:#C2410C"></span> Convenience</div>
+          <div class="dtrack"><div class="dfill" style="width:100%;background:#C2410C"><span class="v">106</span></div></div>
+        </div>
+        <div class="dbar">
+          <div class="dl"><span class="c" style="background:#2B6CA3"></span> Other outlets</div>
+          <div class="dtrack"><div class="dfill" style="width:19.8%;background:#2B6CA3"><span class="v">21</span></div></div>
+        </div>
+        <div class="dbar">
+          <div class="dl"><span class="c" style="background:#1B7A3D"></span> Full grocery</div>
+          <div class="dtrack"><div class="dfill" style="width:18.9%;background:#1B7A3D"><span class="v">20</span></div></div>
+        </div>
+      </div>
+      <p class="dcap">Only <b>1 in 7</b> food outlets sells a full grocery basket. Convenience stores outnumber real grocers <b>5 to 1</b>. That is a food desert.</p>
+    </div>
+
+    <!-- headline stats -->
+    <div class="stat-col">
+      <div class="bigstat flag">
+        <div class="bn">0</div>
+        <div class="bl">community centers within a mile</div>
+        <div class="bs">Memphis runs 25 of them. The nearest to Clayborn is more than a mile out.</div>
+        <div class="warn">◍ The sharpest gap</div>
+      </div>
+      <div class="bigstat">
+        <div class="bn">14</div>
+        <div class="bl">food outlets within a mile</div>
+        <div class="bs">Just 3 of them sell full groceries. The nearest grocer, South Point Grocery, is 0.22 miles away.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ground-tiles">
+    <div class="mini"><div class="mn ok">14</div><div class="ml"><b>parks</b> within a mile, and 4 within a half mile. The ground for gathering outdoors is already here.</div></div>
+    <div class="mini"><div class="mn ok">Higher ground</div><div class="ml">Clayborn sits <b>outside</b> FEMA's high-risk flood zone, though blocks around it do not. A candidate refuge when the water comes.</div></div>
+    <div class="mini"><div class="mn">1930s</div><div class="ml">Redlining still shapes who the market forgot. These are the streets the stories come from.</div></div>
+  </div>
+
+  <p class="ground-cta"><b>This is the counter-map:</b> what the city's data sees, set against what the people know. The stories go on top. <a href="layers.html">Explore the layers →</a> &nbsp;·&nbsp; <a href="app.html">Open the living map →</a></p>
 </section>
 
 <!-- SCROLLY -->
@@ -264,19 +365,6 @@
     </article>
 
   </div>
-</section>
-
-<!-- CONTEXT: WHY THIS MATTERS -->
-<section class="context wrap">
-  <div class="kicker">Why this matters</div>
-  <h2>The memories sit on real ground.</h2>
-  <p class="lead">Around Clayborn, the city's own data tells the harder story the memories already know.</p>
-  <div class="stats">
-    <div class="stat"><div class="n" style="color:#1B7A3D">20<span class="of">of 147</span></div><div class="l">nearby food outlets sell full groceries. The other 127 are convenience stores or gas stations. That is a food desert.</div></div>
-    <div class="stat"><div class="n" style="color:#17C3B2">193</div><div class="l">City of Memphis parks: the green space that restoration protects and grows.</div></div>
-    <div class="stat"><div class="n" style="color:#8338EC">25</div><div class="l">community centers, the third spaces that still hold shared life.</div></div>
-  </div>
-  <p class="undernote2">FEMA maps high-risk flood zones through these blocks, and 1930s redlining still shapes who was left behind. These are the streets the stories come from. <a href="layers.html">Explore the layers on the base map →</a></p>
 </section>
 
 <!-- LIVING MAP REVEAL -->

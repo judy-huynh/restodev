@@ -45,6 +45,52 @@
   .modlink:hover{background:var(--line)}
   .addbtn{display:inline-flex;align-items:center;gap:7px;background:var(--text);color:#fff;font-weight:700;font-size:13.5px;padding:10px 17px;border-radius:11px;box-shadow:var(--shadow-sm)}
   .addbtn:hover{background:#3a2f57}
+  .databtn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--primaryDark);background:var(--primaryLight);padding:8px 13px;border-radius:9px;border:1px solid #F6C9D8}
+  .databtn:hover{background:#FCD9E4;transform:translateY(-1px)}
+
+  /* map cue chip → data */
+  .dcue{margin-top:7px;display:inline-flex;align-items:center;gap:7px;background:var(--text);color:#fff;font-size:11.5px;font-weight:700;padding:9px 13px;border-radius:10px;box-shadow:var(--shadow);animation:cuepulse 2.6s ease-in-out infinite}
+  .dcue:hover{background:#3a2f57;animation:none}
+  @keyframes cuepulse{0%,100%{box-shadow:0 0 0 0 rgba(255,71,126,.0),var(--shadow)}50%{box-shadow:0 0 0 5px rgba(255,71,126,.16)}}
+
+  /* ── Data modal ── */
+  .mscrim{position:fixed;inset:0;z-index:1600;background:rgba(36,28,59,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:22px;animation:mfade .18s ease}
+  @keyframes mfade{from{opacity:0}to{opacity:1}}
+  .dmodal{background:var(--bg);border-radius:22px;max-width:780px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 40px 100px -24px rgba(0,0,0,.6);overflow:hidden;animation:mrise .22s cubic-bezier(.2,.7,.3,1)}
+  @keyframes mrise{from{transform:translateY(14px);opacity:.6}to{transform:translateY(0);opacity:1}}
+  .mhead{position:relative;padding:22px 26px 18px;background:linear-gradient(135deg,var(--primaryDark),var(--purple));color:#fff;flex:none}
+  .mhead .ek{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.85}
+  .mhead h2{font-family:var(--display);font-weight:700;font-size:1.4rem;margin:7px 0 5px;letter-spacing:-.01em}
+  .mhead p{margin:0;font-size:13px;opacity:.92;max-width:56ch;line-height:1.5}
+  .mclose{position:absolute;top:15px;right:15px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:19px;display:grid;place-items:center;line-height:1}
+  .mclose:hover{background:rgba(255,255,255,.32)}
+  .mbody{padding:22px 26px 26px;overflow:auto}
+  .mcard{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:var(--shadow-sm);margin-bottom:16px}
+  .mcard .mch{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:17px;flex-wrap:wrap}
+  .mcard .mch h3{font-family:var(--display);font-weight:600;font-size:.98rem;margin:0}
+  .mcard .mch .sub{font-size:12px;color:var(--muted);margin:2px 0 0}
+  .mcard .mch .tot{font-size:12px;color:var(--muted);text-align:right}
+  .mcard .mch .tot b{display:block;font-size:1.25rem;color:var(--text);font-family:var(--display)}
+  .mbar{display:grid;grid-template-columns:104px 1fr;align-items:center;gap:12px;margin-bottom:12px}
+  .mbar:last-child{margin-bottom:0}
+  .mbar .ml{font-size:13px;display:flex;align-items:center;gap:7px}
+  .mbar .ml .c{width:10px;height:10px;border-radius:3px;flex:none}
+  .mtrack{position:relative;height:27px;background:#F4EEF1;border-radius:7px}
+  .mfill{height:100%;border-radius:7px;display:flex;align-items:center;justify-content:flex-end;padding-right:9px;min-width:34px}
+  .mfill .v{color:#fff;font-weight:700;font-size:12.5px;text-shadow:0 1px 1px rgba(0,0,0,.28)}
+  .mcap{margin-top:15px;padding-top:13px;border-top:1px dashed var(--border);font-size:12.5px;color:#4c4463;line-height:1.55}
+  .mcap b{color:var(--text)}
+  .mtiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .mtile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px 15px;box-shadow:var(--shadow-sm)}
+  .mtile.flag{background:#FFF2F0;border-color:#F6C5BD}
+  .mtile .tn{font-family:var(--display);font-weight:700;font-size:1.9rem;line-height:1;letter-spacing:-.01em}
+  .mtile.flag .tn{color:#C0341A}
+  .mtile .tn.ok{color:#1B7A3D}
+  .mtile .tl{font-size:12px;color:#4c4463;margin-top:7px;font-weight:600;line-height:1.4}
+  .mtile .ts{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+  .mnote{font-size:12.5px;color:#4c4463;line-height:1.6;margin:16px 0 0}
+  .mnote a{color:var(--primaryDark);font-weight:700;text-decoration:none}
+  @media(max-width:560px){.mtiles{grid-template-columns:1fr}.mbar{grid-template-columns:1fr;gap:5px}.mhead h2{font-size:1.2rem}}
 
   main{flex:1;position:relative;overflow:hidden}
   .view{position:absolute;inset:0}
@@ -268,6 +314,9 @@
     .bk b{font-size:14.5px;white-space:nowrap}
     .back-story{display:none}
     .modlink{padding:6px 9px;font-size:12.5px}
+    .databtn{padding:7px 10px}
+    .dtail{display:none}
+    .dcue{font-size:11px;padding:8px 11px}
     .addbtn{padding:9px 13px;font-size:13px}
     .addtail{display:none}
     .fab{display:none}
@@ -284,6 +333,7 @@
   <a class="back-story" href="index.html">← The story</a>
   <a class="back-story" href="layers.html">🗺️ Layers</a>
   <div class="sp"></div>
+  <button class="databtn" id="navData">📊<span class="dtail"> The data</span></button>
   <button class="modlink" id="navImpact">Impact</button>
   <button class="modlink" id="navMod">Moderate</button>
   <button class="addbtn" id="navAdd">＋ Share<span class="addtail"> your story</span></button>
@@ -326,6 +376,7 @@
           <button class="layer-toggle ctxbtn" id="foodToggle"><span class="sw"></span> Food access</button>
           <button class="layer-toggle ctxbtn" id="parksToggle"><span class="sw"></span> Parks</button>
           <button class="layer-toggle ctxbtn" id="commToggle"><span class="sw"></span> Community centers</button>
+          <button class="dcue" id="ctxData">📊 Why these layers? See the data</button>
         </div>
         <div class="spotlight hidden" id="spotlight"></div>
         <button class="fab" id="fabAdd">＋</button>
@@ -362,6 +413,36 @@
   <section class="view hidden" id="v-impact"><div class="impact" id="impactBody"></div></section>
 </main>
 <div class="toast" id="toast"></div>
+
+<!-- DATA MODAL -->
+<div class="mscrim hidden" id="dataModal" role="dialog" aria-modal="true" aria-labelledby="dataModalTitle">
+  <div class="dmodal">
+    <div class="mhead">
+      <div class="ek">Follow the data · within 1 mile of Clayborn</div>
+      <h2 id="dataModalTitle">The ground these stories sit on</h2>
+      <p>The city's own data, read around Clayborn Temple. The layers on this map are the context; the memories go on top.</p>
+      <button class="mclose" id="dataClose" aria-label="Close">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="mcard">
+        <div class="mch">
+          <div><h3>A neighborhood of corner stores</h3><p class="sub">Food retailers by type, citywide</p></div>
+          <div class="tot">of <b>147</b> outlets</div>
+        </div>
+        <div class="mbar"><div class="ml"><span class="c" style="background:#C2410C"></span> Convenience</div><div class="mtrack"><div class="mfill" style="width:100%;background:#C2410C"><span class="v">106</span></div></div></div>
+        <div class="mbar"><div class="ml"><span class="c" style="background:#2B6CA3"></span> Other outlets</div><div class="mtrack"><div class="mfill" style="width:19.8%;background:#2B6CA3"><span class="v">21</span></div></div></div>
+        <div class="mbar"><div class="ml"><span class="c" style="background:#1B7A3D"></span> Full grocery</div><div class="mtrack"><div class="mfill" style="width:18.9%;background:#1B7A3D"><span class="v">20</span></div></div></div>
+        <p class="mcap">Only <b>1 in 7</b> food outlets sells a full grocery basket. Convenience stores outnumber grocers <b>5 to 1</b>. That is a food desert.</p>
+      </div>
+      <div class="mtiles">
+        <div class="mtile flag"><div class="tn">0</div><div class="tl">community centers within a mile</div><div class="ts">Memphis runs 25. The nearest is over a mile out: the sharpest gap.</div></div>
+        <div class="mtile"><div class="tn">14</div><div class="tl">food outlets within a mile</div><div class="ts">Only 3 sell full groceries. Nearest grocer 0.22 mi (South Point Grocery).</div></div>
+        <div class="mtile"><div class="tn ok">14</div><div class="tl">parks within a mile</div><div class="ts">4 within a half mile. Green space for gathering is already here.</div></div>
+      </div>
+      <p class="mnote"><b>On higher ground:</b> Clayborn sits outside FEMA's high-risk flood zone, though blocks around it (zones A and AE) do not. That makes it a candidate refuge. Toggle the layers at right to see each of these on the map. <a href="layers.html">Open the full base map →</a></p>
+    </div>
+  </div>
+</div>
 
 <script>
 "use strict";
@@ -661,6 +742,13 @@ function showView(v){["explore","capture","thanks","admin","impact"].forEach(fun
   if(v==="explore"){initMap();setTimeout(function(){map.invalidateSize();},60);}
   if(v==="admin")renderAdmin();
   if(v==="impact")renderImpact();}
+function openData(){$("dataModal").classList.remove("hidden");}
+function closeData(){$("dataModal").classList.add("hidden");}
+$("navData").addEventListener("click",openData);
+$("ctxData").addEventListener("click",openData);
+$("dataClose").addEventListener("click",closeData);
+$("dataModal").addEventListener("click",function(e){if(e.target===this)closeData();});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeData();});
 $("navMod").addEventListener("click",function(){showView("admin");});
 $("navAdd").addEventListener("click",function(){startCapture();});
 $("fabAdd").addEventListener("click",function(){startCapture();});
