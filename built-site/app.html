@@ -173,10 +173,10 @@
   .fab{position:absolute;right:16px;bottom:16px;z-index:600;width:56px;height:56px;border-radius:50%;background:var(--text);color:#fff;font-size:26px;box-shadow:var(--shadow);display:none;place-items:center}
 
   /* leaflet marker */
-  .mk{width:18px;height:18px;border-radius:50% 50% 50% 2px;transform:rotate(45deg);border:2.5px solid #fff;box-shadow:0 3px 8px rgba(36,28,59,.5);transition:transform .16s,box-shadow .16s}
-  .mk .mkdot{display:none}
+  .mk{width:26px;height:26px;transform-origin:50% 88%;filter:drop-shadow(0 3px 4px rgba(36,28,59,.45));transition:transform .16s,filter .16s}
+  .mk svg{width:100%;height:100%;display:block}
   .mk-wrap{transition:.16s}
-  .mk-wrap.hi .mk,.mk-wrap.sel .mk{transform:rotate(45deg) scale(1.5);box-shadow:0 6px 16px rgba(36,28,59,.6);z-index:1000}
+  .mk-wrap.hi .mk,.mk-wrap.sel .mk{transform:scale(1.42);filter:drop-shadow(0 6px 10px rgba(36,28,59,.55))}
   .mk-anchor{width:14px;height:14px;transform:rotate(45deg);background:var(--anchor);border:2px solid #fff;opacity:.92;box-shadow:0 2px 6px rgba(0,0,0,.4)}
   .mk-star{width:36px;height:36px;filter:drop-shadow(0 2px 5px rgba(36,28,59,.5))}
   .mk-star svg{width:100%;height:100%;display:block}
@@ -313,7 +313,7 @@
 
   /* ── Commons (Permissioning) + Shared dreams ── */
   .mk-space{width:15px;height:15px;background:var(--gold);border:2px dashed #A9791B;border-radius:3px;opacity:.96;box-shadow:0 2px 6px rgba(0,0,0,.35)}
-  .mk-wrap.shared .mk{box-shadow:0 0 0 4px rgba(58,134,255,.5),0 3px 9px rgba(36,28,59,.55)}
+  .mk-wrap.shared .mk{filter:drop-shadow(0 0 2px rgba(58,134,255,.95)) drop-shadow(0 0 5px rgba(58,134,255,.7)) drop-shadow(0 3px 5px rgba(36,28,59,.5))}
   .prophead{font-size:11px;font-weight:700;color:var(--faint);letter-spacing:.06em;text-transform:uppercase;margin:6px 0 12px}
   .prop{border:1px solid var(--border);border-radius:12px;padding:12px 13px;margin-bottom:9px}
   .prop .pt{font-size:13.5px;font-weight:600;margin:0 0 4px;line-height:1.4}
@@ -651,8 +651,7 @@ function initMap(){
       L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="anchor-lbl star-lbl">'+esc(a.n)+'</div>',iconSize:[0,0]}),interactive:false,zIndexOffset:600}).addTo(anchorLayer);
       return;
     }
-    L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="mk-anchor"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(anchorLayer);
-    L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="anchor-lbl">'+esc(a.n)+'</div>',iconSize:[0,0]}),interactive:false}).addTo(anchorLayer);
+    L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="mk-anchor" title="'+esc(a.n)+'"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:true,title:a.n}).addTo(anchorLayer);
   });
   if(anchorsOn)anchorLayer.addTo(map);
   spacesLayer=L.layerGroup();
@@ -674,7 +673,7 @@ function loadContext(){
   loadCtx("community.geojson","comm",function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#8338EC",6));},onEachFeature:function(f,l){l.bindPopup("<b>"+(f.properties.name||"Community center")+"</b>"+(f.properties.street?"<br>"+f.properties.street:""));}});});
 }
 function toggleCtx(key,btn){var on=btn.classList.toggle("on");var l=ctxLayers[key];if(!l){return;}if(on)l.addTo(map);else map.removeLayer(l);}
-function mkIcon(color){return L.divIcon({className:"mk-wrap",html:'<div class="mk" style="background:'+color+'"></div>',iconSize:[18,18],iconAnchor:[9,16]});}
+function mkIcon(color){return L.divIcon({className:"mk-wrap",html:'<div class="mk"><svg viewBox="0 0 24 24" fill="'+color+'" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>',iconSize:[26,26],iconAnchor:[13,23]});}
 function renderMarkers(){
   if(!map)return;
   Object.keys(markersById).forEach(function(id){map.removeLayer(markersById[id]);});markersById={};
