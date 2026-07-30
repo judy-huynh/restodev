@@ -405,7 +405,7 @@
             <div class="lp-body" id="lpBody">
               <div class="lp-group">
                 <div class="lp-gh">Community</div>
-                <button class="lrow on" id="anchorToggle"><span class="lname"><b>Heritage anchors</b><em>Real Memphis landmarks</em></span><span class="sw"></span></button>
+                <button class="lrow on" id="anchorToggle"><span class="lname"><b>Cultural District</b><em>Clayborn and the sites around it</em></span><span class="sw"></span></button>
                 <button class="lrow" id="spaceToggle"><span class="lname"><b>Open spaces</b><em>Sample sites, for the demo</em></span><span class="sw"></span></button>
               </div>
               <div class="lp-group">
@@ -529,29 +529,35 @@ var CAMPAIGNS={
 };
 var MODES={web:"Website",kiosk:"Event kiosk",share:"Interview",ambassador:"Story ambassador"};
 var eraLabel=function(id){for(var i=0;i<ERAS.length;i++)if(ERAS[i][0]===id)return ERAS[i][1];return id;};
-var CLAYBORN=[35.1338,-90.0565];
+var CLAYBORN=[35.1365,-90.0511];
+// The Cultural District web named in the RestoDev Framework (ASD v2, Investment Thesis).
+// Clayborn is the anchor, the Grandmother; the rest are the constellation around it.
+// Coordinates geocoded from the street addresses in the comments, 2026-07-30.
 var ANCHORS=[
-  {n:"Clayborn Temple",lat:35.1338,lng:-90.0565,star:true},{n:"Beale Street Historic District",lat:35.1400,lng:-90.0510},
-  {n:"National Civil Rights Museum",lat:35.1341,lng:-90.0577},{n:"Stax Museum · Soulsville",lat:35.1148,lng:-90.0292},
-  {n:"Orange Mound",lat:35.1195,lng:-90.0072},{n:"Robert Church Park",lat:35.1372,lng:-90.0489}
+  {n:"Clayborn Temple",lat:35.1365,lng:-90.0511,star:true},        // 294 Hernando St
+  {n:"National Civil Rights Museum",lat:35.1346,lng:-90.0576},     // 450 Mulberry St
+  {n:"R.S. Lewis Funeral Home",lat:35.1354,lng:-90.0493},          // 374 Vance Ave
+  {n:"Stax Museum · Soulsville",lat:35.1158,lng:-90.0311},         // 926 E McLemore Ave
+  {n:"Aretha Franklin Birth Home",lat:35.1143,lng:-90.0488},       // 406 Lucy Ave
+  {n:"People's Grocery",lat:35.1195,lng:-90.0388}                  // Mississippi Blvd & Walker Ave, UNVERIFIED
 ];
 // Integration #1, Permissioning the City (Jayne Engle / Dark Matter Labs): underused space as a commons
 var SEED_SPACES=[
- {id:"sp1",name:"The 2.5 acres beside Clayborn",status:"City-owned",lat:35.1330,lng:-90.0556,blurb:"Underused land next to the temple, the bridge to what Clayborn will hold.",
+ {id:"sp1",name:"The 2.5 acres beside Clayborn",status:"City-owned",lat:35.1361,lng:-90.0518,blurb:"Underused land next to the temple, the bridge to what Clayborn will hold.",
   proposals:[{id:"sp1p1",text:"A weekly farmers & creative-economy market.",name:"Bertram",cosigns:14},{id:"sp1p2",text:"A community garden and a shaded gathering tent.",name:"Dorothy",cosigns:9}]},
  {id:"sp2",name:"The old greenhouse",status:"Access granted",lat:35.1082,lng:-90.0360,blurb:"Dormant city greenhouse, the water's back on and seedlings are already growing.",
   proposals:[{id:"sp2p1",text:"An arts + growing residency, open to the neighborhood.",name:"Bertram",cosigns:6}]},
  {id:"sp3",name:"Vacant storefront · Soulsville",status:"Vacant",lat:35.1150,lng:-90.0305,blurb:"Empty since the record shop closed. Big windows, good corner.",proposals:[]},
  {id:"sp4",name:"Empty lot · Orange Mound",status:"Vacant",lat:35.1205,lng:-90.0085,blurb:"Grass lot the block keeps mowed. Kids cut through it every day.",
   proposals:[{id:"sp4p1",text:"A pocket park with a small stage that doesn't rain out.",name:null,cosigns:5}]},
- {id:"sp5",name:"Alley off Main · Downtown",status:"Underused",lat:35.1392,lng:-90.0525,blurb:"One of the downtown alleys, made for Alley Days activations.",proposals:[]}
+ {id:"sp5",name:"Alley off Main · Downtown",status:"Underused",lat:35.1392,lng:-90.0525,blurb:"One of the downtown alleys, made for street activations and pop-up gatherings.",proposals:[]}
 ];
 var SEEDS=[
  {id:"s1",kind:"culture",place:"music",hood:"Soulsville",name:"Dorothy Jenkins",vis:"full",inst:true,corner:"Soulsville",era:"civilrights",lat:35.1148,lng:-90.0292,photo:"stax-records.jpg",status:"approved",
   story:"My brother worked the counter at the Satellite Record Shop in front of the Stax studio. Summers, I'd sit on the stoop with a cold drink and hear the horn sections bleeding through the wall, you didn't need a ticket to know history was being cut fifty feet away. When they tore the first building down it felt like losing a relative."},
  {id:"s2",kind:"culture",place:"music",hood:"Beale Street",name:"Charlene",vis:"first",inst:true,corner:"Beale & 4th",era:"civilrights",lat:35.1399,lng:-90.0521,photo:"beale-street.jpg",audio:PHOTO+"voice-beale.m4a",status:"approved",
   story:"My daddy played trumpet on Beale Street every Friday night, 1962 to 1971. Mama would let me stay up so we could hear him warming up out the back window of the club. Whenever I pass that corner now, I swear the brass is still in the bricks."},
- {id:"s3",kind:"memory",place:"church",hood:"Downtown / Clayborn",name:"Marcus Bell",vis:"full",inst:true,corner:"Clayborn Temple",era:"civilrights",lat:35.1338,lng:-90.0565,photo:"clayborn-temple.jpg",status:"approved",
+ {id:"s3",kind:"memory",place:"church",hood:"Downtown / Clayborn",name:"Marcus Bell",vis:"full",inst:true,corner:"Clayborn Temple",era:"civilrights",lat:35.1365,lng:-90.0511,photo:"clayborn-temple.jpg",status:"approved",
   story:"My grandfather assembled here with the sanitation workers in 1968, the morning they handed out the I AM A MAN signs. He kept his sign folded in the family Bible until the day he died. Every time I walk past Clayborn I stop for a second, this building watched Memphis decide who it was going to be."},
  {id:"s4",kind:"lineage",place:"church",hood:"Beale Street",name:"Tonya",vis:"first",inst:false,corner:"Beale Street Baptist",era:"eighties",lat:35.1391,lng:-90.0507,photo:"memphis-church.jpg",status:"approved",
   story:"Four generations of my family sang in this choir. My grandmother's pew was third row, left side, nobody sat there even years after she passed. I learned to read music off a hymnal with her thumbprints on the corners. The building needs work now, and I worry the history goes when the roof does."},
@@ -565,7 +571,7 @@ var SEEDS=[
   story:"The kids in this neighborhood painted this wall themselves, with a muralist teaching them on weekends. What should grow here? More of that. Paint, instruments, a stage that doesn't get rained out. Give them walls, not warnings."},
  {id:"s9",kind:"memory",place:"school",hood:"South Memphis",name:"Otis Greer",vis:"first",inst:true,corner:"South Memphis",era:"eighties",lat:35.1069,lng:-90.0341,photo:null,status:"pending",
   story:"Booker T. Washington High marching band practice, fall of 1986, you could hear the drumline from six blocks out, and the whole neighborhood kept time to it. Coach Simms made you carry your grades to carry a horn. Half the men I grew up with will tell you that band room did more for them than any program the city ever ran."},
- {id:"s10",kind:"future",place:"street",hood:"Downtown / Clayborn",name:"Imani",vis:"first",inst:true,corner:"Clayborn Temple",era:"future2065",lat:35.1335,lng:-90.0560,photo:null,status:"approved",affirms:7,
+ {id:"s10",kind:"future",place:"street",hood:"Downtown / Clayborn",name:"Imani",vis:"first",inst:true,corner:"Clayborn Temple",era:"future2065",lat:35.1362,lng:-90.0507,photo:null,status:"approved",affirms:7,
   story:"It's 2068. My granddaughter learns her history inside the temple my mother helped rebuild, not from a plaque, but from the people who never left. The block that used to flood is a garden now. Nobody here asks permission to belong."}
 ];
 var SEED_CAMPAIGN={s1:"porch",s2:"porch",s3:"web",s4:"web",s5:"juneteenth",s6:"market",s7:"porch",s8:"reimagine2065",s9:"juneteenth",s10:"reimagine2065"};
@@ -980,7 +986,7 @@ function renderImpact(){
   function kpi(n,l,s){return '<div class="kpi"><div class="n">'+n+'</div><div class="l">'+l+'</div>'+(s?'<div class="s">'+s+'</div>':"")+'</div>';}
   $("impactBody").innerHTML=
     '<h2>Impact &amp; Transparency</h2>'+
-    '<p class="sub">A living account of what this collection holds: for The Big We, for funders, and for the community itself. Memphis is tired of being studied while the streets stay the same. This page exists so the people who give their stories can see what those stories are building.</p>'+
+    '<p class="sub">A living account of what this collection holds: for The Big We, for funders, and for the community itself. Memphis is tired of being studied while the streets stay the same. This page exists so the people who give their stories can see what those stories are building. These are the <b>warm data</b>, the lived and cultural record, that the hard numbers cannot hold on their own.</p>'+
     '<div class="ethos-note"><b>Every number here is a person who trusted us with a memory or a dream.</b> The Big We stewards each one. Nothing reaches a funder or a city agency except what a contributor said it could. That is what "data for freedom" means, and it is measured below.</div>'+
     '<div class="kpis">'+
       kpi(pub.length,"Stories rooted","live on the public map")+
