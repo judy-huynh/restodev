@@ -249,7 +249,7 @@
   .achint{font-size:12px;color:var(--muted);margin:7px 2px 0;min-height:16px}
   .acrow.on{background:var(--primaryLight)}
   /* the place half of the intake form */
-  .place{margin-top:26px;padding-top:22px;border-top:1px solid var(--border)}
+  .place,.fsec{margin-top:26px;padding-top:22px;border-top:1px solid var(--border)}
   .q2{font-family:var(--display);font-size:1.05rem;margin:0 0 4px;letter-spacing:-.01em}
   .q2 label{cursor:pointer}
   .placebtns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px}
@@ -1061,10 +1061,11 @@ function startCapture(kind){
   // person never placed it, and a story must not submit that way: an unplaced pin
   // used to silently file the story at Clayborn.
   draft={id:uid(),kind:kind||null,place:"",hood:"",story:"",corner:"",era:defEra,lat:CLAYBORN[0],lng:CLAYBORN[1],locSource:"unset",photo:null,audio:null,name:"",email:"",phone:"",vis:"first",inst:false,status:"pending",campaign:campaignParam,mode:captureMode};
-  // The story and its place are one thought, so they are one screen. Merging the old
-  // "corner" and "location" steps also removes a duplicate question: the flow used to
-  // ask where the story belongs, then ask again on a map.
-  STEPS=draft.kind?["story","era","media","consent"]:["kind","story","era","media","consent"];
+  // What happened, where, and when are the record itself, so they are one screen.
+  // Media comes after, because a photo or a voice supports a story that already exists.
+  // This also removed a duplicate question: the flow used to ask where the story
+  // belonged, then ask again on a map three steps later.
+  STEPS=draft.kind?["story","media","consent"]:["kind","story","media","consent"];
   stepIdx=0;showView("capture");renderBanner();renderStep();
 }
 function renderBanner(){var el=$("capBanner");if(!el)return;var m=CAMPAIGNS[draft.campaign];if(draft.campaign&&draft.campaign!=="web"&&m){el.className="capbanner";el.innerHTML='Collecting for <b style="margin:0 5px">'+esc(m.label)+'</b>'+(eventParam?'<span style="opacity:.75">· '+esc(eventParam)+'</span>':'')+'<span style="opacity:.55;font-weight:500;margin-left:8px">· '+(MODES[draft.mode]||draft.mode)+'</span>';}else{el.className="capbanner hidden";el.innerHTML="";}}
@@ -1086,7 +1087,7 @@ function renderStep(){
     var sub=is65?"Clayborn's grandchildren are grown. Dream out loud: what did we build, what finally healed, what changed for good? (No dream is too big. You may not know it yet, but others share it.)":isV?"In five years, when you walk past this place, what do you want to see, hear, or feel?":"What happened here? Who was there? What did this place mean, and what should it mean next?";
     b.innerHTML='<h2 class="q">'+q+'</h2><p class="qsub">'+sub+'</p>'
       +'<textarea id="story" rows="6" placeholder="'+(isV?"I want to see…":"Take your time…")+'">'+esc(draft.story)+'</textarea>'
-      +'<div class="place">'
+      +'<div class="fsec place">'
       +  '<h3 class="q2"><label for="corner">Where is this place?</label></h3>'
       +  '<p class="qsub">A neighborhood, a street, or a building. However you would say it to a neighbor.</p>'
       +  '<div class="ac"><input type="text" class="ti" id="corner" autocomplete="off" placeholder="Like Orange Mound, Soulsville, or Beale &amp; 4th" value="'+esc(draft.corner)+'"><div class="aclist hidden" id="cornerAc"></div></div>'
@@ -1094,18 +1095,24 @@ function renderStep(){
       +  '<div class="placebtns"><button class="btn ghost" type="button" id="mapToggle">Point to it on the map</button><button class="btn ghost" type="button" id="gpsBtn">Use where I am now</button></div>'
       +  '<div id="mapWrap" class="hidden"><div class="pinmap" id="pinmap"></div><p class="achint">Tap the map, or drag the pin, to move it.</p></div>'
       +'</div>'
+      +'<div class="fsec">'
+      +  '<h3 class="q2">'+(isV?"When are you imagining?":"When was this?")+'</h3>'
+      +  '<p class="qsub">Pick the closest time. You do not have to be exact.</p>'
+      +  '<div class="chips" id="er"></div>'
+      +'</div>'
       +'<p class="whyoff" id="whyOff"></p>'+navRow(true);
     wireNav();
     var ta=$("story"),ci=$("corner"),hint=$("cornerHint"),why=$("whyOff");
     ta.focus();
 
     function refresh(){
-      var hasStory=!!draft.story.trim(),hasPlace=draft.locSource!=="unset";
-      $("nextBtn").disabled=!(hasStory&&hasPlace);
-      // Never leave a disabled button unexplained.
-      why.textContent=hasStory&&hasPlace?""
+      var hasStory=!!draft.story.trim(),hasPlace=draft.locSource!=="unset",hasWhen=!!draft.era;
+      $("nextBtn").disabled=!(hasStory&&hasPlace&&hasWhen);
+      // Never leave a disabled button unexplained. Name the one thing still missing.
+      why.textContent=hasStory&&hasPlace&&hasWhen?""
         :!hasStory?"Write your story above to continue."
-        :"Now tell us where it is: type a name, point to it on the map, or use where you are.";
+        :!hasPlace?"Now tell us where it is: type a name, point to it on the map, or use where you are."
+        :"Last thing: pick roughly when this was.";
     }
     function showMap(){
       $("mapWrap").classList.remove("hidden");
@@ -1124,6 +1131,14 @@ function renderStep(){
     }
     window.__suggestName=suggestName;   // initPinMap calls this after a manual move
     window.__refreshStep=refresh;       // setDraftLoc calls this, see above
+
+    $("er").innerHTML=ERAS.map(function(e){return '<button type="button" class="chip'+(draft.era===e[0]?" on":"")+'" data-e="'+e[0]+'" aria-pressed="'+(draft.era===e[0])+'">'+esc(e[1])+'</button>';}).join("");
+    b.querySelectorAll("[data-e]").forEach(function(el){el.addEventListener("click",function(){
+      draft.era=el.dataset.e;
+      b.querySelectorAll("#er .chip").forEach(function(c){c.classList.remove("on");c.setAttribute("aria-pressed","false");});
+      el.classList.add("on");el.setAttribute("aria-pressed","true");
+      refresh();
+    });});
 
     ta.addEventListener("input",function(){draft.story=ta.value;refresh();});
     wireAutocomplete(ci,$("cornerAc"),function(f){
@@ -1165,11 +1180,6 @@ function renderStep(){
       else{suggestName();}
     }
     refresh();
-  } else if(step==="era"){
-    b.innerHTML='<h2 class="q">When does this live?</h2><p class="qsub">Place it on the timeline.</p><div class="chips" id="er"></div>'+navRow(false);
-    $("er").innerHTML=ERAS.map(function(e){return '<button class="chip'+(draft.era===e[0]?" on":"")+'" data-e="'+e[0]+'">'+esc(e[1])+'</button>';}).join("");
-    b.querySelectorAll("[data-e]").forEach(function(el){el.addEventListener("click",function(){draft.era=el.dataset.e;b.querySelectorAll(".chip").forEach(function(c){c.classList.remove("on");});el.classList.add("on");$("nextBtn").disabled=false;});});
-    wireNav();$("nextBtn").disabled=!draft.era;
   } else if(step==="media"){
     b.innerHTML='<h2 class="q">Add a voice or a photo.</h2><p class="qsub">Optional, but a voice is how a memory really travels. This works beautifully for elders.</p><div class="media-row"><div class="rec"><button class="mic" id="micBtn" type="button" aria-label="Record audio">'+ic("mic",26)+'</button><div class="lbl" id="recLbl">Tap to record</div><div id="audioPrev"></div></div><div class="rec"><button class="mic" id="photoBtn" type="button" aria-label="Add a photo" style="background:var(--accent)">'+ic("camera",26)+'</button><div class="lbl">Add a photo</div><input type="file" id="photoIn" accept="image/*" capture="environment" hidden><div id="photoPrev"></div></div></div>'+navRow(false)+'<div style="text-align:center"><button class="skip" id="skipMedia">Skip, no media</button></div>';
     wireNav();$("nextBtn").disabled=false;$("skipMedia").addEventListener("click",goNext);wireRecorder();wirePhoto();
