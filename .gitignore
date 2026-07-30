@@ -2,5 +2,14 @@
 .DS_Store
 **/.DS_Store
 
-# Internal strategy / handoff notes — not for the public repo
+# Internal strategy / handoff notes — not for the public repo.
+# This repo is PUBLIC. Anything listed here stays on the local drive only.
+# NOTE: this is an allowlist by name. A NEW internal .md you add is NOT ignored
+# by default — add it here, then confirm with `git status --short`.
 INVENTORY.md
+START-HERE.md
+GOALS.md
+WORKFLOW.md
+CHANGELOG.md
+DECISIONS.md
+EVENT-RUNBOOK.md
