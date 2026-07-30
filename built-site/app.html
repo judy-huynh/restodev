@@ -238,6 +238,26 @@
   .rec .lbl{font-size:12.5px;color:var(--muted);text-align:center}
   audio{width:100%}.prev{max-height:120px;border-radius:10px;margin-top:8px}
   .pinmap{height:290px;border-radius:14px;overflow:hidden;border:1.5px solid var(--border)}
+  /* geocode autocomplete, shared by the capture flow and the map search */
+  .ac{position:relative}
+  .aclist{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:1200;background:#fff;border:1.5px solid var(--border);border-radius:11px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.13);max-height:232px;overflow-y:auto}
+  .acrow{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--border);padding:9px 12px;cursor:pointer;font:inherit}
+  .acrow:last-child{border-bottom:0}
+  .acrow:hover,.acrow:focus{background:var(--bg);outline:none}
+  .acrow b{display:block;font-size:13.5px}
+  .acrow span{display:block;font-size:11.5px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .achint{font-size:12px;color:var(--muted);margin:7px 2px 0;min-height:16px}
+  .btn.gps{width:100%;margin-top:10px}
+  /* address search floating on the map */
+  .mapsearch{position:absolute;top:12px;left:12px;z-index:900;width:min(310px,calc(100% - 24px))}
+  .mapsearch input{width:100%;border:1.5px solid var(--border);border-radius:11px;padding:10px 30px 10px 34px;font-size:13.5px;background:#fff;box-shadow:0 3px 14px rgba(0,0,0,.11)}
+  .mapsearch input:focus{outline:none;border-color:var(--primary)}
+  .mapsearch .si{position:absolute;left:11px;top:17px;transform:translateY(-50%);color:var(--faint);display:inline-flex;pointer-events:none}
+  .msclear{position:absolute;right:8px;top:8px;width:20px;height:20px;border:0;background:none;color:var(--muted);font-size:17px;line-height:1;cursor:pointer}
+  .mk-found{width:18px;height:18px;border-radius:50%;background:var(--cta,#FFC300);border:3px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.18)}
+  .addhere{margin-top:6px;background:var(--primary);color:#fff;border:0;border-radius:9px;padding:8px 13px;font:inherit;font-weight:600;font-size:13px;cursor:pointer}
+  .addpop .leaflet-popup-content{margin:9px 11px}
+  @media(max-width:860px){.mapsearch{width:calc(100% - 24px)}}
   .consent-opt{display:flex;gap:11px;align-items:flex-start;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:13.5px;background:#fff;cursor:pointer}
   .consent-opt.on{border-color:var(--primary);background:var(--primaryLight)}
   .consent-opt b{display:block}.consent-opt small{color:var(--muted)}
@@ -376,7 +396,7 @@
           <h1>Community Memories</h1>
           <p class="meta" id="panelMeta"></p>
           <p style="font-size:11.5px;color:var(--faint);margin:5px 0 0;line-height:1.5">A community-owned record, culture as the root of healing. Stewarded by The Big We.</p>
-          <div class="search"><span class="si" data-ic="search" data-s="15"></span><input id="searchIn" placeholder="Search stories, names, corners…"></div>
+          <div class="search"><span class="si" data-ic="search" data-s="15"></span><input id="searchIn" placeholder="Filter stories by word, name or corner…"></div>
         </div>
         <div class="filters">
           <div class="fgroup"><div class="flabel">Category</div><div class="kchips" id="kchips"></div></div>
@@ -395,6 +415,12 @@
       </aside>
       <div class="mapwrap">
         <div id="map"></div>
+        <div class="mapsearch">
+          <span class="si" data-ic="search" data-s="15"></span>
+          <input id="placeIn" autocomplete="off" placeholder="Find a place in Memphis">
+          <button type="button" class="msclear hidden" id="placeClear" aria-label="Clear">&times;</button>
+          <div class="aclist hidden" id="placeAc"></div>
+        </div>
         <div class="vignette"></div>
         <div class="maptools">
           <div class="layerpanel" id="layerPanel">
@@ -609,7 +635,7 @@ function contactRow(c){
 function rowToStory(r){var a=r.answers||{},photo=null,audio=null;(r.media||[]).forEach(function(m){if(m.kind==="photo"&&!photo)photo=m.url;if(m.kind==="audio"&&!audio)audio=m.url;});var src=r.source||{};return{id:r.id,kind:a.kind||"memory",place:a.place_type||"",hood:r.location_label||a.corner||"Memphis",corner:a.corner||r.location_label||"",era:a.era||"today",story:a.story||"",lat:r.lat,lng:r.lng,name:r.display_name,vis:CONSENT2VIS[r.consent_level]||"first",inst:!!a.inst,contact:a.contact||null,photo:photo,audio:audio,campaign:src.campaign||"web",mode:src.mode||"web",affirms:AFF[r.id]||0,status:r.status||"approved"};}
 async function supaFetchApproved(){var res=await fetch(SUPA.url+"/rest/v1/stories?tenant_id=eq."+SUPA.tid+"&status=eq.approved&select=id,status,display_name,consent_level,answers,lat,lng,location_label,media,source,submitted_at&order=submitted_at.desc&limit=500",{headers:supaHeaders()});if(!res.ok)throw new Error("load "+res.status);return (await res.json()).map(rowToStory);}
 async function supaUpload(dataUrl,kind){var blob=await (await fetch(dataUrl)).blob();var ext=kind==="audio"?"webm":"jpg";var path="memphis-roots/"+Date.now()+"-"+Math.random().toString(36).slice(2,10)+"."+ext;var res=await fetch(SUPA.url+"/storage/v1/object/story-media/"+path,{method:"POST",headers:{apikey:SUPA.key,Authorization:"Bearer "+SUPA.key,"Content-Type":blob.type||"application/octet-stream"},body:blob});if(!res.ok)throw new Error("media "+res.status);return{url:SUPA.url+"/storage/v1/object/public/story-media/"+path,kind:kind};}
-async function supaSubmit(d){var media=[];if(d.photo){try{media.push(await supaUpload(d.photo,"photo"));}catch(e){}}if(d.audio){try{media.push(await supaUpload(d.audio,"audio"));}catch(e){}}var row={id:(window.crypto&&crypto.randomUUID?crypto.randomUUID():uid()),tenant_id:SUPA.tid,status:"pending",consent_level:VIS2CONSENT[d.vis]||"first_name",display_name:(d.vis==="anon"||d.vis==="heritage")?null:(d.name||null),answers:{kind:d.kind,place_type:d.place||null,era:d.era,story:d.story,corner:d.corner||null,inst:!!d.inst,contact:((d.name||d.email||d.phone)?{name:d.name||null,email:d.email||null,phone:d.phone||null}:null)},lat:d.lat,lng:d.lng,location_label:d.hood||d.corner||null,media:media,source:{campaign:d.campaign,mode:d.mode}};var res=await fetch(SUPA.url+"/rest/v1/stories",{method:"POST",headers:Object.assign(supaHeaders(),{Prefer:"return=minimal"}),body:JSON.stringify(row)});if(!res.ok&&res.status!==409)throw new Error("submit "+res.status+": "+(await res.text()).slice(0,140));return true;}
+async function supaSubmit(d){var media=[];if(d.photo){try{media.push(await supaUpload(d.photo,"photo"));}catch(e){}}if(d.audio){try{media.push(await supaUpload(d.audio,"audio"));}catch(e){}}var row={id:(window.crypto&&crypto.randomUUID?crypto.randomUUID():uid()),tenant_id:SUPA.tid,status:"pending",consent_level:VIS2CONSENT[d.vis]||"first_name",display_name:(d.vis==="anon"||d.vis==="heritage")?null:(d.name||null),answers:{kind:d.kind,place_type:d.place||null,era:d.era,story:d.story,corner:d.corner||null,inst:!!d.inst,contact:((d.name||d.email||d.phone)?{name:d.name||null,email:d.email||null,phone:d.phone||null}:null)},lat:d.lat,lng:d.lng,location_label:d.hood||d.corner||null,media:media,source:{campaign:d.campaign,mode:d.mode,locSource:d.locSource||"unset"}};var res=await fetch(SUPA.url+"/rest/v1/stories",{method:"POST",headers:Object.assign(supaHeaders(),{Prefer:"return=minimal"}),body:JSON.stringify(row)});if(!res.ok&&res.status!==409)throw new Error("submit "+res.status+": "+(await res.text()).slice(0,140));return true;}
 async function supaLogin(email,password){var res=await fetch(SUPA.url+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:SUPA.key,"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password})});var d=await res.json();if(!res.ok||!d.access_token)throw new Error(d.error_description||d.msg||"sign-in failed");SUPA.session=d;try{sessionStorage.setItem("mr_sess",JSON.stringify(d));}catch(e){}}
 function supaLogout(){SUPA.session=null;try{sessionStorage.removeItem("mr_sess");}catch(e){}}
 async function supaAuthed(path,opts){opts=opts||{};var res=await fetch(SUPA.url+"/rest/v1/"+path,Object.assign({},opts,{headers:Object.assign(supaHeaders(SUPA.session&&SUPA.session.access_token),opts.headers||{})}));if(res.status===401){supaLogout();throw new Error("SESSION");}if(!res.ok)throw new Error((opts.method||"GET")+" "+res.status);var t=await res.text();return t?JSON.parse(t):null;}
@@ -644,6 +670,48 @@ var STAR_SVG='<svg viewBox="0 0 24 24" fill="#FFC300" stroke="#fff" stroke-width
 /* Base map tiles: Mapbox. Swap MAP_STYLE to your own Mapbox Studio style to restyle everything. */
 var MAPBOX_TOKEN="pk.eyJ1IjoiajAwYnkiLCJhIjoiY2x1bHUzbXZnMGhuczJxcG83YXY4czJ3ayJ9.S5PZpU9VDwLMjoX_0x5FDQ";
 var MAP_STYLE="mapbox/light-v11"; // Mapbox Studio: change to "j00by/<your-style-id>" for a custom style
+/* ── geocoding ──────────────────────────────────────────────────────────────
+   Shared by the capture flow (place a story) and the map search (find a place).
+   Bounded to Shelby County so "Main St" means Main St in Memphis, and proximity
+   biased to Clayborn so the closest match wins. Fails soft: a geocode that does
+   not resolve must never block someone from telling their story. */
+var MEMPHIS_BBOX="-90.31,34.99,-89.63,35.41";
+
+/* Places the community names that a commercial geocoder does not know, or gets wrong.
+   Checked BEFORE Mapbox, because Mapbox returns nothing for "Soulsville" and resolves
+   "Soulsville, Memphis, Tennessee" to Bill Morris Parkway, 15 miles the wrong way.
+   A map of cultural memory has to know the names people actually use.
+   ADD TO THIS during the workshop: any place Bertram or a resident names that the
+   search cannot find is itself a finding, and belongs here. */
+var LOCAL_PLACES=[
+  {short:"Soulsville",       name:"Soulsville USA, South Memphis",            lat:35.1158,lng:-90.0311},
+  {short:"Clayborn Temple",  name:"Clayborn Temple, 294 Hernando St",         lat:35.1365,lng:-90.0511},
+  {short:"The Curve",        name:"The Curve, Mississippi Blvd & Walker Ave", lat:35.1195,lng:-90.0388}
+];
+function localPlaces(q){
+  var s=q.toLowerCase();
+  return LOCAL_PLACES.filter(function(p){
+    return p.short.toLowerCase().indexOf(s)>-1||p.name.toLowerCase().indexOf(s)>-1;
+  });
+}
+
+function geocode(q,limit){
+  var url="https://api.mapbox.com/geocoding/v5/mapbox.places/"+encodeURIComponent(q)+".json"
+    +"?access_token="+MAPBOX_TOKEN+"&country=US&bbox="+MEMPHIS_BBOX
+    +"&proximity="+CLAYBORN[1]+","+CLAYBORN[0]+"&limit="+(limit||5);
+  var local=localPlaces(q);
+  return fetch(url).then(function(r){if(!r.ok)throw new Error("geocode "+r.status);return r.json();})
+    .then(function(d){
+      var remote=(d.features||[]).map(function(f){
+        return {name:f.place_name.replace(/, United States$/,""),short:f.text,lat:f.center[1],lng:f.center[0]};
+      });
+      return local.concat(remote).slice(0,limit||5);
+    })
+    // Offline or rate-limited: still answer from the local gazetteer if we can.
+    .catch(function(e){if(local.length)return local;throw e;});
+}
+function debounce(fn,ms){var t;return function(){var a=arguments,c=this;clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);},ms);};}
+
 function baseTiles(){return L.tileLayer("https://api.mapbox.com/styles/v1/"+MAP_STYLE+"/tiles/{z}/{x}/{y}?access_token="+MAPBOX_TOKEN,{tileSize:512,zoomOffset:-1,maxZoom:19,attribution:'&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'});}
 function initMap(){
   if(map)return;
@@ -660,6 +728,20 @@ function initMap(){
     L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="mk-anchor" title="'+esc(a.n)+'"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:true,title:a.n}).addTo(anchorLayer);
   });
   if(anchorsOn)anchorLayer.addTo(map);
+  // Clicking empty map offers to start a story there. Leaflet markers stop click
+  // propagation, so taps on stories, anchors and spaces do not reach this.
+  map.on("click",function(e){
+    L.popup({closeButton:false,className:"addpop"})
+      .setLatLng(e.latlng)
+      .setContent('<button type="button" class="addhere" id="addHereBtn">Add a memory here</button>')
+      .openOn(map);
+    var btn=document.getElementById("addHereBtn");
+    if(btn)btn.addEventListener("click",function(){
+      map.closePopup();
+      startCapture(null);
+      setDraftLoc(e.latlng.lat,e.latlng.lng,"map-click");
+    });
+  });
   spacesLayer=L.layerGroup();
   SPACES.forEach(function(sp){
     var m=L.marker([sp.lat,sp.lng],{icon:L.divIcon({className:"mk-wrap",html:'<div class="mk-space"></div>',iconSize:[15,15],iconAnchor:[7,7]})}).addTo(spacesLayer);
@@ -846,6 +928,47 @@ $("parksToggle").addEventListener("click",function(){toggleCtx("parks",this);});
 $("commToggle").addEventListener("click",function(){toggleCtx("comm",this);});
 $("lpHead").addEventListener("click",function(){var c=$("layerPanel").classList.toggle("collapsed");this.setAttribute("aria-expanded",c?"false":"true");});
 $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMeta();renderCards();renderMarkers();renderActiveF();});
+
+/* Map search: finds a place and moves the map. Distinct from #searchIn above,
+   which filters the story list and never moves the map. */
+(function(){
+  var pi=$("placeIn"),pac=$("placeAc"),pclr=$("placeClear"),foundMarker=null;
+  if(!pi)return;
+  function hide(){pac.classList.add("hidden");pac.innerHTML="";}
+  function goTo(f){
+    pi.value=f.short;hide();
+    if(!map)return;
+    map.setView([f.lat,f.lng],16);
+    if(foundMarker)map.removeLayer(foundMarker);
+    foundMarker=L.marker([f.lat,f.lng],{icon:L.divIcon({className:"",html:'<div class="mk-found"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(map);
+    foundMarker.bindPopup('<b>'+esc(f.short)+'</b><br><span style="opacity:.7">'+esc(f.name)+'</span><br><button type="button" class="addhere" id="addFoundBtn">Add a memory here</button>').openPopup();
+    var btn=document.getElementById("addFoundBtn");
+    if(btn)btn.addEventListener("click",function(){
+      map.closePopup();startCapture(null);
+      setDraftLoc(f.lat,f.lng,"map-search");
+      draft.corner=f.short;draft.hood=f.short;
+    });
+  }
+  var look=debounce(function(q){
+    if(q.length<3){hide();return;}
+    geocode(q,5).then(function(res){
+      if(pi.value.trim()!==q)return;
+      if(!res.length){hide();return;}
+      pac.innerHTML=res.map(function(f,i){return '<button type="button" class="acrow" data-i="'+i+'"><b>'+esc(f.short)+'</b><span>'+esc(f.name)+'</span></button>';}).join("");
+      pac.classList.remove("hidden");
+      Array.prototype.forEach.call(pac.querySelectorAll(".acrow"),function(b){
+        b.addEventListener("click",function(){goTo(res[+b.dataset.i]);});
+      });
+    }).catch(function(){hide();});
+  },350);
+  pi.addEventListener("input",function(){pclr.classList.toggle("hidden",!this.value);look(this.value.trim());});
+  pi.addEventListener("keydown",function(e){if(e.key==="Escape"){hide();this.blur();}});
+  pclr.addEventListener("click",function(){
+    pi.value="";pclr.classList.add("hidden");hide();
+    if(foundMarker&&map){map.removeLayer(foundMarker);foundMarker=null;}
+  });
+  document.addEventListener("click",function(e){if(!e.target.closest(".mapsearch"))hide();});
+})();
 $("hoodSel").addEventListener("change",function(){F.hood=this.value;apply();});
 $("eraSel").addEventListener("change",function(){F.era=this.value;apply();});
 $("campSel").addEventListener("change",function(){F.campaign=this.value;apply();});
@@ -858,7 +981,10 @@ var draft=null,stepIdx=0,STEPS=[],mediaRec,chunks=[],pinMap,pinMarker,thanksMap;
 var campaignParam="web",eventParam="",captureMode="web";
 function startCapture(kind){
   var defEra=kind==="future"?(campaignParam==="reimagine2065"?"future2065":"tomorrow"):"";
-  draft={id:uid(),kind:kind||null,place:"",hood:"",story:"",corner:"",era:defEra,lat:CLAYBORN[0],lng:CLAYBORN[1],photo:null,audio:null,name:"",email:"",phone:"",vis:"first",inst:false,status:"pending",campaign:campaignParam,mode:captureMode};
+  // locSource records where the coordinate actually came from. "unset" means the
+  // person never placed it, and a story must not submit that way: an unplaced pin
+  // used to silently file the story at Clayborn.
+  draft={id:uid(),kind:kind||null,place:"",hood:"",story:"",corner:"",era:defEra,lat:CLAYBORN[0],lng:CLAYBORN[1],locSource:"unset",photo:null,audio:null,name:"",email:"",phone:"",vis:"first",inst:false,status:"pending",campaign:campaignParam,mode:captureMode};
   STEPS=draft.kind?["story","corner","era","media","location","consent"]:["kind","story","corner","era","media","location","consent"];
   stepIdx=0;showView("capture");renderBanner();renderStep();
 }
@@ -881,8 +1007,52 @@ function renderStep(){
     b.innerHTML='<h2 class="q">'+q+'</h2><p class="qsub">'+sub+'</p><textarea id="story" rows="6" placeholder="'+(isV?"I want to see…":"Take your time…")+'">'+esc(draft.story)+'</textarea>'+navRow(true);
     wireNav();var ta=$("story");ta.focus();ta.addEventListener("input",function(){draft.story=ta.value;$("nextBtn").disabled=!ta.value.trim();});$("nextBtn").disabled=!draft.story.trim();
   } else if(step==="corner"){
-    b.innerHTML='<h2 class="q">Which corner?</h2><p class="qsub">The neighborhood, block, or building, so it lands in the right spot.</p><input type="text" class="ti" id="corner" placeholder="e.g. Soulsville, Orange Mound, Beale &amp; 4th" value="'+esc(draft.corner)+'">'+navRow(true);
-    wireNav();var ci=$("corner");ci.focus();ci.addEventListener("input",function(){draft.corner=ci.value;draft.hood=ci.value;$("nextBtn").disabled=!ci.value.trim();});$("nextBtn").disabled=!draft.corner.trim();
+    b.innerHTML='<h2 class="q">Which corner?</h2><p class="qsub">The neighborhood, block, or building, so it lands in the right spot.</p><div class="ac"><input type="text" class="ti" id="corner" autocomplete="off" placeholder="e.g. Soulsville, Orange Mound, Beale &amp; 4th" value="'+esc(draft.corner)+'"><div class="aclist hidden" id="cornerAc"></div></div><p class="achint" id="cornerHint"></p>'+navRow(true);
+    var ci=$("corner"),ac=$("cornerAc"),hint=$("cornerHint");ci.focus();
+    $("backBtn").addEventListener("click",goBack);   // Next is wired below, it has to await the geocode
+    function pick(f){
+      draft.corner=f.short||f.name;draft.hood=draft.corner;ci.value=draft.corner;
+      draft.lat=f.lat;draft.lng=f.lng;draft.locSource="geocode";
+      ac.classList.add("hidden");ac.innerHTML="";
+      hint.textContent="Found it. You can fine-tune the pin on the next step.";
+      $("nextBtn").disabled=false;
+    }
+    var lookup=debounce(function(q){
+      if(q.length<3){ac.classList.add("hidden");return;}
+      geocode(q,5).then(function(res){
+        if(ci.value.trim()!==q)return;            // a newer keystroke won
+        if(!res.length){ac.classList.add("hidden");return;}
+        ac.innerHTML=res.map(function(f,i){return '<button type="button" class="acrow" data-i="'+i+'"><b>'+esc(f.short)+'</b><span>'+esc(f.name)+'</span></button>';}).join("");
+        ac.classList.remove("hidden");
+        Array.prototype.forEach.call(ac.querySelectorAll(".acrow"),function(btn){
+          btn.addEventListener("click",function(){pick(res[+btn.dataset.i]);});
+        });
+      }).catch(function(){ac.classList.add("hidden");});   // offline or rate-limited: stay quiet
+    },350);
+    ci.addEventListener("input",function(){
+      draft.corner=ci.value;draft.hood=ci.value;
+      // Retyping invalidates a coordinate we derived from the previous text, but never
+      // one the person chose deliberately by tapping the map or sharing their location.
+      if(draft.locSource==="geocode"){draft.locSource="unset";}
+      hint.textContent="";
+      $("nextBtn").disabled=!ci.value.trim();
+      lookup(ci.value.trim());
+    });
+    // If they typed a place and never picked a suggestion, resolve it once before
+    // advancing, so the pin map opens on the right block. Must finish BEFORE goNext,
+    // otherwise initPinMap has already read the old coordinates. Failure is fine:
+    // the map step still lets them place it by hand.
+    $("nextBtn").addEventListener("click",function(){
+      var btn=this;
+      if(draft.locSource!=="unset"||!draft.corner.trim()){goNext();return;}
+      btn.disabled=true;btn.textContent="Finding…";
+      geocode(draft.corner.trim(),1).then(function(res){
+        if(res.length){draft.lat=res[0].lat;draft.lng=res[0].lng;draft.locSource="geocode";}
+      }).catch(function(){}).then(function(){
+        btn.disabled=false;btn.textContent="Continue →";goNext();
+      });
+    });
+    $("nextBtn").disabled=!draft.corner.trim();
   } else if(step==="era"){
     b.innerHTML='<h2 class="q">When does this live?</h2><p class="qsub">Place it on the timeline.</p><div class="chips" id="er"></div>'+navRow(false);
     $("er").innerHTML=ERAS.map(function(e){return '<button class="chip'+(draft.era===e[0]?" on":"")+'" data-e="'+e[0]+'">'+esc(e[1])+'</button>';}).join("");
@@ -892,8 +1062,29 @@ function renderStep(){
     b.innerHTML='<h2 class="q">Add a voice or a photo.</h2><p class="qsub">Optional, but a voice is how a memory really travels. This works beautifully for elders.</p><div class="media-row"><div class="rec"><button class="mic" id="micBtn" type="button" aria-label="Record audio">'+ic("mic",26)+'</button><div class="lbl" id="recLbl">Tap to record</div><div id="audioPrev"></div></div><div class="rec"><button class="mic" id="photoBtn" type="button" aria-label="Add a photo" style="background:var(--accent)">'+ic("camera",26)+'</button><div class="lbl">Add a photo</div><input type="file" id="photoIn" accept="image/*" capture="environment" hidden><div id="photoPrev"></div></div></div>'+navRow(false)+'<div style="text-align:center"><button class="skip" id="skipMedia">Skip, no media</button></div>';
     wireNav();$("nextBtn").disabled=false;$("skipMedia").addEventListener("click",goNext);wireRecorder();wirePhoto();
   } else if(step==="location"){
-    b.innerHTML='<h2 class="q">Place it on the map.</h2><p class="qsub">Drag the pin to the exact spot. It starts at Clayborn.</p><div class="pinmap" id="pinmap"></div>'+navRow(false);
-    wireNav();$("nextBtn").disabled=false;setTimeout(initPinMap,60);
+    var placed=draft.locSource!=="unset";
+    b.innerHTML='<h2 class="q">Place it on the map.</h2><p class="qsub" id="pinSub">'
+      +(placed?"We found <b>"+esc(draft.corner)+"</b>. Drag the pin if it is not quite right."
+              :"Tap the map or drag the pin to the exact spot.")
+      +'</p><div class="pinmap" id="pinmap"></div>'
+      +'<button class="btn ghost gps" id="gpsBtn" type="button">Use my location</button>'
+      +navRow(!placed);
+    wireNav();$("nextBtn").disabled=!placed;setTimeout(initPinMap,60);
+    $("gpsBtn").addEventListener("click",function(){
+      var btn=this;
+      if(!navigator.geolocation){toast("This browser can't share a location.");return;}
+      btn.disabled=true;btn.textContent="Locating…";
+      navigator.geolocation.getCurrentPosition(function(pos){
+        setDraftLoc(pos.coords.latitude,pos.coords.longitude,"gps");
+        if(pinMap){pinMap.setView([draft.lat,draft.lng],16);pinMarker.setLatLng([draft.lat,draft.lng]);}
+        $("pinSub").innerHTML="Using where you are now. Drag the pin if the story belongs next door.";
+        btn.disabled=false;btn.textContent="Use my location";
+      },function(err){
+        // Denied, unavailable or timed out. Never block the flow on this.
+        toast(err&&err.code===1?"Location permission was declined. Place the pin by hand.":"Couldn't get a location. Place the pin by hand.");
+        btn.disabled=false;btn.textContent="Use my location";
+      },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+    });
   } else if(step==="consent"){
     b.innerHTML='<h2 class="q">You &amp; your consent.</h2><p class="qsub">These stories belong to Memphis. You choose how much of your name travels with yours.</p><input type="text" class="ti" id="cname" placeholder="Your name (optional)" value="'+esc(draft.name)+'" style="margin-bottom:14px"><div id="visOpts"></div>'+
       '<div class="contactblock"><div class="cb-h"><span class="lock">'+ic("lock",15)+'</span> Stay in touch <span>private, The Big We only</span></div>'+
@@ -924,7 +1115,23 @@ function wirePhoto(){var btn=$("photoBtn"),inp=$("photoIn");if(draft.photo)$("ph
   btn.addEventListener("click",function(){inp.click();});
   inp.addEventListener("change",function(){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var img=new Image();img.onload=function(){var max=1000,sc=Math.min(1,max/Math.max(img.width,img.height));var cv=document.createElement("canvas");cv.width=img.width*sc;cv.height=img.height*sc;cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);draft.photo=cv.toDataURL("image/jpeg",0.82);$("photoPrev").innerHTML='<img class="prev" src="'+draft.photo+'">';};img.src=r.result;};r.readAsDataURL(f);});
 }
-function initPinMap(){if(pinMap){pinMap.remove();pinMap=null;}pinMap=L.map("pinmap").setView([draft.lat,draft.lng],14);baseTiles().addTo(pinMap);pinMarker=L.marker([draft.lat,draft.lng],{draggable:true,icon:mkIcon(KIND[draft.kind].color)}).addTo(pinMap);pinMarker.on("dragend",function(){var p=pinMarker.getLatLng();draft.lat=p.lat;draft.lng=p.lng;});pinMap.on("click",function(e){draft.lat=e.latlng.lat;draft.lng=e.latlng.lng;pinMarker.setLatLng(e.latlng);});setTimeout(function(){pinMap.invalidateSize();},80);}
+/* Any deliberate placement flows through here so locSource always reflects reality
+   and Continue unlocks the moment the person has actually chosen a spot. */
+function setDraftLoc(lat,lng,src){
+  draft.lat=lat;draft.lng=lng;draft.locSource=src;
+  var nb=$("nextBtn");if(nb)nb.disabled=false;
+}
+function initPinMap(){
+  if(pinMap){pinMap.remove();pinMap=null;}
+  // Zoom in when we already know the block; stay wide when the person still has to find it.
+  var known=draft.locSource!=="unset";
+  pinMap=L.map("pinmap").setView([draft.lat,draft.lng],known?16:13);
+  baseTiles().addTo(pinMap);
+  pinMarker=L.marker([draft.lat,draft.lng],{draggable:true,icon:mkIcon(KIND[draft.kind].color)}).addTo(pinMap);
+  pinMarker.on("dragend",function(){var p=pinMarker.getLatLng();setDraftLoc(p.lat,p.lng,"manual");});
+  pinMap.on("click",function(e){setDraftLoc(e.latlng.lat,e.latlng.lng,"manual");pinMarker.setLatLng(e.latlng);});
+  setTimeout(function(){pinMap.invalidateSize();},80);
+}
 async function submitDraft(){if(!draft)return;if(!draft.hood)draft.hood=draft.corner||"Memphis";var d=draft;var btn=$("submitBtn");if(btn){btn.disabled=true;btn.textContent="Sending…";}try{await supaSubmit(d);}catch(e){toast("Couldn't send, "+((e&&e.message)||"try again"));if(btn){btn.disabled=false;btn.textContent="Root this "+(d.kind==="future"?"vision":"memory");}console.warn(e);return;}draft=null;renderThanks(d);showView("thanks");}
 function renderThanks(s){var isV=s.kind==="future";
   var na=isV?publicStories().filter(function(x){return x.kind==="future"&&x.hood===s.hood&&x.id!==s.id;}).length:0;
