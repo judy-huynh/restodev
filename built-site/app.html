@@ -247,6 +247,16 @@
   .acrow b{display:block;font-size:13.5px}
   .acrow span{display:block;font-size:11.5px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .achint{font-size:12px;color:var(--muted);margin:7px 2px 0;min-height:16px}
+  .acrow.on{background:var(--primaryLight)}
+  /* the place half of the intake form */
+  .place{margin-top:26px;padding-top:22px;border-top:1px solid var(--border)}
+  .q2{font-family:var(--display);font-size:1.05rem;margin:0 0 4px;letter-spacing:-.01em}
+  .q2 label{cursor:pointer}
+  .placebtns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px}
+  .placebtns .btn{min-height:46px;font-size:13.5px;padding:11px 10px}
+  #mapWrap{margin-top:13px}
+  .whyoff{font-size:12.5px;color:var(--muted);margin:16px 2px 0;min-height:17px;text-align:center}
+  @media(max-width:560px){.placebtns{grid-template-columns:1fr}}
   .btn.gps{width:100%;margin-top:10px}
   /* address search floating on the map */
   /* Search sits top-left; Leaflet's zoom control lives there by default, so push the
@@ -724,6 +734,71 @@ function geocode(q,limit){
 }
 function debounce(fn,ms){var t;return function(){var a=arguments,c=this;clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);},ms);};}
 
+function metresBetween(a,b){
+  return Math.hypot((a[0]-b[0])*111000,(a[1]-b[1])*111000*Math.cos(a[0]*Math.PI/180));
+}
+/* Name a point. Community names win: if the spot is near a place in LOCAL_PLACES we
+   use that, because Mapbox calls Soulsville "South Memphis" and calls the middle of
+   Orange Mound "Rozelle". This only ever SUGGESTS. Auto-filling a commercial name and
+   attributing it to the person who told the story is how a memory map gets a
+   neighbourhood wrong in someone else's name. */
+function nameForPoint(lat,lng){
+  var near=LOCAL_PLACES.map(function(p){return {p:p,d:metresBetween([lat,lng],[p.lat,p.lng])};})
+    .filter(function(x){return x.d<700;}).sort(function(a,b){return a.d-b.d;})[0];
+  if(near)return Promise.resolve(near.p.short);
+  var base="https://api.mapbox.com/geocoding/v5/mapbox.places/"+lng+","+lat+".json?access_token="+MAPBOX_TOKEN;
+  return fetch(base+"&types=neighborhood&limit=1").then(function(r){return r.json();})
+    .then(function(d){var f=(d.features||[])[0];return f?f.text:"";})
+    .catch(function(){return "";});
+}
+
+/* One accessible autocomplete, shared by the intake form and the map search.
+   Buttons alone are reachable but silent to a screen reader, so this adds the
+   listbox roles and arrow-key handling. */
+function wireAutocomplete(input,list,onPick){
+  var results=[],active=-1;
+  input.setAttribute("role","combobox");
+  input.setAttribute("aria-autocomplete","list");
+  input.setAttribute("aria-expanded","false");
+  input.setAttribute("aria-controls",list.id);
+  list.setAttribute("role","listbox");
+  function close(){list.classList.add("hidden");list.innerHTML="";input.setAttribute("aria-expanded","false");active=-1;results=[];}
+  function highlight(i){
+    var rows=list.querySelectorAll(".acrow");
+    if(!rows.length)return;
+    active=(i+rows.length)%rows.length;
+    Array.prototype.forEach.call(rows,function(r,n){
+      r.classList.toggle("on",n===active);
+      r.setAttribute("aria-selected",n===active?"true":"false");
+    });
+    rows[active].scrollIntoView({block:"nearest"});
+  }
+  function open(res){
+    results=res;
+    list.innerHTML=res.map(function(f,i){return '<button type="button" role="option" aria-selected="false" class="acrow" data-i="'+i+'"><b>'+esc(f.short)+'</b><span>'+esc(f.name)+'</span></button>';}).join("");
+    list.classList.remove("hidden");input.setAttribute("aria-expanded","true");active=-1;
+    Array.prototype.forEach.call(list.querySelectorAll(".acrow"),function(btn){
+      btn.addEventListener("click",function(){var f=results[+btn.dataset.i];close();onPick(f);});
+    });
+  }
+  var look=debounce(function(q){
+    if(q.length<3){close();return;}
+    geocode(q,5).then(function(res){
+      if(input.value.trim()!==q)return;      // a newer keystroke won
+      res.length?open(res):close();
+    }).catch(function(){close();});
+  },350);
+  input.addEventListener("input",function(){look(this.value.trim());});
+  input.addEventListener("keydown",function(e){
+    if(e.key==="Escape"){close();return;}
+    if(list.classList.contains("hidden"))return;
+    if(e.key==="ArrowDown"){e.preventDefault();highlight(active+1);}
+    else if(e.key==="ArrowUp"){e.preventDefault();highlight(active-1);}
+    else if(e.key==="Enter"&&active>-1){e.preventDefault();var f=results[active];close();onPick(f);}
+  });
+  return {close:close};
+}
+
 function baseTiles(){return L.tileLayer("https://api.mapbox.com/styles/v1/"+MAP_STYLE+"/tiles/{z}/{x}/{y}?access_token="+MAPBOX_TOKEN,{tileSize:512,zoomOffset:-1,maxZoom:19,attribution:'&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'});}
 function initMap(){
   if(map)return;
@@ -946,9 +1021,8 @@ $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMe
 (function(){
   var pi=$("placeIn"),pac=$("placeAc"),pclr=$("placeClear"),foundMarker=null;
   if(!pi)return;
-  function hide(){pac.classList.add("hidden");pac.innerHTML="";}
   function goTo(f){
-    pi.value=f.short;hide();
+    pi.value=f.short;pclr.classList.remove("hidden");
     if(!map)return;
     map.setView([f.lat,f.lng],16);
     if(foundMarker)map.removeLayer(foundMarker);
@@ -958,28 +1032,18 @@ $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMe
     if(btn)btn.addEventListener("click",function(){
       map.closePopup();startCapture(null);
       setDraftLoc(f.lat,f.lng,"map-search");
-      draft.corner=f.short;draft.hood=f.short;
+      draft.corner=f.short;draft.hood=f.short;draft.cornerTyped=true;
     });
   }
-  var look=debounce(function(q){
-    if(q.length<3){hide();return;}
-    geocode(q,5).then(function(res){
-      if(pi.value.trim()!==q)return;
-      if(!res.length){hide();return;}
-      pac.innerHTML=res.map(function(f,i){return '<button type="button" class="acrow" data-i="'+i+'"><b>'+esc(f.short)+'</b><span>'+esc(f.name)+'</span></button>';}).join("");
-      pac.classList.remove("hidden");
-      Array.prototype.forEach.call(pac.querySelectorAll(".acrow"),function(b){
-        b.addEventListener("click",function(){goTo(res[+b.dataset.i]);});
-      });
-    }).catch(function(){hide();});
-  },350);
-  pi.addEventListener("input",function(){pclr.classList.toggle("hidden",!this.value);look(this.value.trim());});
-  pi.addEventListener("keydown",function(e){if(e.key==="Escape"){hide();this.blur();}});
+  // Same accessible autocomplete as the intake form: arrow keys, Enter, listbox roles.
+  var acx=wireAutocomplete(pi,pac,goTo);
+  pi.addEventListener("input",function(){pclr.classList.toggle("hidden",!this.value);});
   pclr.addEventListener("click",function(){
-    pi.value="";pclr.classList.add("hidden");hide();
+    pi.value="";pclr.classList.add("hidden");acx.close();
     if(foundMarker&&map){map.removeLayer(foundMarker);foundMarker=null;}
+    pi.focus();
   });
-  document.addEventListener("click",function(e){if(!e.target.closest(".mapsearch"))hide();});
+  document.addEventListener("click",function(e){if(!e.target.closest(".mapsearch"))acx.close();});
 })();
 $("hoodSel").addEventListener("change",function(){F.hood=this.value;apply();});
 $("eraSel").addEventListener("change",function(){F.era=this.value;apply();});
@@ -997,7 +1061,10 @@ function startCapture(kind){
   // person never placed it, and a story must not submit that way: an unplaced pin
   // used to silently file the story at Clayborn.
   draft={id:uid(),kind:kind||null,place:"",hood:"",story:"",corner:"",era:defEra,lat:CLAYBORN[0],lng:CLAYBORN[1],locSource:"unset",photo:null,audio:null,name:"",email:"",phone:"",vis:"first",inst:false,status:"pending",campaign:campaignParam,mode:captureMode};
-  STEPS=draft.kind?["story","corner","era","media","location","consent"]:["kind","story","corner","era","media","location","consent"];
+  // The story and its place are one thought, so they are one screen. Merging the old
+  // "corner" and "location" steps also removes a duplicate question: the flow used to
+  // ask where the story belongs, then ask again on a map.
+  STEPS=draft.kind?["story","era","media","consent"]:["kind","story","era","media","consent"];
   stepIdx=0;showView("capture");renderBanner();renderStep();
 }
 function renderBanner(){var el=$("capBanner");if(!el)return;var m=CAMPAIGNS[draft.campaign];if(draft.campaign&&draft.campaign!=="web"&&m){el.className="capbanner";el.innerHTML='Collecting for <b style="margin:0 5px">'+esc(m.label)+'</b>'+(eventParam?'<span style="opacity:.75">· '+esc(eventParam)+'</span>':'')+'<span style="opacity:.55;font-weight:500;margin-left:8px">· '+(MODES[draft.mode]||draft.mode)+'</span>';}else{el.className="capbanner hidden";el.innerHTML="";}}
@@ -1008,6 +1075,7 @@ function navRow(nd){return '<div class="row"><button class="btn ghost" id="backB
 function wireNav(){$("backBtn").addEventListener("click",goBack);$("nextBtn").addEventListener("click",goNext);}
 function renderStep(){
   renderProg();var step=STEPS[stepIdx],b=$("stepBody");
+  window.__suggestName=null;window.__refreshStep=null;   // rebound by the intake step only
   if(step==="kind"){
     b.innerHTML='<h2 class="q">What are you sharing?</h2><p class="qsub">This sets the color of your dot on the map.</p><div class="opts" id="ko"></div>';
     $("ko").innerHTML=Object.keys(KIND).map(function(k){return '<button class="opt" data-k="'+k+'"><span class="em" style="color:'+KIND[k].color+'">'+ic(KIND[k].icon,22)+'</span><span>'+esc(KIND[k].label)+'<small>'+esc(KIND[k].sub)+'</small></span></button>';}).join("");
@@ -1016,55 +1084,87 @@ function renderStep(){
     var isV=draft.kind==="future",is65=isV&&draft.campaign==="reimagine2065";
     var q=is65?"It's 2068. What does Memphis feel like?":isV?"What should grow here?":"Tell the story.";
     var sub=is65?"Clayborn's grandchildren are grown. Dream out loud: what did we build, what finally healed, what changed for good? (No dream is too big. You may not know it yet, but others share it.)":isV?"In five years, when you walk past this place, what do you want to see, hear, or feel?":"What happened here? Who was there? What did this place mean, and what should it mean next?";
-    b.innerHTML='<h2 class="q">'+q+'</h2><p class="qsub">'+sub+'</p><textarea id="story" rows="6" placeholder="'+(isV?"I want to see…":"Take your time…")+'">'+esc(draft.story)+'</textarea>'+navRow(true);
-    wireNav();var ta=$("story");ta.focus();ta.addEventListener("input",function(){draft.story=ta.value;$("nextBtn").disabled=!ta.value.trim();});$("nextBtn").disabled=!draft.story.trim();
-  } else if(step==="corner"){
-    b.innerHTML='<h2 class="q">Which corner?</h2><p class="qsub">The neighborhood, block, or building, so it lands in the right spot.</p><div class="ac"><input type="text" class="ti" id="corner" autocomplete="off" placeholder="e.g. Soulsville, Orange Mound, Beale &amp; 4th" value="'+esc(draft.corner)+'"><div class="aclist hidden" id="cornerAc"></div></div><p class="achint" id="cornerHint"></p>'+navRow(true);
-    var ci=$("corner"),ac=$("cornerAc"),hint=$("cornerHint");ci.focus();
-    $("backBtn").addEventListener("click",goBack);   // Next is wired below, it has to await the geocode
-    function pick(f){
-      draft.corner=f.short||f.name;draft.hood=draft.corner;ci.value=draft.corner;
-      draft.lat=f.lat;draft.lng=f.lng;draft.locSource="geocode";
-      ac.classList.add("hidden");ac.innerHTML="";
-      hint.textContent="Found it. You can fine-tune the pin on the next step.";
-      $("nextBtn").disabled=false;
+    b.innerHTML='<h2 class="q">'+q+'</h2><p class="qsub">'+sub+'</p>'
+      +'<textarea id="story" rows="6" placeholder="'+(isV?"I want to see…":"Take your time…")+'">'+esc(draft.story)+'</textarea>'
+      +'<div class="place">'
+      +  '<h3 class="q2"><label for="corner">Where is this place?</label></h3>'
+      +  '<p class="qsub">A neighborhood, a street, or a building. However you would say it to a neighbor.</p>'
+      +  '<div class="ac"><input type="text" class="ti" id="corner" autocomplete="off" placeholder="Like Orange Mound, Soulsville, or Beale &amp; 4th" value="'+esc(draft.corner)+'"><div class="aclist hidden" id="cornerAc"></div></div>'
+      +  '<p class="achint" id="cornerHint"></p>'
+      +  '<div class="placebtns"><button class="btn ghost" type="button" id="mapToggle">Point to it on the map</button><button class="btn ghost" type="button" id="gpsBtn">Use where I am now</button></div>'
+      +  '<div id="mapWrap" class="hidden"><div class="pinmap" id="pinmap"></div><p class="achint">Tap the map, or drag the pin, to move it.</p></div>'
+      +'</div>'
+      +'<p class="whyoff" id="whyOff"></p>'+navRow(true);
+    wireNav();
+    var ta=$("story"),ci=$("corner"),hint=$("cornerHint"),why=$("whyOff");
+    ta.focus();
+
+    function refresh(){
+      var hasStory=!!draft.story.trim(),hasPlace=draft.locSource!=="unset";
+      $("nextBtn").disabled=!(hasStory&&hasPlace);
+      // Never leave a disabled button unexplained.
+      why.textContent=hasStory&&hasPlace?""
+        :!hasStory?"Write your story above to continue."
+        :"Now tell us where it is: type a name, point to it on the map, or use where you are.";
     }
-    var lookup=debounce(function(q){
-      if(q.length<3){ac.classList.add("hidden");return;}
-      geocode(q,5).then(function(res){
-        if(ci.value.trim()!==q)return;            // a newer keystroke won
-        if(!res.length){ac.classList.add("hidden");return;}
-        ac.innerHTML=res.map(function(f,i){return '<button type="button" class="acrow" data-i="'+i+'"><b>'+esc(f.short)+'</b><span>'+esc(f.name)+'</span></button>';}).join("");
-        ac.classList.remove("hidden");
-        Array.prototype.forEach.call(ac.querySelectorAll(".acrow"),function(btn){
-          btn.addEventListener("click",function(){pick(res[+btn.dataset.i]);});
-        });
-      }).catch(function(){ac.classList.add("hidden");});   // offline or rate-limited: stay quiet
-    },350);
-    ci.addEventListener("input",function(){
-      draft.corner=ci.value;draft.hood=ci.value;
-      // Retyping invalidates a coordinate we derived from the previous text, but never
-      // one the person chose deliberately by tapping the map or sharing their location.
-      if(draft.locSource==="geocode"){draft.locSource="unset";}
-      hint.textContent="";
-      $("nextBtn").disabled=!ci.value.trim();
-      lookup(ci.value.trim());
-    });
-    // If they typed a place and never picked a suggestion, resolve it once before
-    // advancing, so the pin map opens on the right block. Must finish BEFORE goNext,
-    // otherwise initPinMap has already read the old coordinates. Failure is fine:
-    // the map step still lets them place it by hand.
-    $("nextBtn").addEventListener("click",function(){
-      var btn=this;
-      if(draft.locSource!=="unset"||!draft.corner.trim()){goNext();return;}
-      btn.disabled=true;btn.textContent="Finding…";
-      geocode(draft.corner.trim(),1).then(function(res){
-        if(res.length){draft.lat=res[0].lat;draft.lng=res[0].lng;draft.locSource="geocode";}
-      }).catch(function(){}).then(function(){
-        btn.disabled=false;btn.textContent="Continue →";goNext();
+    function showMap(){
+      $("mapWrap").classList.remove("hidden");
+      $("mapToggle").textContent="Hide the map";
+      setTimeout(function(){initPinMap();},40);
+    }
+    // Name a point without ever overwriting what the person typed themselves.
+    function suggestName(){
+      if(draft.cornerTyped)return;
+      nameForPoint(draft.lat,draft.lng).then(function(n){
+        if(!n||draft.cornerTyped)return;
+        draft.corner=n;draft.hood=n;ci.value=n;
+        hint.textContent="We think this is "+n+". Change it if you call it something else.";
+        refresh();
       });
+    }
+    window.__suggestName=suggestName;   // initPinMap calls this after a manual move
+    window.__refreshStep=refresh;       // setDraftLoc calls this, see above
+
+    ta.addEventListener("input",function(){draft.story=ta.value;refresh();});
+    wireAutocomplete(ci,$("cornerAc"),function(f){
+      draft.corner=f.short;draft.hood=f.short;ci.value=f.short;draft.cornerTyped=true;
+      setDraftLoc(f.lat,f.lng,"geocode");
+      hint.textContent="Found it. Point to it on the map if you want it more exact.";
+      if($("mapWrap").classList.contains("hidden"))showMap();else if(pinMap){pinMap.setView([f.lat,f.lng],16);pinMarker.setLatLng([f.lat,f.lng]);}
+      refresh();
     });
-    $("nextBtn").disabled=!draft.corner.trim();
+    ci.addEventListener("input",function(){
+      draft.corner=ci.value;draft.hood=ci.value;draft.cornerTyped=!!ci.value.trim();
+      hint.textContent="";refresh();
+    });
+    $("mapToggle").addEventListener("click",function(){
+      if($("mapWrap").classList.contains("hidden")){showMap();}
+      else{$("mapWrap").classList.add("hidden");this.textContent="Point to it on the map";}
+    });
+    $("gpsBtn").addEventListener("click",function(){
+      var btn=this;
+      if(!navigator.geolocation){toast("This device cannot share a location.");return;}
+      btn.disabled=true;btn.textContent="Finding you…";
+      navigator.geolocation.getCurrentPosition(function(pos){
+        setDraftLoc(pos.coords.latitude,pos.coords.longitude,"gps");
+        showMap();
+        setTimeout(function(){if(pinMap){pinMap.setView([draft.lat,draft.lng],16);pinMarker.setLatLng([draft.lat,draft.lng]);}},120);
+        suggestName();refresh();
+        btn.disabled=false;btn.textContent="Use where I am now";
+      },function(err){
+        // Denied, unavailable or timed out. Never trap someone mid-story.
+        toast(err&&err.code===1?"That is fine. Type the place, or point to it on the map.":"Could not find you. Type the place, or point to it on the map.");
+        btn.disabled=false;btn.textContent="Use where I am now";
+      },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+    });
+
+    // Arrived from a map click or the map search: the place is already known.
+    if(draft.locSource!=="unset"){
+      showMap();
+      if(draft.corner){hint.textContent="Pinned at "+draft.corner+". Change the name if you call it something else.";}
+      else{suggestName();}
+    }
+    refresh();
   } else if(step==="era"){
     b.innerHTML='<h2 class="q">When does this live?</h2><p class="qsub">Place it on the timeline.</p><div class="chips" id="er"></div>'+navRow(false);
     $("er").innerHTML=ERAS.map(function(e){return '<button class="chip'+(draft.era===e[0]?" on":"")+'" data-e="'+e[0]+'">'+esc(e[1])+'</button>';}).join("");
@@ -1073,30 +1173,6 @@ function renderStep(){
   } else if(step==="media"){
     b.innerHTML='<h2 class="q">Add a voice or a photo.</h2><p class="qsub">Optional, but a voice is how a memory really travels. This works beautifully for elders.</p><div class="media-row"><div class="rec"><button class="mic" id="micBtn" type="button" aria-label="Record audio">'+ic("mic",26)+'</button><div class="lbl" id="recLbl">Tap to record</div><div id="audioPrev"></div></div><div class="rec"><button class="mic" id="photoBtn" type="button" aria-label="Add a photo" style="background:var(--accent)">'+ic("camera",26)+'</button><div class="lbl">Add a photo</div><input type="file" id="photoIn" accept="image/*" capture="environment" hidden><div id="photoPrev"></div></div></div>'+navRow(false)+'<div style="text-align:center"><button class="skip" id="skipMedia">Skip, no media</button></div>';
     wireNav();$("nextBtn").disabled=false;$("skipMedia").addEventListener("click",goNext);wireRecorder();wirePhoto();
-  } else if(step==="location"){
-    var placed=draft.locSource!=="unset";
-    b.innerHTML='<h2 class="q">Place it on the map.</h2><p class="qsub" id="pinSub">'
-      +(placed?"We found <b>"+esc(draft.corner)+"</b>. Drag the pin if it is not quite right."
-              :"Tap the map or drag the pin to the exact spot.")
-      +'</p><div class="pinmap" id="pinmap"></div>'
-      +'<button class="btn ghost gps" id="gpsBtn" type="button">Use my location</button>'
-      +navRow(!placed);
-    wireNav();$("nextBtn").disabled=!placed;setTimeout(initPinMap,60);
-    $("gpsBtn").addEventListener("click",function(){
-      var btn=this;
-      if(!navigator.geolocation){toast("This browser can't share a location.");return;}
-      btn.disabled=true;btn.textContent="Locating…";
-      navigator.geolocation.getCurrentPosition(function(pos){
-        setDraftLoc(pos.coords.latitude,pos.coords.longitude,"gps");
-        if(pinMap){pinMap.setView([draft.lat,draft.lng],16);pinMarker.setLatLng([draft.lat,draft.lng]);}
-        $("pinSub").innerHTML="Using where you are now. Drag the pin if the story belongs next door.";
-        btn.disabled=false;btn.textContent="Use my location";
-      },function(err){
-        // Denied, unavailable or timed out. Never block the flow on this.
-        toast(err&&err.code===1?"Location permission was declined. Place the pin by hand.":"Couldn't get a location. Place the pin by hand.");
-        btn.disabled=false;btn.textContent="Use my location";
-      },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
-    });
   } else if(step==="consent"){
     b.innerHTML='<h2 class="q">You &amp; your consent.</h2><p class="qsub">These stories belong to Memphis. You choose how much of your name travels with yours.</p><input type="text" class="ti" id="cname" placeholder="Your name (optional)" value="'+esc(draft.name)+'" style="margin-bottom:14px"><div id="visOpts"></div>'+
       '<div class="contactblock"><div class="cb-h"><span class="lock">'+ic("lock",15)+'</span> Stay in touch <span>private, The Big We only</span></div>'+
@@ -1131,7 +1207,9 @@ function wirePhoto(){var btn=$("photoBtn"),inp=$("photoIn");if(draft.photo)$("ph
    and Continue unlocks the moment the person has actually chosen a spot. */
 function setDraftLoc(lat,lng,src){
   draft.lat=lat;draft.lng=lng;draft.locSource=src;
-  var nb=$("nextBtn");if(nb)nb.disabled=false;
+  // The intake step needs BOTH a story and a place, so it owns the button state.
+  // Enabling Continue here directly would let a placed-but-empty story through.
+  if(window.__refreshStep)window.__refreshStep();
 }
 function initPinMap(){
   if(pinMap){pinMap.remove();pinMap=null;}
@@ -1140,8 +1218,13 @@ function initPinMap(){
   pinMap=L.map("pinmap").setView([draft.lat,draft.lng],known?16:13);
   baseTiles().addTo(pinMap);
   pinMarker=L.marker([draft.lat,draft.lng],{draggable:true,icon:mkIcon(KIND[draft.kind].color)}).addTo(pinMap);
-  pinMarker.on("dragend",function(){var p=pinMarker.getLatLng();setDraftLoc(p.lat,p.lng,"manual");});
-  pinMap.on("click",function(e){setDraftLoc(e.latlng.lat,e.latlng.lng,"manual");pinMarker.setLatLng(e.latlng);});
+  function moved(lat,lng){
+    setDraftLoc(lat,lng,"manual");
+    // Offer a name for the new spot, unless the person already typed one themselves.
+    if(window.__suggestName)window.__suggestName();
+  }
+  pinMarker.on("dragend",function(){var p=pinMarker.getLatLng();moved(p.lat,p.lng);});
+  pinMap.on("click",function(e){moved(e.latlng.lat,e.latlng.lng);pinMarker.setLatLng(e.latlng);});
   setTimeout(function(){pinMap.invalidateSize();},80);
 }
 async function submitDraft(){if(!draft)return;if(!draft.hood)draft.hood=draft.corner||"Memphis";var d=draft;var btn=$("submitBtn");if(btn){btn.disabled=true;btn.textContent="Sending…";}try{await supaSubmit(d);}catch(e){toast("Couldn't send, "+((e&&e.message)||"try again"));if(btn){btn.disabled=false;btn.textContent="Root this "+(d.kind==="future"?"vision":"memory");}console.warn(e);return;}draft=null;renderThanks(d);showView("thanks");}
