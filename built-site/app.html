@@ -691,7 +691,10 @@ var map,anchorLayer,spacesLayer,markersById={},anchorsOn=true,spacesOn=false,ctx
 var STAR_SVG='<svg viewBox="0 0 24 24" fill="#FFC300" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path d="m12 1.6 2.95 6.4 7 .6-5.3 4.65 1.6 6.85L12 17.1l-6.25 3.5 1.6-6.85L2.05 8.6l7-.6L12 1.6Z"/></svg>';
 /* Base map tiles: Mapbox. Swap MAP_STYLE to your own Mapbox Studio style to restyle everything. */
 var MAPBOX_TOKEN="pk.eyJ1IjoiajAwYnkiLCJhIjoiY2x1bHUzbXZnMGhuczJxcG83YXY4czJ3ayJ9.S5PZpU9VDwLMjoX_0x5FDQ";
-var MAP_STYLE="mapbox/light-v11"; // Mapbox Studio: change to "j00by/<your-style-id>" for a custom style
+var MAP_STYLE="j00by/cm4u8ncu3009401s0fxinaejd"; // Judy's "Parks as Infrastructure" Studio style.
+// Light like light-v11, but water reads as water and green space reads as green. On the stock
+// light style the Mississippi is the same grey as the land, which makes Memphis hard to read.
+// The style is private in Studio; tiles are served because the token above has access.
 /* ── geocoding ──────────────────────────────────────────────────────────────
    Shared by the capture flow (place a story) and the map search (find a place).
    Bounded to Shelby County so "Main St" means Main St in Memphis, and proximity

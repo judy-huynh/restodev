@@ -76,7 +76,10 @@
 "use strict";
 var CLAYBORN=[35.1338,-90.0565];
 var MAPBOX_TOKEN="pk.eyJ1IjoiajAwYnkiLCJhIjoiY2x1bHUzbXZnMGhuczJxcG83YXY4czJ3ayJ9.S5PZpU9VDwLMjoX_0x5FDQ";
-var MAP_STYLE="mapbox/light-v11"; // Mapbox Studio: change to "j00by/<your-style-id>" for a custom style
+var MAP_STYLE="j00by/cm4u8ncu3009401s0fxinaejd"; // Judy's "Parks as Infrastructure" Studio style.
+// Light like light-v11, but water reads as water and green space reads as green. On the stock
+// light style the Mississippi is the same grey as the land, which makes Memphis hard to read.
+// The style is private in Studio; tiles are served because the token above has access.
 function baseTiles(){return L.tileLayer("https://api.mapbox.com/styles/v1/"+MAP_STYLE+"/tiles/{z}/{x}/{y}?access_token="+MAPBOX_TOKEN,{tileSize:512,zoomOffset:-1,maxZoom:19,attribution:'&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'});}
 var map=L.map("map",{zoomControl:true}).setView([35.128,-90.03],12.4);
 baseTiles().addTo(map);
