@@ -19,7 +19,7 @@
     --primary:#FF477E;--primaryDark:#D81E5B;--primaryLight:#FFE4EC;--accent:#17C3B2;
     --purple:#8338EC;--future:#3A86FF;--gold:#FFC300;--anchor:#FB5607;
     --text:#241C3B;--muted:#6E6A80;--faint:#9A96A8;--bg:#FFFDF4;--panel:#FFFFFF;
-    --border:#EEE3E9;--line:#F4ECF0;--ok:#0E9384;
+    --border:#EEE3E9;--line:#F4ECF0;--ok:#0E9384;--watch:#B07800;--strain:#D81E5B;
     --font:'Plus Jakarta Sans',system-ui,sans-serif;--display:'Unbounded',system-ui,sans-serif;
     --shadow:0 18px 50px -28px rgba(36,28,59,.55);--shadow-sm:0 6px 18px -12px rgba(36,28,59,.5);
   }
@@ -138,6 +138,40 @@
   .sitepage .shadd{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:14px;padding:11px;border-radius:10px;background:var(--primary);color:#fff;font-size:13px;font-weight:700}
   .sitepage .shadd:hover{background:var(--primaryDark)}
   .sitepage .sp-count{display:flex;align-items:center;gap:6px;margin:0;padding:9px 18px;border-top:1px solid var(--line);background:rgba(255,255,255,.55);font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  /* neighborhood profile, at the top of the story column */
+  .hoodpage{margin:-10px -12px 14px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(23,195,178,.14),rgba(255,255,255,0) 60%)}
+  .hoodpage .hp-body{padding:14px 18px 4px}
+  .hoodpage h2{font-family:var(--display);font-size:20px;font-weight:700;line-height:1.2;margin:0;color:var(--text)}
+  .hoodpage .hp-sub{font-size:11.5px;color:var(--muted);margin:5px 0 10px}
+  .hp-block{padding:13px 18px;border-top:1px solid var(--line)}
+  .hp-label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}
+  .hp-label h3{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:0}
+  .hp-label span{font-size:9.5px;color:var(--faint)}
+  .hp-head{display:flex;align-items:flex-end;gap:10px;margin:0 0 6px}
+  .hp-head b{font-family:var(--display);font-size:27px;font-weight:700;line-height:1;letter-spacing:-.02em}
+  .hp-head span{font-size:11px;color:var(--muted);padding-bottom:2px;line-height:1.3}
+  .hp-stat{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:4px 0;font-size:12.5px;color:var(--muted)}
+  .hp-stat b{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .hp-meter{margin:8px 0 0}
+  .hp-mrow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px;font-size:12.5px;color:var(--muted)}
+  .hp-mrow b{font-variant-numeric:tabular-nums}
+  .hp-track{display:block;flex:1;height:6px;border-radius:999px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+  .hp-fill{display:block;height:100%;border-radius:999px}
+  .hp-cmp{font-size:10.5px;color:var(--faint);margin:4px 0 0}
+  .hp-assets{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .hp-asset{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+  .hp-asset b{display:block;font-size:15px;font-weight:700;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
+  .hp-asset span{font-size:10.5px;line-height:1.25}
+  .hp-asset.none b{color:var(--faint)}
+  .hp-cd{display:flex;align-items:center;gap:9px;padding:5px 0}
+  .hp-cdn{font-size:12.5px;font-weight:600;min-width:72px}
+  .hp-cdv{font-size:11.5px;color:var(--muted);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+  .hp-note{font-size:11px;color:var(--muted);line-height:1.45;margin:9px 0 0}
+  .hp-prompt{background:var(--primaryLight);border-radius:10px;padding:11px 12px}
+  .hp-prompt p{margin:0;font-size:12.5px;line-height:1.5;color:var(--text)}
+  .hp-prompt p+p{margin-top:7px}
+  .hp-prompt em{font-style:normal;font-weight:700;color:var(--primaryDark)}
+  .hp-foot{margin:0;padding:11px 18px 13px;border-top:1px solid var(--line);background:var(--bg);font-size:10.5px;line-height:1.5;color:var(--faint)}
   .cards{flex:1;overflow:auto;padding:10px 12px 26px;min-height:0}
   .card{display:flex;gap:12px;padding:11px;border-radius:14px;cursor:pointer;transition:.14s;border:1.5px solid transparent}
   .card:hover{background:var(--bg)}
@@ -500,9 +534,10 @@
               <div class="lp-group">
                 <div class="lp-gh">City data · context</div>
                 <button class="lrow" id="floodToggle"><span class="lname"><b>Flood risk</b><em>FEMA</em></span><span class="sw"></span></button>
-                <button class="lrow" id="foodToggle"><span class="lname"><b>Food access</b><em>USDA SNAP</em></span><span class="sw"></span></button>
+                <button class="lrow" id="foodToggle"><span class="lname"><b>Food access</b><em>USDA SNAP · city-wide</em></span><span class="sw"></span></button>
                 <button class="lrow" id="parksToggle"><span class="lname"><b>Parks</b><em>City of Memphis</em></span><span class="sw"></span></button>
                 <button class="lrow" id="commToggle"><span class="lname"><b>Community centers</b><em>City of Memphis</em></span><span class="sw"></span></button>
+                <button class="lrow" id="libToggle"><span class="lname"><b>Libraries</b><em>Memphis Public Libraries</em></span><span class="sw"></span></button>
               </div>
               <button class="lp-data" id="ctxData"><span class="ic" data-ic="chart"></span> See the data behind these layers</button>
             </div>
@@ -589,6 +624,8 @@ var ICON={
   camera:'<path d="M4 8a2 2 0 0 1 2-2h1.5l1.2-1.7A1 1 0 0 1 9.5 4h5a1 1 0 0 1 .8.3L16.5 6H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><circle cx="12" cy="12.5" r="3.2"/>',
   audio:'<path d="M3 12h3l2.5-7 3.5 15 3-11 2 3h4"/>',
   star:'<path d="m12 3 2.5 5.6 6 .5-4.5 4 1.4 6-5.4-3.2L6.1 19l1.4-6-4.5-4 6-.5Z"/>',
+  book:'<path d="M4 19.2A2.2 2.2 0 0 1 6.2 17H20"/><path d="M6.2 3H20v18H6.2A2.2 2.2 0 0 1 4 18.8V5.2A2.2 2.2 0 0 1 6.2 3Z"/>',
+  columns:'<path d="M3 21h18"/><path d="m12 3 8.5 4.5H3.5Z"/><path d="M6 10v8M10 10v8M14 10v8M18 10v8"/>',
   sprout:'<path d="M12 22v-9"/><path d="M12 13c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6Z"/><path d="M12 15C12 11 9.5 9 6 9c0 3.5 2.5 6 6 6Z"/>',
   plot:'<path d="M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3"/><path d="M9 12h6"/>',
   refresh:'<path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/>',
@@ -682,6 +719,17 @@ function hoodByName(n){for(var i=0;i<NEIGHBORHOODS.length;i++)if(NEIGHBORHOODS[i
    They are the SAME shapes the form uses, so what you see on the map is what the form
    decides. One rule, drawn. Loaded async; until it lands we fall back to centres. */
 var HOOD_SHAPES=null;
+/* Neighbourhood profiles, from data/neighborhood-profiles.json. The panel can say what a
+   place already is before it asks anyone to remember it, which is the point: a stranger
+   should be able to read the conditions a story sits inside, and a neighbour should be
+   asked a question that knows something. Loaded async and fails soft, like the shapes. */
+var HOOD_PROFILES=null;
+function loadProfiles(){
+  fetch("data/neighborhood-profiles.json").then(function(r){return r.json();}).then(function(d){
+    HOOD_PROFILES=d.neighborhoods||null;
+    if(HOOD_PROFILES&&F.hood!=="all")renderCards();   // a neighbourhood already chosen gets its profile
+  }).catch(function(e){console.warn("neighbourhood profiles failed:",e);});
+}
 function pointInRing(lat,lng,ring){
   var inside=false;
   for(var i=0,j=ring.length-1;i<ring.length;j=i++){
@@ -1044,6 +1092,7 @@ function initMap(){
   map.createPane("ctx");map.getPane("ctx").style.zIndex=350; // context data sits below story pins
   map.createPane("hoods");map.getPane("hoods").style.zIndex=340; // neighborhoods sit under everything
   loadHoodShapes();
+  loadProfiles();
   anchorLayer=L.layerGroup();
   if(anchorsOn)anchorLayer.addTo(map);
   loadCultural();
@@ -1199,6 +1248,7 @@ function loadContext(){
   loadCtx("food.geojson","food",function(d){var FULL={"Grocery Store":1,"Supermarket":1,"Super Store":1,"Farmers and Markets":1};return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle(FULL[f.properties.type]?"#1B7A3D":"#E0A100",5));},onEachFeature:function(f,l){l.bindPopup("<b>"+(f.properties.name||"Food retailer")+"</b><br>"+(f.properties.type||""));}});});
   loadCtx("parks.geojson","parks",function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#17C3B2",4));},onEachFeature:function(f,l){l.bindPopup("<b>"+(f.properties.name||"Park")+"</b><br>City of Memphis park");}});});
   loadCtx("community.geojson","comm",function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#8338EC",6));},onEachFeature:function(f,l){l.bindPopup("<b>"+(f.properties.name||"Community center")+"</b>"+(f.properties.street?"<br>"+f.properties.street:""));}});});
+  loadCtx("libraries.geojson","lib",function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#3A86FF",6));},onEachFeature:function(f,l){l.bindPopup("<b>"+(f.properties.name||"Library")+"</b>"+(f.properties.street?"<br>"+f.properties.street:""));}});});
 }
 function toggleCtx(key,btn){var on=btn.classList.toggle("on");var l=ctxLayers[key];if(!l){return;}if(on)l.addTo(map);else map.removeLayer(l);}
 function mkIcon(color){return L.divIcon({className:"mk-wrap",html:'<div class="mk"><svg viewBox="0 0 24 24" fill="'+color+'" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>',iconSize:[20,20],iconAnchor:[10,18]});}
@@ -1289,9 +1339,107 @@ function sitePage(f){
     '<p class="sp-count">'+(n?ic("star",12)+' '+n+' '+(n===1?"memory":"memories")+' rooted here':ic("star",12)+' No memories here yet. Yours would be the first.')+'</p>'+
   '</div>';
 }
+/* The neighbourhood profile. Same column as the story cards, above them, so a place can be
+   read before it is asked about. Every number here is either an exact sum over whole tracts
+   or a weighted rate, and the ones that cannot honestly be summarised are shown as ranges. */
+function money(n){return "$"+Number(n).toLocaleString("en-US");}
+function num(n){return Number(n).toLocaleString("en-US");}
+function meterRow(name,val,max,tone,cmp){
+  var pct=Math.max(2,Math.min(100,val/max*100));
+  return '<div class="hp-meter"><div class="hp-mrow"><span>'+esc(name)+'</span><b style="color:var(--'+tone+')">'+val+'%</b></div>'+
+    '<div class="hp-track"><span class="hp-fill" style="width:'+pct+'%;background:var(--'+tone+')"></span></div>'+
+    (cmp?'<p class="hp-cmp">'+esc(cmp)+'</p>':'')+'</div>';
+}
+function assetTile(icon,n,label){
+  return '<div class="hp-asset'+(n?'':' none')+'">'+ic(icon,16)+'<div><b>'+n+'</b><span>'+esc(label)+'</span></div></div>';
+}
+function hoodPrompts(d){
+  var out=[];
+  if(d.peoplePerGrocery&&d.peoplePerGrocery>5000)
+    out.push('One full-service grocery for <b>'+num(d.peoplePerGrocery)+'</b> people. <em>Where did people shop before, and how did they get there?</em>');
+  if(d.vacantPct>=20)
+    out.push('Nearly <b>'+Math.round(d.vacantPct)+'%</b> of the homes here sit empty. <em>Whose house was that, and what happened to it?</em>');
+  if(d.floodSharePct>=10)
+    out.push('<b>'+d.floodSharePct+'%</b> of this ground is in the flood plain. <em>Where does the water go when it rains hard?</em>');
+  if(!d.assets.libraries)
+    out.push('No public library inside this boundary. <em>Where did you go to study, or to be somewhere cool and quiet?</em>');
+  if(d.over65Pct>=18)
+    out.push('<b>'+d.over65Pct+'%</b> are over 65, the elders who hold the oldest account. <em>Who should we be recording first?</em>');
+  if(!out.length)out.push('<em>What does this neighborhood have that the numbers cannot see?</em>');
+  return out.slice(0,3);
+}
+function hoodPage(name){
+  var d=HOOD_PROFILES&&HOOD_PROFILES[name];
+  if(!d)return "";
+  var a=d.assets||{},n=publicStories().filter(function(s){return s.hood===name;}).length;
+  var cds=(d.council||[]).map(function(c){
+    return '<div class="hp-cd"><span class="hp-cdn">District '+c.cd+'</span>'+
+      '<span class="hp-track"><span class="hp-fill" style="width:'+c.share+'%;background:var(--anchor);opacity:.8"></span></span>'+
+      '<span class="hp-cdv">'+c.share+'%</span></div>';
+  }).join("");
+  var conv=a.snapAll-a.snapFull;
+  return '<div class="hoodpage">'+
+    '<div class="hp-body">'+
+      '<button class="sp-back" id="hoodClear">'+ic("x",12)+' Back to all of Memphis</button>'+
+      '<p class="shk">Neighborhood</p><h2>'+esc(name)+'</h2>'+
+      '<p class="hp-sub">'+d.tracts+' whole census tracts · '+d.areaKm2+' km² · '+num(d.housingUnits)+' homes</p>'+
+    '</div>'+
+
+    '<div class="hp-block"><div class="hp-label"><h3>'+ic("join",12)+' Who lives here</h3><span>ACS 2024</span></div>'+
+      '<div class="hp-head"><b>'+num(d.population)+'</b><span>people</span></div>'+
+      '<div class="hp-stat"><span>Black residents</span><b>'+d.blackPct+'%</b></div>'+
+      '<div class="hp-stat"><span>Over 65</span><b>'+d.over65Pct+'%</b></div>'+
+      '<div class="hp-stat"><span>Living with a disability</span><b>'+d.disabledPct+'%</b></div>'+
+    '</div>'+
+
+    '<div class="hp-block"><div class="hp-label"><h3>'+ic("chart",12)+' What it costs to stay</h3><span>ACS 2024</span></div>'+
+      '<div class="hp-stat"><span>Median household income</span><b>'+money(d.medianIncomeRange[0])+' – '+money(d.medianIncomeRange[1])+'</b></div>'+
+      '<div class="hp-stat"><span>Median rent</span><b>'+money(d.medianRentRange[0])+' – '+money(d.medianRentRange[1])+'</b></div>'+
+      meterRow("Living in poverty",d.povertyPct,50,d.povertyPct>=33?"strain":d.povertyPct>=20?"watch":"ok","City-wide about 22%")+
+      meterRow("Households renting",d.renterPct,100,d.renterPct>=70?"strain":d.renterPct>=55?"watch":"ok","City-wide about 55%")+
+      meterRow("Homes sitting empty",d.vacantPct,35,d.vacantPct>=20?"strain":d.vacantPct>=13?"watch":"ok","City-wide about 12%")+
+    '</div>'+
+
+    '<div class="hp-block"><div class="hp-label"><h3>'+ic("plot",12)+' Buying food</h3><span>USDA SNAP</span></div>'+
+      '<div class="hp-head"><b>'+(d.peoplePerGrocery?num(d.peoplePerGrocery):"—")+'</b><span>people per full-service<br>grocery store</span></div>'+
+      '<div class="hp-stat"><span>Full-service groceries and markets</span><b>'+a.snapFull+'</b></div>'+
+      '<div class="hp-stat"><span>Convenience and corner stores</span><b>'+conv+'</b></div>'+
+      (a.snapAll&&a.snapFull/a.snapAll<0.2
+        ? '<p class="hp-note">'+Math.round((1-a.snapFull/a.snapAll)*100)+'% of the food retailers here are convenience stores. Counting all '+a.snapAll+' would say this neighborhood is well served.</p>' : '')+
+    '</div>'+
+
+    '<div class="hp-block"><div class="hp-label"><h3>'+ic("layers",12)+' Civic assets</h3><span>City of Memphis</span></div>'+
+      '<div class="hp-assets">'+
+        assetTile("book",a.libraries,a.libraries===1?"public library":"public libraries")+
+        assetTile("join",a.centers,a.centers===1?"community center":"community centers")+
+        assetTile("sprout",a.parks,a.parks===1?"park":"parks")+
+        assetTile("star",a.cultural||0,"Cultural District")+
+      '</div>'+
+      '<div class="hp-stat" style="padding-top:9px"><span>In the FEMA flood plain</span><b>'+d.floodSharePct+'%</b></div>'+
+      '<div class="hp-stat"><span>Homes without broadband</span><b>'+(100-d.broadbandPct).toFixed(1)+'%</b></div>'+
+    '</div>'+
+
+    '<div class="hp-block"><div class="hp-label"><h3>'+ic("columns",12)+' Who answers for this ground</h3><span>Council 2023</span></div>'+
+      cds+
+      '<p class="hp-note">'+((d.council||[]).length>1
+        ? 'This neighborhood is split across '+d.council.length+' council districts, so a claim made here has to be made '+d.council.length+' times.'
+        : 'One district covers this neighborhood, so there is one person to take a claim to.')+'</p>'+
+    '</div>'+
+
+    '<div class="hp-block"><div class="hp-label"><h3>'+ic("sprout",12)+' Memories rooted here</h3><span>The Big We</span></div>'+
+      '<div class="hp-head"><b>'+n+'</b><span>'+(n===1?"story":"stories")+' so far</span></div>'+
+      '<div class="hp-prompt">'+hoodPrompts(d).map(function(p){return '<p>'+p+'</p>';}).join("")+'</div>'+
+    '</div>'+
+
+    '<p class="hp-foot">People and homes are exact sums over '+d.tracts+' whole tracts. Percentages are weighted by tract. '+
+      'Medians are ranges because medians cannot be averaged. Asset counts are what falls inside this boundary, which is not '+
+      'the same as what is within walking distance of it.</p>'+
+  '</div>';
+}
 function renderCards(){
   var list=filtered(),f=F.site?siteByName(F.site):null;
-  var head=f?sitePage(f):"";
+  // A building is the more specific answer, so it wins over its neighbourhood.
+  var head=f?sitePage(f):(F.hood!=="all"?hoodPage(F.hood):"");
   var body=list.length?list.map(function(s){var k=KIND[s.kind]||KIND.memory;
     return '<div class="card" data-id="'+s.id+'">'+cardThumb(s)+
       '<div class="cbody"><span class="ktag" style="background:'+k.color+'">'+ic(k.icon,12)+' '+esc(k.short)+'</span>'+
@@ -1306,6 +1454,9 @@ function renderCards(){
   $("cards").scrollTop=0;
   var sc=$("siteClear");if(sc)sc.addEventListener("click",function(){F.site=null;apply();});
   var sa=$("siteAdd");if(sa)sa.addEventListener("click",function(){addMemoryAtSite(f);});
+  var hc=$("hoodClear");if(hc)hc.addEventListener("click",function(){
+    var sel=$("hoodSel");if(sel){sel.value="all";sel.dispatchEvent(new Event("change"));}
+  });
   $("cards").querySelectorAll(".card").forEach(function(c){
     c.addEventListener("click",function(){selectStory(c.dataset.id,true);});
     c.addEventListener("mouseenter",function(){hiMarker(c.dataset.id,true);});
@@ -1449,6 +1600,7 @@ $("floodToggle").addEventListener("click",function(){toggleCtx("flood",this);});
 $("foodToggle").addEventListener("click",function(){toggleCtx("food",this);});
 $("parksToggle").addEventListener("click",function(){toggleCtx("parks",this);});
 $("commToggle").addEventListener("click",function(){toggleCtx("comm",this);});
+$("libToggle").addEventListener("click",function(){toggleCtx("lib",this);});
 $("lpHead").addEventListener("click",function(){var c=$("layerPanel").classList.toggle("collapsed");this.setAttribute("aria-expanded",c?"false":"true");});
 $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMeta();renderCards();renderMarkers();renderActiveF();});
 
