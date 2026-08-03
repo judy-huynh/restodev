@@ -128,7 +128,10 @@
   .sitepage .sp-credit{margin:0;padding:5px 18px 0;font-size:10px;line-height:1.4;color:var(--faint)}
   .sitepage .sp-credit a{color:var(--faint);text-decoration:underline}
   .sitepage .sp-body{padding:12px 18px 16px}
-  .sitepage .sp-back{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px}
+  .sp-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+  .sp-link{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--muted);padding:4px 9px;border-radius:8px;border:1px solid var(--border);background:var(--panel)}
+  .sp-link:hover{border-color:var(--primary);color:var(--primaryDark)}
+  .sitepage .sp-back{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--muted)}
   .sitepage .sp-back:hover{color:var(--text)}
   .sitepage .shk{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--anchor);margin:0 0 3px}
   .sitepage h2{font-family:var(--display);font-size:20px;font-weight:700;line-height:1.2;margin:0;color:var(--text)}
@@ -141,10 +144,10 @@
   /* ── moderator desk ── */
   .deskbar{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 12px}
   .deskbar select{font:inherit;font-size:12px;padding:6px 9px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--text)}
-  .deskbody{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--panel)}
+  .deskbody{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--panel)}
   .deskbody.nodesk{display:block;border:0;background:none}
-  @media(max-width:900px){.deskbody{grid-template-columns:1fr}}
-  .deskbody .queue{border-right:1px solid var(--line);max-height:640px;overflow:auto}
+  @media(max-width:1040px){.deskbody{grid-template-columns:1fr}}
+  .deskbody .queue{border-right:1px solid var(--line);max-height:74vh;overflow:auto}
   @media(max-width:900px){.deskbody .queue{border-right:0;border-bottom:1px solid var(--line);max-height:250px}}
   .qrow{display:flex;gap:9px;width:100%;text-align:left;padding:11px 13px;border:0;border-bottom:1px solid var(--line);border-left:3px solid transparent;background:none;cursor:pointer}
   .qrow:hover{background:var(--bg)}
@@ -157,7 +160,7 @@
   .deskbody .editor{padding:16px 18px 20px;min-width:0}
   .ehead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
   .ehead h3{font-family:var(--display);font-size:16px;margin:0}
-  .ktag-sm{flex:none;white-space:nowrap;align-self:flex-start}
+  .ktag-sm{flex:none;white-space:nowrap;align-self:flex-start;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#fff;padding:4px 10px;border-radius:999px}
   .eid{font-size:10.5px;color:var(--faint);margin:3px 0 0}
   .elegend{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:0 0 8px}
   .elegend.priv{color:#5B4B8A}
@@ -171,6 +174,20 @@
   .mtag:hover{border-color:var(--muted);color:var(--text)}
   .mtag.on{background:var(--text);border-color:var(--text);color:#fff}
   .privbox .mtag.on{background:#5B4B8A;border-color:#5B4B8A}
+  .mediazone{display:flex;flex-direction:column;align-items:center;gap:3px;padding:16px;border:1.5px dashed var(--border);border-radius:12px;background:var(--bg);color:var(--muted);cursor:pointer;text-align:center}
+  .mediazone:hover,.mediazone.over{border-color:var(--primary);color:var(--text);background:var(--primaryLight)}
+  .mediazone:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .mediazone b{font-size:13px;font-weight:700;color:var(--text)}
+  .mediazone span{font-size:11px}
+  .medialist{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+  .mediaempty{font-size:11.5px;color:var(--faint);margin:9px 0 0}
+  .mediatile{position:relative;width:92px;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--bg)}
+  .mediatile img,.mediatile video{display:block;width:100%;height:66px;object-fit:cover}
+  .mediatile .mfile{display:grid;place-items:center;height:66px;color:var(--muted)}
+  .mediatile .mkind{display:block;font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);padding:3px 6px 0}
+  .mediatile .mname{display:block;font-size:9.5px;color:var(--muted);padding:0 6px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mediatile .mrm{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:0;background:rgba(36,28,59,.72);color:#fff;display:grid;place-items:center;cursor:pointer}
+  .mediatile .mrm:hover{background:var(--primaryDark)}
   .privbox{border:1px dashed #5B4B8A;border-radius:12px;padding:13px 14px;background:#F3F0FA;margin:14px 0 0}
   .privmeta{font-size:10.5px;color:var(--muted);margin:8px 0 0}
   .eacts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
@@ -293,6 +310,12 @@
   .d-body{flex:1;overflow:auto;padding:20px;min-height:0}
   .d-body .quote{font-size:16.5px;line-height:1.6;color:var(--text);margin:0 0 18px}
   .d-body audio{width:100%;margin:0 0 18px}
+  .dmedia{display:flex;flex-direction:column;gap:10px;margin:0 0 18px}
+  .dmedia .dm{display:block;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+  .dmedia img,.dmedia video{display:block;width:100%;max-height:320px;object-fit:cover;background:#000}
+  .dmedia .dvid{max-height:none;object-fit:contain}
+  .dmedia .dfile{display:flex;align-items:center;gap:8px;padding:11px 13px;font-size:13px;font-weight:650;color:var(--primaryDark);background:var(--bg);text-decoration:none}
+  .dmedia .dfile:hover{border-color:var(--primary)}
   .d-tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
   .d-tags .t{font-size:11.5px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:5px 11px;cursor:pointer}
   .d-tags .t:hover{border-color:var(--primary);color:var(--primaryDark)}
@@ -426,7 +449,7 @@
   .cardmini{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;text-align:left;margin-bottom:18px}
 
   /* ── Admin ── */
-  .admin{max-width:840px;margin:0 auto;padding:24px 20px 60px;height:100%;overflow:auto}
+  .admin{max-width:1400px;margin:0 auto;padding:24px 26px 60px;height:100%;overflow:auto}
   .admin h2{font-family:var(--display);font-size:1.4rem;margin:0 0 4px}
   .admin .sub{color:var(--muted);font-size:13px;margin:0 0 20px}
   .tabs{display:flex;gap:8px;margin-bottom:16px}
@@ -897,8 +920,34 @@ function contactRow(c){
   if(c.phone)parts.push('<span>'+ic("phone",12)+' <a href="tel:'+esc((c.phone+"").replace(/[^0-9+]/g,""))+'">'+esc(c.phone)+'</a></span>');
   return '<div class="contactrow"><span class="cr-lab">'+ic("lock",11)+' Contact</span>'+parts.join("")+'</div>';
 }
-function rowToStory(r){var a=r.answers||{},photo=null,audio=null;(r.media||[]).forEach(function(m){if(m.kind==="photo"&&!photo)photo=m.url;if(m.kind==="audio"&&!audio)audio=m.url;});var src=r.source||{};return{id:r.id,kind:a.kind||"memory",place:a.place_type||"",hood:r.location_label||HOOD_OTHER,corner:a.corner||r.location_label||"",era:a.era||"today",story:a.story||"",lat:r.lat,lng:r.lng,name:r.display_name,vis:CONSENT2VIS[r.consent_level]||"first",inst:!!a.inst,contact:a.contact||null,photo:photo,audio:audio,campaign:src.campaign||"web",mode:src.mode||"web",featured:!!r.featured,affirms:AFF[r.id]||0,status:r.status||"approved"};}
+function rowToStory(r){var a=r.answers||{},photo=null,audio=null;var media=(r.media||[]).filter(function(m){return m&&m.url;});media.forEach(function(m){if(m.kind==="photo"&&!photo)photo=m.url;if(m.kind==="audio"&&!audio)audio=m.url;});var src=r.source||{};return{id:r.id,kind:a.kind||"memory",place:a.place_type||"",hood:r.location_label||HOOD_OTHER,corner:a.corner||r.location_label||"",era:a.era||"today",story:a.story||"",lat:r.lat,lng:r.lng,name:r.display_name,vis:CONSENT2VIS[r.consent_level]||"first",inst:!!a.inst,contact:a.contact||null,photo:photo,audio:audio,media:media,campaign:src.campaign||"web",mode:src.mode||"web",featured:!!r.featured,affirms:AFF[r.id]||0,status:r.status||"approved"};}
 async function supaFetchApproved(){var res=await fetch(SUPA.url+"/rest/v1/stories?tenant_id=eq."+SUPA.tid+"&status=eq.approved&select=id,status,display_name,consent_level,answers,lat,lng,location_label,media,source,submitted_at,featured&order=submitted_at.desc&limit=500",{headers:supaHeaders()});if(!res.ok)throw new Error("load "+res.status);return (await res.json()).map(rowToStory);}
+/* Same shape as the Rainproof uploader: one file in, {url,kind,name} out, the real
+   extension preserved so a .mov stays a .mov and a PDF stays a PDF. Uploads as the
+   signed-in moderator when there is a session, and as the site otherwise, which is what
+   the public intake form already does. */
+var MEDIA_MAX=52428800;   // 50MB; past this the browser upload is the wrong tool
+function mediaKindOf(file){
+  var t=(file.type||"").toLowerCase();
+  if(t.indexOf("image/")===0)return "photo";
+  if(t.indexOf("video/")===0)return "video";
+  if(t.indexOf("audio/")===0)return "audio";
+  return "file";
+}
+async function supaUploadFile(file,kind){
+  kind=kind||mediaKindOf(file);
+  if(file.size>MEDIA_MAX)throw new Error((file.name||"That file")+" is "+Math.round(file.size/1048576)+"MB, over the 50MB limit");
+  var fallback={photo:"jpg",video:"mp4",audio:"webm",file:"bin"};
+  var raw=(file.name||"").split(".").pop();
+  var ext=(raw&&raw.length<=5&&/^[a-z0-9]+$/i.test(raw))?raw.toLowerCase():fallback[kind]||"bin";
+  var rand=(window.crypto&&crypto.randomUUID)?crypto.randomUUID().slice(0,8):Math.random().toString(36).slice(2,10);
+  var path="memphis-roots/"+Date.now()+"-"+rand+"."+ext;
+  var tok=(SUPA.session&&SUPA.session.access_token)||SUPA.key;
+  var res=await fetch(SUPA.url+"/storage/v1/object/story-media/"+path,{method:"POST",
+    headers:{apikey:SUPA.key,Authorization:"Bearer "+tok,"Content-Type":file.type||"application/octet-stream"},body:file});
+  if(!res.ok)throw new Error("upload failed "+res.status+": "+(await res.text()).slice(0,120));
+  return {url:SUPA.url+"/storage/v1/object/public/story-media/"+path,kind:kind,name:file.name||null};
+}
 async function supaUpload(dataUrl,kind){var blob=await (await fetch(dataUrl)).blob();var ext=kind==="audio"?"webm":"jpg";var path="memphis-roots/"+Date.now()+"-"+Math.random().toString(36).slice(2,10)+"."+ext;var res=await fetch(SUPA.url+"/storage/v1/object/story-media/"+path,{method:"POST",headers:{apikey:SUPA.key,Authorization:"Bearer "+SUPA.key,"Content-Type":blob.type||"application/octet-stream"},body:blob});if(!res.ok)throw new Error("media "+res.status);return{url:SUPA.url+"/storage/v1/object/public/story-media/"+path,kind:kind};}
 async function supaSubmit(d){var media=[];if(d.photo){try{media.push(await supaUpload(d.photo,"photo"));}catch(e){}}if(d.audio){try{media.push(await supaUpload(d.audio,"audio"));}catch(e){}}var row={id:(window.crypto&&crypto.randomUUID?crypto.randomUUID():uid()),tenant_id:SUPA.tid,status:"pending",consent_level:VIS2CONSENT[d.vis]||"first_name",display_name:(d.vis==="anon"||d.vis==="heritage")?null:(d.name||null),answers:{kind:d.kind,place_type:d.place||null,era:d.era,story:d.story,corner:d.corner||null,inst:!!d.inst,contact:((d.name||d.email||d.phone)?{name:d.name||null,email:d.email||null,phone:d.phone||null}:null)},lat:d.lat,lng:d.lng,location_label:d.hood||null,media:media,source:{campaign:d.campaign,mode:d.mode,locSource:d.locSource||"unset"}};var res=await fetch(SUPA.url+"/rest/v1/stories",{method:"POST",headers:Object.assign(supaHeaders(),{Prefer:"return=minimal"}),body:JSON.stringify(row)});if(!res.ok&&res.status!==409)throw new Error("submit "+res.status+": "+(await res.text()).slice(0,140));return true;}
 async function supaLogin(email,password){var res=await fetch(SUPA.url+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:SUPA.key,"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password})});var d=await res.json();if(!res.ok||!d.access_token)throw new Error(d.error_description||d.msg||"sign-in failed");SUPA.session=d;try{sessionStorage.setItem("mr_sess",JSON.stringify(d));}catch(e){}}
@@ -909,7 +958,7 @@ async function supaAuthed(path,opts){opts=opts||{};var res=await fetch(SUPA.url+
 async function supaSaveStory(s,answers){
   return supaAuthed("stories?id=eq."+s.id,{method:"PATCH",headers:{Prefer:"return=minimal"},
     body:JSON.stringify({location_label:s.hood,lat:s.lat,lng:s.lng,display_name:s.name||null,
-      featured:!!s.featured,answers:answers})});
+      featured:!!s.featured,answers:answers,media:s.media||[]})});
 }
 /* The moderator-only layer. A separate table with its own row-level rule, because anyone
    can read `stories` with the publishable key: a private tag kept there would be public
@@ -1219,6 +1268,7 @@ function loadHoodShapes(){
         });
       }});
     if(hoodsOn)hoodLayer.addTo(map);
+    if(F.hood!=="all")highlightHood(F.hood);   // a shared /?hood= link
     if(window.__refreshHood)window.__refreshHood();   // a form already open gets its suggestion
   }).catch(function(e){console.warn("neighborhood shapes failed:",e);});
 }
@@ -1425,7 +1475,8 @@ function sitePage(f){
     // also the honest label: an archive photo of 1890 is not a photo of the corner today.
     (p.photo&&p.photoCredit?'<p class="sp-credit">'+(p.photoSource?'<a href="'+esc(p.photoSource)+'" target="_blank" rel="noopener">'+esc(p.photoCredit)+'</a>':esc(p.photoCredit))+'</p>':'')+
     '<div class="sp-body">'+
-      '<button class="sp-back" id="siteClear">'+ic("x",12)+' Back to all of Memphis</button>'+
+      '<div class="sp-bar"><button class="sp-back" id="siteClear">'+ic("x",12)+' Back to all of Memphis</button>'+
+      '<button class="sp-link" id="siteLink">'+ic("join",12)+' Copy link</button></div>'+
       (p.category?'<p class="shk">'+esc(p.category)+'</p>':'')+
       '<h2>'+esc(p.name)+'</h2>'+
       (p.street?'<p class="shaddr">'+ic("pin",12)+' '+esc(p.street)+'</p>':'')+
@@ -1480,7 +1531,8 @@ function hoodPage(name){
   var conv=a.snapAll-a.snapFull;
   return '<div class="hoodpage" style="--hood:'+col+';background:linear-gradient(180deg,'+col+'26,transparent 62%)">'+
     '<div class="hp-body">'+
-      '<button class="sp-back" id="hoodClear">'+ic("x",12)+' Back to all of Memphis</button>'+
+      '<div class="sp-bar"><button class="sp-back" id="hoodClear">'+ic("x",12)+' Back to all of Memphis</button>'+
+      '<button class="sp-link" id="hoodLink">'+ic("join",12)+' Copy link</button></div>'+
       '<p class="shk" style="color:'+col+'"><span class="hp-dot" style="background:'+col+'"></span> Neighborhood</p><h2>'+esc(name)+'</h2>'+
       '<p class="hp-sub">'+d.tracts+' whole census tracts · '+d.areaKm2+' km² · '+num(d.housingUnits)+' homes</p>'+
     '</div>'+
@@ -1562,6 +1614,8 @@ function renderCards(){
   $("cards").scrollTop=0;
   var sc=$("siteClear");if(sc)sc.addEventListener("click",function(){F.site=null;apply();});
   var sa=$("siteAdd");if(sa)sa.addEventListener("click",function(){addMemoryAtSite(f);});
+  var sl=$("siteLink");if(sl)sl.addEventListener("click",copyLink);
+  var hl=$("hoodLink");if(hl)hl.addEventListener("click",copyLink);
   var hc=$("hoodClear");if(hc)hc.addEventListener("click",function(){
     var sel=$("hoodSel");if(sel){sel.value="all";sel.dispatchEvent(new Event("change"));}
   });
@@ -1582,7 +1636,28 @@ function renderCards(){
   });
 }
 function hiCard(id,on){var c=$("cards").querySelector('.card[data-id="'+id+'"]');if(c){c.classList.toggle("sel",on);if(on)c.scrollIntoView({block:"nearest",behavior:"smooth"});}}
-function apply(){renderKChips();renderActiveF();renderMeta();renderCards();renderMarkers();}
+/* A filtered map should be sendable. The address bar carries the neighbourhood, the
+   Cultural District site, the type, the era and the search, so "look at Soulsville" is a
+   link rather than a set of instructions. `kind` is left alone: the kiosk already uses it
+   to open the form on a particular kind of story. */
+function syncUrl(){
+  var p=new URLSearchParams(location.search);
+  ["hood","site","type","era","q"].forEach(function(k){p.delete(k);});
+  if(F.hood&&F.hood!=="all")p.set("hood",F.hood);
+  if(F.site)p.set("site",F.site);
+  if(F.kinds.size===1)p.set("type",Array.from(F.kinds)[0]);
+  if(F.era&&F.era!=="all")p.set("era",F.era);
+  if(F.q)p.set("q",F.q);
+  var qs=p.toString();
+  try{history.replaceState(null,"",location.pathname+(qs?"?"+qs:"")+location.hash);}catch(e){}
+}
+function copyLink(){
+  var url=location.href;
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(url).then(function(){toast("Link copied");}).catch(function(){toast(url);});
+  else toast(url);
+}
+function apply(){renderKChips();renderActiveF();renderMeta();renderCards();renderMarkers();syncUrl();}
 
 /* ── detail ── */
 function selectStory(id,fly){
@@ -1591,6 +1666,22 @@ function selectStory(id,fly){
   $("cards").querySelectorAll(".card").forEach(function(c){c.classList.toggle("sel",c.dataset.id===id);});
   if(fly&&map)map.flyTo([s.lat,s.lng],15,{duration:1.1});
   openDetail(s);
+}
+/* Everything else attached to a story: the photos after the first, any video, any
+   document. The hero already shows the first photo and the player already handles the
+   voice recording, so this is what used to be invisible on the public side. */
+function storyMediaHtml(s){
+  var m=(s.media||[]).filter(function(x,i){
+    if(x.kind==="audio")return false;                       // already has a player
+    if(x.kind==="photo"&&x.url===s.photo)return false;      // already the hero
+    return true;
+  });
+  if(!m.length)return "";
+  return '<div class="dmedia">'+m.map(function(x){
+    if(x.kind==="photo")return '<a class="dm" href="'+esc(x.url)+'" target="_blank" rel="noopener"><img src="'+esc(x.url)+'" alt="" loading="lazy"></a>';
+    if(x.kind==="video")return '<video class="dm dvid" src="'+esc(x.url)+'" controls preload="metadata" playsinline></video>';
+    return '<a class="dm dfile" href="'+esc(x.url)+'" target="_blank" rel="noopener">'+ic("plot",15)+' '+esc(x.name||"Attached file")+'</a>';
+  }).join("")+'</div>';
 }
 function openDetail(s){
   var k=KIND[s.kind]||KIND.memory,src=photoSrc(s.photo);
@@ -1601,6 +1692,7 @@ function openDetail(s){
     '<span class="d-ktag" style="background:'+k.color+'">'+ic(k.icon,13)+' '+esc(k.label)+'</span></div>'+
     '<div class="d-body"><p class="quote">"'+esc(s.story)+'"</p>'+
     (s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+
+    storyMediaHtml(s)+
     (s.kind==="future"?dreamBox(s):"")+
     '<div class="d-tags">'+tags.map(function(t){return '<span class="t" data-tag="'+t[0]+'">'+t[1]+'</span>';}).join("")+'</div>'+
     '<div class="d-meta">'+
@@ -2059,6 +2151,60 @@ function modTagRow(list,cur,attr){
     return '<button type="button" class="mtag'+(cur.indexOf(t)>-1?" on":"")+'" data-'+attr+'="'+esc(t)+'">'+esc(t)+'</button>';
   }).join("")+'</div>';
 }
+/* Media on a story: photos, a video, a voice recording, or a document. Stored as the
+   same {url,kind,name} objects the intake form already writes, so nothing downstream
+   has to learn a new shape. Removing a tile takes it off the story; the file itself
+   stays in the bucket, because a moderator undoing a mistake matters more than bytes. */
+function mediaTiles(s){
+  var m=s.media||[];
+  if(!m.length)return '<p class="mediaempty">No media on this story yet.</p>';
+  return m.map(function(x,i){
+    var inner=x.kind==="photo"?'<img src="'+esc(x.url)+'" alt="" loading="lazy">'
+      :x.kind==="video"?'<video src="'+esc(x.url)+'" muted preload="metadata"></video>'
+      :'<span class="mfile">'+ic(x.kind==="audio"?"audio":"plot",20)+'</span>';
+    return '<div class="mediatile" data-mi="'+i+'">'+inner+
+      '<span class="mkind">'+esc(x.kind)+'</span>'+
+      '<button type="button" class="mrm" data-mrm="'+i+'" aria-label="Remove this file">'+ic("x",12)+'</button>'+
+      (x.name?'<span class="mname">'+esc(x.name)+'</span>':'')+'</div>';
+  }).join("");
+}
+function refreshMediaList(s){
+  var el=$("mList");if(!el)return;
+  el.innerHTML=mediaTiles(s);
+  el.querySelectorAll("[data-mrm]").forEach(function(b){b.addEventListener("click",function(){
+    s.media.splice(+b.dataset.mrm,1);refreshMediaList(s);renderQueue();});});
+}
+async function addMediaFiles(s,files){
+  var hint=$("mHint"),list=Array.prototype.slice.call(files||[]);
+  if(!list.length)return;
+  s.media=s.media||[];
+  for(var i=0;i<list.length;i++){
+    var f=list[i],kind=mediaKindOf(f);
+    if(hint)hint.textContent="Uploading "+(f.name||"file")+" ("+(i+1)+" of "+list.length+")\u2026";
+    try{
+      var up=await supaUploadFile(f,kind);
+      if(kind==="audio")s.media=s.media.filter(function(x){return x.kind!=="audio";});
+      s.media.push(up);
+      refreshMediaList(s);renderQueue();
+    }catch(e){
+      if(hint)hint.textContent=e.message;
+      toast(e.message);
+      return;
+    }
+  }
+  if(hint)hint.textContent="Uploaded. Remember to Save changes.";
+}
+function wireMedia(s){
+  var zone=$("mDrop"),input=$("mFiles");
+  if(!zone||!input)return;
+  zone.addEventListener("click",function(){input.click();});
+  zone.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();input.click();}});
+  ["dragenter","dragover"].forEach(function(t){zone.addEventListener(t,function(e){e.preventDefault();zone.classList.add("over");});});
+  ["dragleave","drop"].forEach(function(t){zone.addEventListener(t,function(e){e.preventDefault();zone.classList.remove("over");});});
+  zone.addEventListener("drop",function(e){addMediaFiles(s,e.dataTransfer.files);});
+  input.addEventListener("change",function(){addMediaFiles(s,input.files);input.value="";});
+  refreshMediaList(s);
+}
 function renderEditor(){
   var s=modRows.find(function(x){return x.id===modSel;});
   if(!s){$("modEditor").innerHTML='<div class="empty">Pick a story from the queue.</div>';return;}
@@ -2091,6 +2237,14 @@ function renderEditor(){
     '<div class="tagrow" style="margin-top:10px"><button type="button" class="mtag'+(s.featured?" on":"")+'" id="mFeat">'+ic("star",12)+' Feature on the map</button></div>'+
     '<p class="ehint">The only moderator decision the public sees.</p>'+
 
+    '<p class="elegend">'+ic("camera",12)+' Photos, video and files</p>'+
+    '<div class="mediazone" id="mDrop" tabindex="0" role="button" aria-label="Add photos, video or files">'+
+      ic("image",22)+'<b>Add photos, video or files</b><span>Browse or drag them here &middot; up to 50MB each</span>'+
+    '</div>'+
+    '<input type="file" id="mFiles" multiple accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt" hidden>'+
+    '<div class="medialist" id="mList">'+mediaTiles(s)+'</div>'+
+    '<p class="ehint" id="mHint">Anything added here is public the moment the story is. Audio replaces the previous recording.</p>'+
+
     '<div class="privbox">'+
       '<p class="elegend priv">'+ic("lock",12)+' Moderators only · never leaves this page</p>'+
       '<label class="efl">Workflow</label>'+modTagRow(MOD_WORKFLOW,v.workflow||[],"w")+
@@ -2109,6 +2263,7 @@ function renderEditor(){
     (s.audio?'<audio controls src="'+s.audio+'" style="width:100%;margin-top:12px"></audio>':"")+
     contactRow(s.contact);
 
+  wireMedia(s);
   var live=function(){
     s.story=$("mStory").value; s.corner=$("mCorner").value;
     if(!$("mName").disabled)s.name=$("mName").value;
@@ -2235,6 +2390,16 @@ function renderSpotlight(){var pub=publicStories().filter(function(s){return s.p
 /* ── boot ── */
 var params=new URLSearchParams(location.search),mode=params.get("mode"),kindParam=params.get("kind");
 campaignParam=params.get("campaign")||"web";eventParam=params.get("event")||"";captureMode=(mode==="kiosk")?"kiosk":(mode==="share"?"share":"web");
+/* A shared link arrives as filter state. Applied before the first render so the page
+   opens on what was sent, rather than opening on everything and then jumping. */
+(function(){
+  var hood=params.get("hood"),site=params.get("site"),type=params.get("type"),era=params.get("era"),q=params.get("q");
+  if(hood)F.hood=hood;
+  if(site)F.site=site;
+  if(type&&KIND[type])F.kinds=new Set([type]);
+  if(era&&ERAS.some(function(e){return e[0]===era;}))F.era=era;
+  if(q){F.q=q;var si=$("searchIn");if(si)si.value=q;}
+})();
 hydrateIcons(document);
 renderKChips();renderSelects();renderActiveF();renderMeta();renderCards();
 if(mode==="share"||mode==="kiosk"){showView("explore");startCapture(kindParam||null);}
