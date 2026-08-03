@@ -139,7 +139,9 @@
   .sitepage .shadd:hover{background:var(--primaryDark)}
   .sitepage .sp-count{display:flex;align-items:center;gap:6px;margin:0;padding:9px 18px;border-top:1px solid var(--line);background:rgba(255,255,255,.55);font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
   /* neighborhood profile, at the top of the story column */
-  .hoodpage{margin:-10px -12px 14px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(23,195,178,.14),rgba(255,255,255,0) 60%)}
+  .hoodpage{margin:-10px -12px 14px;border-bottom:1px solid var(--line)}
+  .hoodpage .hp-dot{display:inline-block;width:8px;height:8px;border-radius:3px;transform:rotate(45deg);vertical-align:0}
+  .hoodpage .hp-asset .ic{color:var(--hood)}
   .hoodpage .hp-body{padding:14px 18px 4px}
   .hoodpage h2{font-family:var(--display);font-size:20px;font-weight:700;line-height:1.2;margin:0;color:var(--text)}
   .hoodpage .hp-sub{font-size:11.5px;color:var(--muted);margin:5px 0 10px}
@@ -316,6 +318,10 @@
   .me-dot{width:16px;height:16px;border-radius:50%;background:#1A73E8;border:2.5px solid #fff;
           box-shadow:0 0 0 1px rgba(0,0,0,.18),0 1px 4px rgba(0,0,0,.3)}
   @media(max-width:900px){.locbtn{bottom:92px}}
+  /* Clicking a shape used to leave the browser's focus rectangle around it, a blue box
+     the size of the whole neighbourhood. Keyboard focus still gets a visible ring. */
+  .leaflet-interactive:focus{outline:none}
+  .leaflet-interactive:focus-visible{outline:2px solid var(--primaryDark);outline-offset:2px}
   .hoodtip{background:rgba(32,26,20,.92);color:#fff;border:0;border-radius:6px;font-size:12px;font-weight:600;padding:4px 8px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
   .hoodtip:before{display:none}
   /* Cultural District star: the name, and how many memories are rooted there */
@@ -1123,8 +1129,9 @@ function loadHoodShapes(){
        one click both selected the neighborhood and popped "Add a memory here" on top
        of the place you had just asked to look at. Reading and adding are different
        intentions; the polygon now only reads. */
+    HOOD_COLORS=d.colors||HOOD_COLORS;
     hoodLayer=L.geoJSON(d,{pane:"hoods",bubblingMouseEvents:false,
-      style:function(){return{color:"#8A6A4F",weight:1.4,opacity:.75,fillColor:"#C7A87E",fillOpacity:.10,pane:"hoods",dashArray:"5 4"};},
+      style:function(f){return hoodStyle(f.properties.name,false);},
       onEachFeature:function(f,l){
         l.bindTooltip(f.properties.name,{sticky:true,direction:"top",className:"hoodtip"});
         // First click reads the neighborhood: zoom to it, highlight it, show only its
@@ -1232,12 +1239,29 @@ function openAddHere(latlng,src,label,corner){
   var btn=document.getElementById("addHereBtn");
   if(btn)btn.addEventListener("click",function(){beginMemory(ll.lat,ll.lng,src||"map-click",corner);});
 }
+/* Colour distinguishes, it does not encode. No neighbourhood's colour says anything
+   about the place; it only says "not the one next to me". The assignment is in the
+   geojson: adjacent neighbourhoods never share a colour, and the pair a colour-blind
+   reader is most likely to confuse is never adjacent. The app's pink is deliberately
+   not in the set, so a boundary can never be mistaken for a memory pin. */
+var HOOD_COLORS=["#3A86FF","#FB5607","#0E9384","#8338EC","#D81E5B"];
+function hoodColor(name){
+  if(!HOOD_SHAPES)return HOOD_COLORS[0];
+  for(var i=0;i<HOOD_SHAPES.length;i++)
+    if(HOOD_SHAPES[i].properties.name===name)
+      return HOOD_COLORS[HOOD_SHAPES[i].properties.colorIndex||0]||HOOD_COLORS[0];
+  return HOOD_COLORS[0];
+}
+function hoodStyle(name,on){
+  var c=hoodColor(name);
+  return {color:c,weight:on?2.6:1.3,opacity:on?1:.65,fillColor:c,fillOpacity:on?.26:.13,
+          pane:"hoods",dashArray:on?null:"5 4"};
+}
 function highlightHood(name){
   if(!hoodLayer)return;
   hoodLayer.eachLayer(function(l){
-    var on=l.feature&&l.feature.properties.name===name;
-    l.setStyle(on?{weight:2.6,opacity:1,fillOpacity:.22,dashArray:null}
-                 :{weight:1.4,opacity:.75,fillOpacity:.10,dashArray:"5 4"});
+    var n=l.feature&&l.feature.properties.name;
+    l.setStyle(hoodStyle(n,n===name));
   });
 }
 /* context layers (real Memphis city data), off by default, below story pins */
@@ -1372,16 +1396,18 @@ function hoodPage(name){
   var d=HOOD_PROFILES&&HOOD_PROFILES[name];
   if(!d)return "";
   var a=d.assets||{},n=publicStories().filter(function(s){return s.hood===name;}).length;
+  // The panel wears the same colour as the shape on the map, so the two are one object.
+  var col=hoodColor(name);
   var cds=(d.council||[]).map(function(c){
     return '<div class="hp-cd"><span class="hp-cdn">District '+c.cd+'</span>'+
-      '<span class="hp-track"><span class="hp-fill" style="width:'+c.share+'%;background:var(--anchor);opacity:.8"></span></span>'+
+      '<span class="hp-track"><span class="hp-fill" style="width:'+c.share+'%;background:var(--hood);opacity:.85"></span></span>'+
       '<span class="hp-cdv">'+c.share+'%</span></div>';
   }).join("");
   var conv=a.snapAll-a.snapFull;
-  return '<div class="hoodpage">'+
+  return '<div class="hoodpage" style="--hood:'+col+';background:linear-gradient(180deg,'+col+'26,transparent 62%)">'+
     '<div class="hp-body">'+
       '<button class="sp-back" id="hoodClear">'+ic("x",12)+' Back to all of Memphis</button>'+
-      '<p class="shk">Neighborhood</p><h2>'+esc(name)+'</h2>'+
+      '<p class="shk" style="color:'+col+'"><span class="hp-dot" style="background:'+col+'"></span> Neighborhood</p><h2>'+esc(name)+'</h2>'+
       '<p class="hp-sub">'+d.tracts+' whole census tracts · '+d.areaKm2+' km² · '+num(d.housingUnits)+' homes</p>'+
     '</div>'+
 
