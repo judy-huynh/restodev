@@ -287,7 +287,12 @@
   .hoodpage .hp-sub{font-size:11.5px;color:var(--muted);margin:5px 0 10px}
   .hp-block{padding:13px 18px;border-top:1px solid var(--line)}
   .hp-label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}
-  .hp-label h3{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.02em;color:var(--faint);margin:0}
+  /* The section headings used to be 10px faint grey, quieter than the numbers under them,
+     so the column read as one long list. They wear the neighbourhood's own colour now, at
+     a real heading weight, which also ties each block back to the shape on the map. */
+  .hp-label h3{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:750;
+    letter-spacing:-.01em;color:var(--hood,var(--text));margin:0}
+  .hp-label h3 .ic{opacity:.85}
   .hp-label span{font-size:9.5px;color:var(--faint)}
   .hp-head{display:flex;align-items:flex-end;gap:10px;margin:0 0 6px}
   .hp-head b{font-family:var(--display);font-size:27px;font-weight:700;line-height:1;letter-spacing:-.02em}
@@ -305,7 +310,6 @@
   .hp-asset b{display:block;font-size:15px;font-weight:700;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
   .hp-asset span{font-size:10.5px;line-height:1.25}
   .hp-asset.none b{color:var(--faint)}
-  .hp-asset.wide{grid-column:1/-1}
   .hp-asset .hp-sub{display:block;margin-top:1px;font-size:9.5px;color:var(--faint);line-height:1.3}
   /* A stat with its baseline and its rank. Deliberately not a second coloured bar: the
      comparison is stated in words, so it survives colour-blindness, greyscale printing and
@@ -328,8 +332,6 @@
   .hp-band .bt{height:12px;background:var(--bg);border:1px solid var(--line);border-radius:3px;overflow:hidden}
   .hp-band .bf{display:block;height:100%;background:var(--hood,var(--primary));border-radius:2px}
   .hp-band .bv{font-size:10.5px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;text-align:right}
-  .hp-two .hp-alt{margin-left:auto;flex:none;max-width:34%;padding-left:10px;border-left:1px solid var(--line);text-align:right}
-  .hp-two.none .hp-alt b{color:var(--text)}   /* zero groceries does not grey out 14 corner stores */
   .hp-cd{display:flex;align-items:center;gap:9px;padding:5px 0}
   .hp-cdn{font-size:12.5px;font-weight:600;min-width:72px}
   .hp-cdv{font-size:11.5px;color:var(--muted);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
@@ -912,9 +914,10 @@ var ICON={
   tree:'<path d="M12 21.5V17.5"/><path d="m12 2.5 4.6 6.4h-2.5l4.2 5.9H5.7l4.2-5.9H7.4Z"/>',
   basket:'<path d="M4 9h16l-1.4 9.2a2 2 0 0 1-2 1.8H7.4a2 2 0 0 1-2-1.8Z"/><path d="m8.5 9 2-5M15.5 9l-2-5"/><path d="M10 13v3M14 13v3"/>',
   hall:'<path d="M3 20.5h18"/><path d="M4.5 20.5V10h15v10.5"/><path d="M2.5 10 12 4l9.5 6"/><path d="M9.5 20.5V15h5v5.5"/>',
-  church:'<path d="M3 20.5h18"/><path d="M6 20.5v-9l6-4 6 4v9"/><path d="M12 7.5V3M10.2 4.6h3.6"/><path d="M10 20.5V16a2 2 0 0 1 4 0v4.5"/>'
+  church:'<path d="M3 20.5h18"/><path d="M6 20.5v-9l6-4 6 4v9"/><path d="M12 7.5V3M10.2 4.6h3.6"/><path d="M10 20.5V16a2 2 0 0 1 4 0v4.5"/>',
+  store:'<path d="M4.5 10h15v9.5a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1Z"/><path d="M4.8 3.5h14.4l1.8 6.5H3Z"/><path d="M10 20.5V15h4v5.5"/>'
 };
-ICON.cart=ICON.basket;ICON.building=ICON.hall;
+ICON.cart=ICON.store;ICON.building=ICON.hall;
 function ic(n,s,cls){s=s||16;return '<svg class="ic'+(cls?" "+cls:"")+'" width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICON[n]||"")+'</svg>';}
 function hydrateIcons(root){(root||document).querySelectorAll("[data-ic]").forEach(function(el){var n=el.getAttribute("data-ic");var s=el.getAttribute("data-s")||16;el.innerHTML=ic(n,parseInt(s,10));el.removeAttribute("data-ic");});}
 var PHOTO="media/";
@@ -1981,8 +1984,6 @@ function floodRows(d){
           (a!=null?pc(a):"—")+'</b></div>';
   if(b!=null)out+='<div class="hp-stat"><span>Land that floods less often</span><b>'+pc(b)+'</b></div>';
   var tot=(a||0)+(b||0);
-  if(tot>0)out+='<p class="hp-note">The first floods about once every 100 years. The second, about once every 500 years. Those are not the same land, so <b>'+
-    tot.toFixed(1)+'%</b> of this neighborhood is on a flood map. And once in 100 years does not mean it waits 100 years. It can happen any year, even two years in a row.</p>';
   return out;
 }
 /* A number on its own cannot be judged. 37.6% poverty means nothing until you know the
@@ -2027,38 +2028,11 @@ var CMP_PLAIN={
 };
 function cmpRow(d,k,label,hideVal){
   var v=d[k]; if(v==null)return "";
-  var cfg=CMP_PLAIN[k]||{}, b=HOOD_BASE&&HOOD_BASE[k];
-  var isMoney=k.indexOf("median")===0;
-  var show=isMoney?money(v):v+"%";
-  /* Written to be read by a 5th grader, because a lot of Memphis reads at that level and
-     a number nobody can read is a number nobody can argue with.
-     Both sides of the comparison are put in the SAME form. "1 in 5 here, 1 in 7 across
-     Memphis" is two small whole numbers a child can hold side by side. "20.4% versus a
-     14.6% average" is two decimals and a statistics word. Same fact, and only one of them
-     gets used. Short sentences, no "average", no "points", no percent signs in the
-     comparison at all. */
-  var line="";
-  if(cfg.compare!==false&&b!=null&&!hideVal){
-    var a=inWords(v), c=inWords(b), unit=cfg.unit||"people", parts=[];
-    if(a)parts.push("That is about "+a+" "+unit+".");
-    var diff=v-b, near=isMoney?2500:2;
-    if(Math.abs(diff)<near)parts.push("Most of Memphis is about the same.");
-    else if(isMoney)parts.push("Most of Memphis is closer to "+money(b)+".");
-    else if(c)parts.push("Most of Memphis is closer to "+c+".");
-    else parts.push("That is "+(diff>0?"more":"less")+" than most of Memphis.");
-    line='<span class="hp-vs">'+parts.join(" ")+'</span>';
-  }else if(cfg.compare!==false&&b!=null&&hideVal){
-    line='<span class="hp-vs">'+base(k)+'</span>';
-  }else if(cfg.compare!==false&&!hideVal){
-    var r2=inWords(v);
-    if(r2)line='<span class="hp-vs">That is about '+r2+' '+(cfg.unit||"people")+'.</span>';
-  }
-  // With no label and no value there is nothing to head the row with, so the sentence
-  // stands on its own rather than sitting under an empty line.
-  if(!label&&hideVal)return line?'<p class="hp-vs solo">'+line.replace(/<\/?span[^>]*>/g,"")+'</p>':"";
-  return '<div class="hp-cmp">'+
-    '<div class="hp-cmprow"><span>'+esc(label)+'</span>'+(hideVal?"":'<b>'+show+'</b>')+'</div>'+
-    line+'</div>';
+  var show=k.indexOf("median")===0?money(v):v+"%";
+  // Number and label, nothing else. The explaining sentence under every row made the
+  // column read as an essay; the full method lives outside the panel.
+  return '<div class="hp-cmp"><div class="hp-cmprow"><span>'+esc(label)+'</span>'+
+    (hideVal?"":'<b>'+show+'</b>')+'</div></div>';
 }
 /* Household counts, straight from B19001. These add up exactly across tracts, so unlike a
    median they need no method at all and nothing is reconstructed. */
@@ -2072,24 +2046,12 @@ function incomeBands(d){
       '<span class="bt"><span class="bf" style="width:'+(max?b.n/max*100:0)+'%"></span></span>'+
       '<span class="bv">'+pct+'%</span></div>';
   }).join("")+'</div>'+
-  '<p class="hp-note">'+num(tot)+' households, counted not estimated.</p>';
+  '<p class="hp-note">'+num(tot)+' households</p>';
 }
 function assetTile(icon,n,label,cls,sub){
   return '<div class="hp-asset'+(n?'':' none')+(cls?' '+cls:'')+'">'+ic(icon,16)+
     '<div><b>'+n+'</b><span>'+esc(label)+'</span>'+
     (sub?'<span class="hp-sub">'+esc(sub)+'</span>':'')+'</div></div>';
-}
-/* Two figures in one tile, for a count whose meaning is entirely in the comparison.
-   The food block used to lead with a big "7,190 people per grocery store", then list the
-   two counts underneath, then explain in a sentence that 93% of the retailers here are
-   convenience stores. Putting 1 next to 14 makes the same point without making it, which
-   is the version a person in the room can argue with. */
-function twoUpTile(icon,a,aLabel,aSub,b,bLabel){
-  if(a==null&&b==null)return "";
-  return '<div class="hp-asset wide hp-two'+(a?'':' none')+'">'+ic(icon,16)+
-    '<div><b>'+(a||0)+'</b><span>'+esc(aLabel)+'</span>'+
-      (aSub?'<span class="hp-sub">'+esc(aSub)+'</span>':'')+'</div>'+
-    '<div class="hp-alt"><b>'+(b||0)+'</b><span>'+esc(bLabel)+'</span></div></div>';
 }
 function hoodPage(name){
   var d=HOOD_PROFILES&&HOOD_PROFILES[name];
@@ -2155,15 +2117,11 @@ function hoodPage(name){
         // Food and faith run full width, and last. Both are counts that only mean
         // something next to a second number, so both carry one. The four above are plain
         // tallies and a half tile says everything there is to say about them.
-        twoUpTile("basket",a.snapFull,
-          a.snapFull===1?"full-service grocery":"full-service groceries",
-          d.peoplePerGrocery?"one for every "+num(d.peoplePerGrocery)+" people":"",
-          conv,"convenience and corner stores")+
+        assetTile("basket",a.snapFull,a.snapFull===1?"full-service grocery":"full-service groceries")+
+        assetTile("store",conv,"corner stores")+
         (a.faith!=null?assetTile("church",a.faith,
-           a.faith===1?"place of worship":"places of worship","wide",
-           d.peoplePerChurch?"one for every "+num(d.peoplePerChurch)+" people":""):"")+
+           a.faith===1?"place of worship":"places of worship"):"")+
       '</div>'+
-      (a.faith?'<p class="hp-note">Places of worship are named entries in OpenStreetMap plus the ones this project holds itself. It does not know every storefront church, and in Memphis that is most of them, so read this as a floor.</p>':'')+
     '</div>'+
 
     /* Flood and broadband used to sit inside Civic assets. A library is something the
@@ -2176,9 +2134,6 @@ function hoodPage(name){
 
     '<div class="hp-block"><div class="hp-label"><h3>'+ic("columns",12)+' Who answers for this ground</h3><span>Council 2023</span></div>'+
       cds+
-      '<p class="hp-note">'+((d.council||[]).length>1
-        ? 'This neighborhood is split across '+d.council.length+' council districts, so a claim made here has to be made '+d.council.length+' times.'
-        : 'One district covers this neighborhood, so there is one person to take a claim to.')+'</p>'+
     '</div>'+
 
     /* Count only. The block used to carry up to three generated prompts underneath it
