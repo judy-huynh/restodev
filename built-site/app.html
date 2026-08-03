@@ -122,6 +122,18 @@
   .clearf{align-self:flex-start;font-size:11.5px;font-weight:700;color:var(--muted);text-decoration:underline}
 
   /* cards */
+  /* selected Cultural District site, above the story cards */
+  .sitehead{flex:none;margin:12px 14px 0;padding:13px 15px;border-radius:13px;border:1px solid rgba(251,86,7,.24);background:linear-gradient(135deg,rgba(255,195,0,.20),rgba(251,86,7,.10))}
+  .sitehead .shtop{display:flex;align-items:flex-start;gap:10px}
+  .sitehead .shtx{min-width:0;flex:1}
+  .sitehead .shk{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--anchor);margin:0 0 3px}
+  .sitehead h2{font-size:15px;font-weight:700;line-height:1.25;margin:0;color:var(--text)}
+  .sitehead .shaddr{font-size:11.5px;color:var(--muted);line-height:1.45;margin:3px 0 0}
+  .sitehead .shx{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--muted);background:rgba(255,255,255,.7)}
+  .sitehead .shx:hover{background:#fff;color:var(--text)}
+  .sitehead .shcount{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--primaryDark);margin:10px 0 0}
+  .sitehead .shadd{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:10px;padding:9px;border-radius:9px;background:var(--primary);color:#fff;font-size:12px;font-weight:700}
+  .sitehead .shadd:hover{background:var(--primaryDark)}
   .cards{flex:1;overflow:auto;padding:10px 12px 26px;min-height:0}
   .card{display:flex;gap:12px;padding:11px;border-radius:14px;cursor:pointer;transition:.14s;border:1.5px solid transparent}
   .card:hover{background:var(--bg)}
@@ -177,7 +189,7 @@
   .mk svg{width:100%;height:100%;display:block}
   .mk-wrap{transition:.16s}
   .mk-wrap.hi .mk,.mk-wrap.sel .mk{transform:scale(1.42);filter:drop-shadow(0 6px 10px rgba(36,28,59,.55))}
-  .mk-star{width:22px;height:22px;filter:drop-shadow(0 2px 5px rgba(36,28,59,.5));transition:transform .16s}
+  .mk-star{position:relative;width:22px;height:22px;filter:drop-shadow(0 2px 5px rgba(36,28,59,.5));transition:transform .16s}
   .mk-star:hover{transform:scale(1.25)}
   .mk-star.lg{width:34px;height:34px}
   .mk-star svg{width:100%;height:100%;display:block}
@@ -267,6 +279,11 @@
   @media(max-width:900px){.locbtn{bottom:92px}}
   .hoodtip{background:rgba(32,26,20,.92);color:#fff;border:0;border-radius:6px;font-size:12px;font-weight:600;padding:4px 8px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
   .hoodtip:before{display:none}
+  /* Cultural District star: the name, and how many memories are rooted there */
+  .startip{background:rgba(32,26,20,.94);color:#fff;border:0;border-radius:7px;padding:5px 9px;box-shadow:0 3px 10px rgba(0,0,0,.28);text-align:center;line-height:1.35}
+  .startip:before{display:none}
+  .startip .stn{display:block;font-size:12px;font-weight:700}
+  .startip .stc{display:block;font-size:11px;font-weight:600;color:var(--gold)}
   .hoodpick{margin-top:16px}
   .hoodlbl{display:block;font-size:.98rem;margin-bottom:6px}
   .hoodpick select.ti{appearance:none;background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23777' stroke-width='1.8' stroke-linecap='round'/></svg>") no-repeat right 14px center;padding-right:38px;cursor:pointer}
@@ -301,6 +318,7 @@
   .pop .pcat{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:0 0 4px}
   .pop.cult .paddr{margin:0 0 8px}
   .pop .pdesc{font-size:11.5px;color:var(--muted);line-height:1.5;margin:0}
+  .pop .pcount{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--primaryDark);margin:9px 0 10px;padding-top:9px;border-top:1px solid var(--line)}
   .addhere{display:block;width:100%;background:var(--primary);color:#fff;border:0;border-radius:10px;padding:10px 14px;font:inherit;font-weight:700;font-size:13px;line-height:1.2;cursor:pointer;text-align:center}
   .addhere:hover{background:var(--primaryDark)}
   @media(max-width:860px){.mapsearch{width:calc(100% - 24px)}.mapwrap .leaflet-top.leaflet-left{top:58px}}
@@ -455,6 +473,7 @@
           </div>
           <div class="activefilters" id="activeF"></div>
         </div>
+        <div class="sitehead hidden" id="siteHead"></div>
         <div class="cards" id="cards"></div>
         <!-- detail slides over the panel -->
         <div class="detail" id="detail"></div>
@@ -786,13 +805,16 @@ function photoSrc(p){if(!p)return null;return(p.indexOf("data:")===0||p.indexOf(
 var toastT;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("show");},2600);}
 
 /* filter state */
-var F={kinds:new Set(),hood:"all",era:"all",campaign:"all",place:null,q:""};
+/* `place` is the kind of place a story is about (a church, a school). `site` is one
+   named building in the Cultural District, set by clicking its star. */
+var F={kinds:new Set(),hood:"all",era:"all",campaign:"all",place:null,site:null,q:""};
 function passes(s){
   if(F.kinds.size&&!F.kinds.has(s.kind))return false;
   if(F.hood!=="all"&&s.hood!==F.hood)return false;
   if(F.era!=="all"&&s.era!==F.era)return false;
   if(F.campaign!=="all"&&s.campaign!==F.campaign)return false;
   if(F.place&&s.place!==F.place)return false;
+  if(F.site&&siteNameFor(s)!==F.site)return false;
   if(F.q){var q=F.q.toLowerCase();if((s.story+" "+(s.name||"")+" "+s.corner+" "+s.hood).toLowerCase().indexOf(q)<0)return false;}
   return true;
 }
@@ -1005,7 +1027,13 @@ function initMap(){
 function loadHoodShapes(){
   fetch("data/neighborhoods.geojson").then(function(r){return r.json();}).then(function(d){
     HOOD_SHAPES=d.features||[];
-    hoodLayer=L.geoJSON(d,{pane:"hoods",
+    /* bubblingMouseEvents:false is the whole reason a neighborhood click behaved oddly.
+       Leaflet paths bubble their clicks up to the map by default, so every click on a
+       polygon ALSO ran the map's click handler. The shapes cover the entire city, so
+       one click both selected the neighborhood and popped "Add a memory here" on top
+       of the place you had just asked to look at. Reading and adding are different
+       intentions; the polygon now only reads. */
+    hoodLayer=L.geoJSON(d,{pane:"hoods",bubblingMouseEvents:false,
       style:function(){return{color:"#8A6A4F",weight:1.4,opacity:.75,fillColor:"#C7A87E",fillOpacity:.10,pane:"hoods",dashArray:"5 4"};},
       onEachFeature:function(f,l){
         l.bindTooltip(f.properties.name,{sticky:true,direction:"top",className:"hoodtip"});
@@ -1028,12 +1056,20 @@ function loadHoodShapes(){
    read against; the other 23 name themselves on hover, so the district reads as a
    constellation and not as a wall of labels. Click any star for the address and what
    happened there. Fails soft, like the neighborhoods: no file, no stars, map still works. */
+function starTip(p){
+  var n=storiesAtSite(p.name).length;
+  return '<span class="stn">'+esc(p.name||"")+'</span><span class="stc">'+
+    (n?n+' '+(n===1?"memory":"memories")+' here':"No memories yet")+'</span>';
+}
 function cultPopup(p){
+  var n=storiesAtSite(p.name).length;
   return '<div class="pop cult">'+
     (p.category?'<p class="pcat">'+esc(p.category)+'</p>':'')+
     '<p class="pname">'+esc(p.name||"Cultural District site")+'</p>'+
     (p.street?'<p class="paddr">'+esc(p.street)+'</p>':'')+
     (p.description?'<p class="pdesc">'+esc(p.description)+'</p>':'')+
+    '<p class="pcount">'+(n?ic("star",12)+' '+n+' '+(n===1?"memory":"memories")+' rooted here, listed on the left':'No memories here yet. Yours would be the first.')+'</p>'+
+    '<button type="button" class="addhere" data-cult-add>Add a memory here</button>'+
     '</div>';
 }
 function loadCultural(){
@@ -1044,16 +1080,64 @@ function loadCultural(){
     CULTURAL.forEach(function(f){
       var p=f.properties||{},c=f.geometry.coordinates,lat=c[1],lng=c[0];
       var isAnchor=/clayborn/i.test(p.name||""),s=isAnchor?34:22;
-      L.marker([lat,lng],{
+      var m=L.marker([lat,lng],{
         icon:L.divIcon({className:"",html:'<div class="mk-star'+(isAnchor?" lg":"")+'">'+STAR_SVG+'</div>',iconSize:[s,s],iconAnchor:[s/2,s/2]}),
         title:p.name||"",zIndexOffset:isAnchor?-500:-600
       })
-        .bindTooltip(esc(p.name||""),{direction:"top",offset:[0,-s/2],className:"hoodtip"})
-        .bindPopup(cultPopup(p),{closeButton:true,className:"cultpop"})
+        // The count lives in the hover, not on the star. 24 stars each wearing a number
+        // is a cluttered map; a number you ask for is a quiet one.
+        .bindTooltip(function(){return starTip(p);},{direction:"top",offset:[0,-s/2],className:"startip"})
+        .bindPopup("",{closeButton:true,className:"cultpop"})
         .addTo(anchorLayer);
+      // A star is a place, so clicking one reads that place: the popup says what it is,
+      // the panel on the left fills with the memories rooted there.
+      m.on("click",function(){selectSite(p.name);});
+      // Content is built on open, not on load, because the counts change as stories are
+      // approved and as filters move underneath.
+      m.on("popupopen",function(){
+        m.setPopupContent(cultPopup(p));
+        var el=m.getPopup().getElement();if(!el)return;
+        var add=el.querySelector("[data-cult-add]");
+        if(add)add.addEventListener("click",function(){addMemoryAtSite(f);});
+      });
       if(isAnchor)L.marker([lat,lng],{icon:L.divIcon({className:"",html:'<div class="anchor-lbl star-lbl">'+esc(p.name)+'</div>',iconSize:[0,0]}),interactive:false,zIndexOffset:800}).addTo(anchorLayer);
     });
   }).catch(function(e){console.warn("cultural district failed:",e);});
+}
+/* Starting a memory at a site the map already knows. The corner is filled in for
+   them: they clicked a named building, so making them type its name back is busywork.
+   locSource records that the pin came from a Cultural District star, which is worth
+   knowing later: it is the difference between "somewhere near Clayborn" and "Clayborn". */
+function addMemoryAtSite(f){
+  var p=f.properties||{},c=f.geometry.coordinates;
+  if(map)map.closePopup();
+  startCapture(null);
+  if(!draft.corner)draft.corner=p.name||"";
+  setDraftLoc(c[1],c[0],"cultural-site");
+}
+/* Which stories belong to a site. Nothing in the story data says "this is a Clayborn
+   story" and nothing should: people pin where a thing happened, not which building
+   owns it. So the tie is spatial, nearest site within SITE_R metres. The radius is one
+   short block on purpose. The AMEC Building and the NAACP headquarters sit 26 metres
+   apart, and a wider net would quietly merge two different buildings into one page. */
+var SITE_R=110;
+function metresApart(aLat,aLng,bLat,bLng){
+  var dy=(aLat-bLat)*111320,dx=(aLng-bLng)*111320*Math.cos(aLat*Math.PI/180);
+  return Math.sqrt(dx*dx+dy*dy);
+}
+function siteNameFor(s){
+  var best=null,bd=SITE_R;
+  for(var i=0;i<CULTURAL.length;i++){
+    var c=CULTURAL[i].geometry.coordinates,d=metresApart(s.lat,s.lng,c[1],c[0]);
+    if(d<bd){bd=d;best=CULTURAL[i].properties.name;}
+  }
+  return best;
+}
+function siteByName(n){for(var i=0;i<CULTURAL.length;i++)if(CULTURAL[i].properties.name===n)return CULTURAL[i];return null;}
+function storiesAtSite(n){return n?publicStories().filter(function(s){return siteNameFor(s)===n;}):[];}
+function selectSite(n){
+  if(F.site===n)return;   // already reading this place; the popup is the only thing to reopen
+  F.site=n;closeDetail();apply();
 }
 /* The "start a story here" popup. Shared by an empty-map click and the second click on
    an already-selected neighborhood, so both routes behave identically. */
@@ -1139,16 +1223,42 @@ function renderSelects(){
 function renderActiveF(){
   var chips=[];
   if(F.place)chips.push('<span class="fpill">'+esc(PLACE[F.place].l)+' <button data-clr="place" aria-label="Clear">'+ic("x",12)+'</button></span>');
-  var any=F.kinds.size||F.hood!=="all"||F.era!=="all"||F.place||F.q;
+  // F.site gets no pill: the place header below says it louder, with the address.
+  var any=F.kinds.size||F.hood!=="all"||F.era!=="all"||F.place||F.site||F.q;
   $("activeF").innerHTML=chips.join("")+(any?'<button class="clearf" id="clearAll">Clear all filters</button>':"");
-  var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){F={kinds:new Set(),hood:"all",era:"all",campaign:"all",place:null,q:""};$("searchIn").value="";apply();});
+  var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){F={kinds:new Set(),hood:"all",era:"all",campaign:"all",place:null,site:null,q:""};$("searchIn").value="";apply();});
   $("activeF").querySelectorAll("[data-clr]").forEach(function(b){b.addEventListener("click",function(){F[b.dataset.clr]=b.dataset.clr==="place"?null:"all";apply();});});
 }
 function cardThumb(s){var src=photoSrc(s.photo);var k=KIND[s.kind]||KIND.memory;
   return src?'<img class="thumb" src="'+src+'" alt="" loading="lazy">':'<div class="thumb ph" style="background:'+k.color+'22;color:'+k.color+'">'+ic(k.icon,24)+'</div>';}
+/* The panel header for a selected Cultural District site. A place with 20 memories is
+   not 20 pins on top of each other, it is one place with a page: what the building is,
+   how many people have spoken about it, and the way in to add the twenty-first. */
+function renderSiteHead(){
+  var el=$("siteHead");
+  var f=F.site?siteByName(F.site):null;
+  if(!f){el.className="sitehead hidden";el.innerHTML="";return;}
+  var p=f.properties,n=storiesAtSite(F.site).length,shown=filtered().length;
+  el.className="sitehead";
+  el.innerHTML='<div class="shtop"><div class="shtx">'+
+      (p.category?'<p class="shk">'+esc(p.category)+'</p>':'')+
+      '<h2>'+esc(p.name)+'</h2>'+
+      (p.street?'<p class="shaddr">'+esc(p.street)+'</p>':'')+
+    '</div><button class="shx" id="siteClear" aria-label="Show the whole map again">'+ic("x",14)+'</button></div>'+
+    '<p class="shcount">'+(n?ic("star",12)+' '+n+' '+(n===1?"memory":"memories")+' rooted here'+(shown<n?' · '+shown+' shown by your other filters':''):'No memories here yet. Yours would be the first.')+'</p>'+
+    '<button class="shadd" id="siteAdd">'+ic("sprout",13)+' Add a memory here</button>';
+  $("siteClear").addEventListener("click",function(){F.site=null;apply();});
+  $("siteAdd").addEventListener("click",function(){addMemoryAtSite(f);});
+}
 function renderCards(){
   var list=filtered();
-  if(!list.length){$("cards").innerHTML='<div class="empty"><span class="em">'+ic("search",26)+'</span>No stories match these filters yet.<br>Try clearing a filter.</div>';return;}
+  if(!list.length){
+    // With a site selected the empty state is about that place, not about the filters.
+    $("cards").innerHTML=F.site
+      ? '<div class="empty"><span class="em">'+ic("sprout",26)+'</span>Nobody has told a story about '+esc(F.site)+' yet.<br>The button above starts the first one.</div>'
+      : '<div class="empty"><span class="em">'+ic("search",26)+'</span>No stories match these filters yet.<br>Try clearing a filter.</div>';
+    return;
+  }
   $("cards").innerHTML=list.map(function(s){var k=KIND[s.kind]||KIND.memory;
     return '<div class="card" data-id="'+s.id+'">'+cardThumb(s)+
       '<div class="cbody"><span class="ktag" style="background:'+k.color+'">'+ic(k.icon,12)+' '+esc(k.short)+'</span>'+
@@ -1163,7 +1273,7 @@ function renderCards(){
   });
 }
 function hiCard(id,on){var c=$("cards").querySelector('.card[data-id="'+id+'"]');if(c){c.classList.toggle("sel",on);if(on)c.scrollIntoView({block:"nearest",behavior:"smooth"});}}
-function apply(){renderKChips();renderActiveF();renderMeta();renderCards();renderMarkers();}
+function apply(){renderKChips();renderActiveF();renderSiteHead();renderMeta();renderCards();renderMarkers();}
 
 /* ── detail ── */
 function selectStory(id,fly){
@@ -1334,7 +1444,9 @@ $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMe
 // Picking a neighborhood filters AND travels there. That is the whole navigation story:
 // you should not have to know where Binghampton is to go and look at it.
 $("hoodSel").addEventListener("change",function(){
-  F.hood=this.value;apply();
+  // A neighborhood and a single building are two ways of asking the same question, so
+  // picking one drops the other. Keeping both just empties the list and explains nothing.
+  F.hood=this.value;F.site=null;apply();
   if(this.value==="all"){highlightHood(null);map.flyTo(CLAYBORN,13,{duration:.8});return;}
   highlightHood(this.value);
   // Fit the actual shape where we have one, so you see the whole neighborhood rather
