@@ -495,7 +495,7 @@
                 <div class="lp-gh">Community</div>
                 <button class="lrow on" id="anchorToggle"><span class="lname"><b>Cultural District</b><em>24 sites, Clayborn at the center</em></span><span class="sw"></span></button>
                 <button class="lrow" id="spaceToggle"><span class="lname"><b>Open spaces</b><em>Sample sites, for the demo</em></span><span class="sw"></span></button>
-                <button class="lrow on" id="hoodToggle"><span class="lname"><b>Neighborhoods</b><em>Approximate, to be drawn with the room</em></span><span class="sw"></span></button>
+                <button class="lrow on" id="hoodToggle"><span class="lname"><b>Neighborhoods</b><em>City tract lines, community names</em></span><span class="sw"></span></button>
               </div>
               <div class="lp-group">
                 <div class="lp-gh">City data · context</div>
@@ -625,14 +625,14 @@ var CLAYBORN=[35.1365,-90.0511];
    category, address and description), so the map and the data are one file, not two
    lists that drift. Loaded async in loadCultural(). */
 var CULTURAL=[];
-/* NEIGHBORHOODS: a gazetteer, deliberately not a boundary file.
-   There is no official Memphis neighborhood boundary layer. What exists is:
-   the city's "Neighborhoods" service (really CDC service areas, 110 overlapping
-   polygon pairs across 44 shapes), Memphis 3.0 planning districts (14, so coarse
-   that Clayborn, Beale, Midtown, Overton Park and Orange Mound all collapse into
-   "Core City"), and OSM, which has the right names but 30 of 36 are points.
-   So we carry names + centers, not shapes. Centers verified against OSM and
-   Nominatim, 2026-08-02. Shapes get drawn with the room, not in advance (STORY-43).
+/* NEIGHBORHOODS: a gazetteer of the names people say, and the centres to navigate to.
+   The shapes are a separate file now, and they are real: see loadHoodShapes.
+   This list stays because the city's own layer does not contain the names this map is
+   built on. It has 216 names, one per census tract, and Soulsville is not among them
+   (the city calls those tracts Washington Heights), nor is Binghampton (Summer Ave),
+   nor Beale Street (South Main Historic District). A map of cultural memory cannot
+   drop Soulsville because a tract table never learned the word.
+   Centers verified against OSM and Nominatim, 2026-08-02.
    `z` is the zoom used when navigating to it. */
 /* `r` is roughly how far the name reasonably reaches, in metres. `sug:false` means
    navigable but never auto-suggested: these sit INSIDE a bigger neighborhood, and
@@ -667,9 +667,19 @@ var NEIGHBORHOODS=[
 ];
 var HOOD_OTHER="Somewhere else in Memphis";
 function hoodByName(n){for(var i=0;i<NEIGHBORHOODS.length;i++)if(NEIGHBORHOODS[i].n===n)return NEIGHBORHOODS[i];return null;}
-/* The neighborhood shapes in data/neighborhoods.geojson. Approximate, derived from the
-   centres above and clipped to the city limit: 16 polygons, no overlaps, no gaps.
-   They are the SAME rule the form uses, so what you see on the map is what the form
+/* The neighborhood shapes in data/neighborhoods.geojson. These used to be drawn from the
+   centres above, which meant the lines were invented. They are now built from the City of
+   Memphis Neighborhoods layer (Common_Services_PROD/35), which is census tracts, each one
+   labelled by the city with a neighbourhood name. Those tracts are grouped into the names
+   this map uses, by nearest centre within each name's stated reach, then made contiguous.
+   So the lines are real tract lines and the names are the community's. 17 polygons, no
+   overlaps, no gaps, no islands.
+   What the reach does is leave the far east out on purpose. The city layer runs to Cordova,
+   Eads and Germantown, and this gazetteer has no name out there; a tract 12 miles from
+   White Station is not White Station. Those points fall to "Somewhere else in Memphis",
+   which is the honest answer.
+   The grouping is still ours and not a community-drawn boundary (STORY-53).
+   They are the SAME shapes the form uses, so what you see on the map is what the form
    decides. One rule, drawn. Loaded async; until it lands we fall back to centres. */
 var HOOD_SHAPES=null;
 function pointInRing(lat,lng,ring){
