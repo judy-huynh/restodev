@@ -470,7 +470,7 @@
   .mapsearch .si{position:absolute;left:11px;top:17px;transform:translateY(-50%);color:var(--faint);display:inline-flex;pointer-events:none}
   .msclear{position:absolute;right:8px;top:8px;width:20px;height:20px;border:0;background:none;color:var(--muted);font-size:17px;line-height:1;cursor:pointer}
   .mk-found{width:18px;height:18px;border-radius:50%;background:var(--cta,#FFC300);border:3px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.18)}
-  /* "Add a memory here" popup, used by both the map click and a search result */
+  /* "Add a Memory Here" popup, used by both the map click and a search result */
   .addpop .leaflet-popup-content-wrapper{border-radius:14px;padding:0;overflow:hidden}
   .addpop .leaflet-popup-content{margin:0!important;width:auto!important;min-width:198px;max-width:236px}
   .addpop .leaflet-popup-tip{box-shadow:none}
@@ -602,13 +602,13 @@
     <span class="bk"><b>Memphis Roots</b><span>Culture as a Root &middot; The Big We</span></span>
   </button>
   <nav class="mainnav" id="mainnav" aria-label="Main">
-    <a class="nav" href="index.html">The story</a>
-    <button class="nav" id="navMap" data-view="explore">The map</button>
+    <a class="nav" href="index.html">The Story</a>
+    <button class="nav" id="navMap" data-view="explore">The Map</button>
     <button class="nav" id="navImpact" data-view="impact">Impact</button>
-    <button class="nav" id="navData">The data</button>
+    <button class="nav" id="navData">The Data</button>
     <button class="nav quiet" id="navMod" data-view="admin">Moderate</button>
   </nav>
-  <button class="addbtn" id="navAdd">+ Share<span class="addtail"> your story</span></button>
+  <button class="addbtn" id="navAdd">+ Share<span class="addtail"> Your Story</span></button>
 </div>
 
 <main>
@@ -709,7 +709,7 @@
         <div class="queue" id="adminList"></div>
         <div class="editor" id="modEditor"></div>
       </div>
-      <div class="adminbar"><button id="reseed"><span class="ic" data-ic="refresh" data-s="15"></span> Reload stories</button><button id="signout" style="display:none">Sign out</button><button id="backExplore">← Back to map</button></div>
+      <div class="adminbar"><button id="reseed"><span class="ic" data-ic="refresh" data-s="15"></span> Reload Stories</button><button id="signout" style="display:none">Sign Out</button><button id="backExplore">← Back to Map</button></div>
     </div>
   </section>
   <!-- IMPACT -->
@@ -1349,7 +1349,7 @@ function loadHoodShapes(){
     /* bubblingMouseEvents:false is the whole reason a neighborhood click behaved oddly.
        Leaflet paths bubble their clicks up to the map by default, so every click on a
        polygon ALSO ran the map's click handler. The shapes cover the entire city, so
-       one click both selected the neighborhood and popped "Add a memory here" on top
+       one click both selected the neighborhood and popped "Add a Memory Here" on top
        of the place you had just asked to look at. Reading and adding are different
        intentions; the polygon now only reads. */
     HOOD_COLORS=d.colors||HOOD_COLORS;
@@ -1496,7 +1496,7 @@ function openAddHere(latlng,src,label,corner){
     .setContent('<div class="pop"><p class="pname">'+esc(label||"This spot")+'</p><p class="paddr">'+
       (corner?"The place is already named for you. The next steps ask for your story."
              :"You can name the corner and fine-tune the pin in the next steps.")+
-      '</p><button type="button" class="addhere" id="addHereBtn">Add a memory here</button></div>')
+      '</p><button type="button" class="addhere" id="addHereBtn">Add a Memory Here</button></div>')
     .openOn(map);
   var btn=document.getElementById("addHereBtn");
   if(btn)btn.addEventListener("click",function(){beginMemory(ll.lat,ll.lng,src||"map-click",corner);});
@@ -1593,7 +1593,7 @@ function renderActiveF(){
   if(F.place)chips.push('<span class="fpill">'+esc(PLACE[F.place].l)+' <button data-clr="place" aria-label="Clear">'+ic("x",12)+'</button></span>');
   // F.site gets no pill: the place header below says it louder, with the address.
   var any=F.kinds.size||F.hood!=="all"||F.era!=="all"||F.place||F.site||F.q;
-  $("activeF").innerHTML=chips.join("")+(any?'<button class="clearf" id="clearAll">Clear all filters</button>':"");
+  $("activeF").innerHTML=chips.join("")+(any?'<button class="clearf" id="clearAll">Clear All Filters</button>':"");
   var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){F={kinds:new Set(),hood:"all",era:"all",campaign:"all",place:null,site:null,dc:null,q:""};$("searchIn").value="";apply();});
   $("activeF").querySelectorAll("[data-clr]").forEach(function(b){b.addEventListener("click",function(){F[b.dataset.clr]=b.dataset.clr==="place"?null:"all";apply();});});
 }
@@ -1623,7 +1623,7 @@ function sitePage(f){
       (p.description?'<p class="sp-desc">'+esc(p.description)+'</p>':'')+
       hist.map(function(t){return '<p class="sp-desc">'+esc(t)+'</p>';}).join("")+
       (p.link?'<a class="sp-link" href="'+esc(p.link)+'" target="_blank" rel="noopener">'+esc(p.linkLabel||"Read more")+' →</a>':'')+
-      '<button class="shadd" id="siteAdd">'+ic("sprout",13)+' Add a memory here</button>'+
+      '<button class="shadd" id="siteAdd">'+ic("sprout",13)+' Add a Memory Here</button>'+
     '</div>'+
     '<p class="sp-count">'+(n?ic("star",12)+' '+n+' '+(n===1?"memory":"memories")+' rooted here':ic("star",12)+' No memories here yet. Yours would be the first.')+'</p>'+
   '</div>';
@@ -1935,7 +1935,7 @@ function openDetail(s){
       '<div class="r"><span>Era</span><b>'+esc(eraLabel(s.era))+'</b></div>'+
       (s.campaign&&CAMPAIGNS[s.campaign]&&s.campaign!=="web"?'<div class="r"><span>Collected at</span><b>'+esc(CAMPAIGNS[s.campaign].label)+'</b></div>':"")+
     '</div>'+
-    '<button class="d-locate" id="dLocate">'+ic("pin",14)+' Show on the map</button></div>';
+    '<button class="d-locate" id="dLocate">'+ic("pin",14)+' Show on the Map</button></div>';
   $("detail").classList.add("open");$("panel").classList.add("up");
   $("dClose").addEventListener("click",closeDetail);
   var ab=$("affirmBtn");if(ab)ab.addEventListener("click",function(){AFF[s.id]=(AFF[s.id]||0)+1;saveAff();s.affirms=AFF[s.id];renderMarkers();openDetail(s);toast("You share this dream: "+s.affirms+" now");});
@@ -2072,7 +2072,7 @@ $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMe
     // corner would say the map does not know its own anchors.
     if(f.site&&siteByName(f.site)){selectSite(f.site);return;}
     foundMarker=L.marker([f.lat,f.lng],{icon:L.divIcon({className:"",html:'<div class="mk-found"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(map);
-    foundMarker.bindPopup('<div class="pop"><p class="pname">'+esc(f.short)+'</p><p class="paddr">'+esc(f.name)+'</p><button type="button" class="addhere" id="addFoundBtn">Add a memory here</button></div>',{className:"addpop",closeButton:false}).openPopup();
+    foundMarker.bindPopup('<div class="pop"><p class="pname">'+esc(f.short)+'</p><p class="paddr">'+esc(f.name)+'</p><button type="button" class="addhere" id="addFoundBtn">Add a Memory Here</button></div>',{className:"addpop",closeButton:false}).openPopup();
     var btn=document.getElementById("addFoundBtn");
     if(btn)btn.addEventListener("click",function(){
       map.closePopup();startCapture(null);
@@ -2154,7 +2154,7 @@ function renderStep(){
       +  '<p class="qsub">A neighborhood, a street, or a building. However you would say it to a neighbor.</p>'
       +  '<div class="ac"><input type="text" class="ti" id="corner" autocomplete="off" placeholder="Like Orange Mound, Soulsville, or Beale &amp; 4th" value="'+esc(draft.corner)+'"><div class="aclist hidden" id="cornerAc"></div></div>'
       +  '<p class="achint" id="cornerHint"></p>'
-      +  '<div class="placebtns"><button class="btn ghost" type="button" id="mapToggle">Point to it on the map</button><button class="btn ghost" type="button" id="gpsBtn">Use where I am now</button></div>'
+      +  '<div class="placebtns"><button class="btn ghost" type="button" id="mapToggle">Point to It on the Map</button><button class="btn ghost" type="button" id="gpsBtn">Use Where I Am Now</button></div>'
       +  '<div id="mapWrap" class="hidden"><div class="pinmap" id="pinmap"></div><p class="achint">Tap the map, or drag the pin, to move it.</p></div>'
       +  '<div class="hoodpick"><label class="q2 hoodlbl" for="hoodPick">Which neighborhood is that in?</label>'
       +    '<select id="hoodPick" class="ti"></select>'
@@ -2201,7 +2201,7 @@ function renderStep(){
     }
     function showMap(){
       $("mapWrap").classList.remove("hidden");
-      $("mapToggle").textContent="Hide the map";
+      $("mapToggle").textContent="Hide the Map";
       setTimeout(function(){initPinMap();},40);
     }
     // Name a point without ever overwriting what the person typed themselves.
@@ -2229,7 +2229,7 @@ function renderStep(){
     wireAutocomplete(ci,$("cornerAc"),function(f){
       draft.corner=f.short;ci.value=f.short;draft.cornerTyped=true;
       setDraftLoc(f.lat,f.lng,"geocode");
-      hint.textContent="Found it. Point to it on the map if you want it more exact.";
+      hint.textContent="Found it. Point to It on the Map if you want it more exact.";
       if($("mapWrap").classList.contains("hidden"))showMap();else if(pinMap){pinMap.setView([f.lat,f.lng],16);pinMarker.setLatLng([f.lat,f.lng]);}
       refresh();
     });
@@ -2239,7 +2239,7 @@ function renderStep(){
     });
     $("mapToggle").addEventListener("click",function(){
       if($("mapWrap").classList.contains("hidden")){showMap();}
-      else{$("mapWrap").classList.add("hidden");this.textContent="Point to it on the map";}
+      else{$("mapWrap").classList.add("hidden");this.textContent="Point to It on the Map";}
     });
     $("gpsBtn").addEventListener("click",function(){
       var btn=this;
@@ -2250,11 +2250,11 @@ function renderStep(){
         showMap();
         setTimeout(function(){if(pinMap){pinMap.setView([draft.lat,draft.lng],16);pinMarker.setLatLng([draft.lat,draft.lng]);}},120);
         suggestName();refresh();
-        btn.disabled=false;btn.textContent="Use where I am now";
+        btn.disabled=false;btn.textContent="Use Where I Am Now";
       },function(err){
         // Denied, unavailable or timed out. Never trap someone mid-story.
         toast(err&&err.code===1?"That is fine. Type the place, or point to it on the map.":"Could not find you. Type the place, or point to it on the map.");
-        btn.disabled=false;btn.textContent="Use where I am now";
+        btn.disabled=false;btn.textContent="Use Where I Am Now";
       },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
     });
 
@@ -2281,7 +2281,7 @@ function renderStep(){
         '<b>Add a video</b><span>From your phone or computer</span></div>'+
       '<input type="file" id="videoIn" accept="video/*" multiple hidden>'+
       '<div class="draftmedia" id="draftMedia"></div>'+
-      navRow(false)+'<div style="text-align:center"><button class="skip" id="skipMedia">Skip, no media</button></div>';
+      navRow(false)+'<div style="text-align:center"><button class="skip" id="skipMedia">Skip, No Media</button></div>';
     wireNav();$("nextBtn").disabled=false;$("skipMedia").addEventListener("click",goNext);
     wireRecorder();wireDraftMedia();
   } else if(step==="consent"){
@@ -2408,7 +2408,7 @@ function initPinMap(){
 async function submitDraft(){if(!draft)return;if(!draft.hood)draft.hood=HOOD_OTHER;var d=draft;var btn=$("submitBtn");if(btn){btn.disabled=true;btn.textContent="Sending…";}try{await supaSubmit(d);}catch(e){toast("Couldn't send, "+((e&&e.message)||"try again"));if(btn){btn.disabled=false;btn.textContent="Root this "+(d.kind==="future"?"vision":"memory");}console.warn(e);return;}draft=null;renderThanks(d);showView("thanks");}
 function renderThanks(s){var isV=s.kind==="future";
   var na=isV?publicStories().filter(function(x){return x.kind==="future"&&x.hood===s.hood&&x.id!==s.id;}).length:0;
-  $("thanksInner").innerHTML='<div class="thanks"><div class="big" style="color:var(--accent)">'+ic("sprout",44)+'</div><h2>'+(isV?"Vision":"Memory")+' rooted!</h2><p>Thank you'+(s.name?", "+esc(s.name.split(" ")[0]):"")+'. The Big We will review it before it joins the public map. The collection stays in the community\'s hands.'+((s.email||s.phone)?' We\'ll '+(s.phone?"text":"email")+' you when it is published.':"")+'</p>'+(na>0?'<div class="notalone">'+ic("star",14)+' You\'re not alone, '+na+' neighbor'+(na===1?'':'s')+' already dream near '+esc(s.hood)+'. This is how a shared future becomes visible.</div>':"")+'<div class="thanksmap" id="thanksmap"></div><div class="cardmini"><div style="font-size:12px;font-weight:700;color:'+KIND[s.kind].color+'">'+ic(KIND[s.kind].icon,13)+' '+esc(KIND[s.kind].label)+'</div><div style="font-size:14px;margin:6px 0">'+esc(s.story)+'</div>'+(s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+'<div style="font-size:12px;color:var(--muted)">'+esc(s.corner)+' · '+esc(eraLabel(s.era))+'</div></div><div class="row" style="justify-content:center"><button class="btn ghost" id="tMap">See the map</button><button class="btn prim" id="tAgain" style="flex:none;padding:14px 22px">Add another</button></div><p style="margin-top:20px;font-size:12px">Want to watch it go live? Open <b>Moderate</b> and approve it.</p></div>';
+  $("thanksInner").innerHTML='<div class="thanks"><div class="big" style="color:var(--accent)">'+ic("sprout",44)+'</div><h2>'+(isV?"Vision":"Memory")+' rooted!</h2><p>Thank you'+(s.name?", "+esc(s.name.split(" ")[0]):"")+'. The Big We will review it before it joins the public map. The collection stays in the community\'s hands.'+((s.email||s.phone)?' We\'ll '+(s.phone?"text":"email")+' you when it is published.':"")+'</p>'+(na>0?'<div class="notalone">'+ic("star",14)+' You\'re not alone, '+na+' neighbor'+(na===1?'':'s')+' already dream near '+esc(s.hood)+'. This is how a shared future becomes visible.</div>':"")+'<div class="thanksmap" id="thanksmap"></div><div class="cardmini"><div style="font-size:12px;font-weight:700;color:'+KIND[s.kind].color+'">'+ic(KIND[s.kind].icon,13)+' '+esc(KIND[s.kind].label)+'</div><div style="font-size:14px;margin:6px 0">'+esc(s.story)+'</div>'+(s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+'<div style="font-size:12px;color:var(--muted)">'+esc(s.corner)+' · '+esc(eraLabel(s.era))+'</div></div><div class="row" style="justify-content:center"><button class="btn ghost" id="tMap">See the Map</button><button class="btn prim" id="tAgain" style="flex:none;padding:14px 22px">Add Another</button></div><p style="margin-top:20px;font-size:12px">Want to watch it go live? Open <b>Moderate</b> and approve it.</p></div>';
   $("tMap").addEventListener("click",function(){showView("explore");apply();});$("tAgain").addEventListener("click",function(){startCapture();});
   setTimeout(function(){if(thanksMap){thanksMap.remove();thanksMap=null;}thanksMap=L.map("thanksmap",{zoomControl:false,dragging:false,scrollWheelZoom:false}).setView([s.lat,s.lng],15);baseTiles().addTo(thanksMap);L.marker([s.lat,s.lng],{icon:mkIcon(KIND[s.kind].color)}).addTo(thanksMap);setTimeout(function(){thanksMap.invalidateSize();},80);},60);
 }
@@ -2513,7 +2513,7 @@ async function addMediaFiles(s,files){
       return;
     }
   }
-  if(hint)hint.textContent="Uploaded. Remember to Save changes.";
+  if(hint)hint.textContent="Uploaded. Remember to Save Changes.";
 }
 function wireMedia(s){
   var zone=$("mDrop"),input=$("mFiles");
@@ -2555,7 +2555,7 @@ function renderEditor(){
       '<div><label class="efl" for="mCorner">Corner, as they said it</label><input class="ti" id="mCorner" value="'+esc(s.corner)+'"></div>'+
       '<div><label class="efl" for="mName">Shown as</label><input class="ti" id="mName" value="'+esc(s.name||"")+'"'+(s.vis==="anon"?' disabled placeholder="Anonymous"':'')+'></div>'+
     '</div>'+
-    '<div class="tagrow" style="margin-top:10px"><button type="button" class="mtag'+(s.featured?" on":"")+'" id="mFeat">'+ic("star",12)+' Feature on the map</button></div>'+
+    '<div class="tagrow" style="margin-top:10px"><button type="button" class="mtag'+(s.featured?" on":"")+'" id="mFeat">'+ic("star",12)+' Feature on the Map</button></div>'+
     '<p class="ehint">The only moderator decision the public sees.</p>'+
 
     '<p class="elegend">'+ic("camera",12)+' Photos, video and files</p>'+
@@ -2583,7 +2583,7 @@ function renderEditor(){
     '</div>'+
 
     '<div class="eacts">'+
-      '<button class="btn prim" id="mSave">'+ic("check",13)+' Save changes</button>'+
+      '<button class="btn prim" id="mSave">'+ic("check",13)+' Save Changes</button>'+
       (s.status!=="approved"?'<button class="approve" id="mAppr">'+ic("check",13)+' Approve</button>':"")+
       (s.status!=="rejected"?'<button class="reject" id="mRej">'+ic("x",13)+' Reject</button>':"")+
       '<span class="esaved" id="mSaved"></span>'+
@@ -2635,9 +2635,9 @@ async function saveStoryEdits(s,v,btn){
     await supaSaveContact(s.id,s.contact);
   }catch(e){
     if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;}
-    btn.disabled=false;btn.innerHTML=ic("check",13)+" Save changes";toast("Couldn't save: "+e.message);return;
+    btn.disabled=false;btn.innerHTML=ic("check",13)+" Save Changes";toast("Couldn't save: "+e.message);return;
   }
-  btn.disabled=false;btn.innerHTML=ic("check",13)+" Save changes";
+  btn.disabled=false;btn.innerHTML=ic("check",13)+" Save Changes";
   var f=$("mSaved");if(f){f.textContent="Saved";setTimeout(function(){if(f)f.textContent="";},1800);}
   await refreshStories();
 }
@@ -2671,7 +2671,7 @@ async function renderAdmin(){
 }
 function wireProps(){$("adminList").querySelectorAll("[data-approveprop]").forEach(function(b){b.addEventListener("click",function(){var a=b.dataset.approveprop.split("~");setPropStatus(a[0],a[1],"approved");});});$("adminList").querySelectorAll("[data-rejectprop]").forEach(function(b){b.addEventListener("click",function(){var a=b.dataset.rejectprop.split("~");setPropStatus(a[0],a[1],"rejected");});});}
 async function modStory(id,st){try{await supaSetStatus(id,st);}catch(e){if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;}toast(e.message);return;}toast(st==="approved"?"Approved, now live on the map":"Story rejected");await refreshStories();renderAdmin();}
-function renderLogin(msg){$("adminList").innerHTML='<div style="max-width:360px;margin:8px auto 0;background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px"><h3 style="margin:0 0 4px;font-family:var(--display)">Moderator sign-in</h3><p style="font-size:13px;color:var(--muted);margin:0 0 16px">Sign in with your Ground Truth moderator account to review and approve community stories.</p><input type="email" class="ti" id="mEmail" placeholder="Email" autocomplete="username" style="margin-bottom:10px"><input type="password" class="ti" id="mPass" placeholder="Password" autocomplete="current-password" style="margin-bottom:6px"><div id="mErr" style="color:#B42318;font-size:12.5px;min-height:17px">'+(msg?esc(msg):"")+'</div><button class="btn prim" id="mLogin" style="width:100%;margin-top:8px">Sign in</button></div>';$("mLogin").addEventListener("click",async function(){var em=$("mEmail").value.trim(),pw=$("mPass").value;if(!em||!pw)return;$("mErr").textContent="";this.disabled=true;this.textContent="Signing in…";try{await supaLogin(em,pw);}catch(err){$("mErr").textContent=err.message;this.disabled=false;this.textContent="Sign in";return;}renderAdmin();});$("mPass").addEventListener("keydown",function(e){if(e.key==="Enter")$("mLogin").click();});}
+function renderLogin(msg){$("adminList").innerHTML='<div style="max-width:360px;margin:8px auto 0;background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px"><h3 style="margin:0 0 4px;font-family:var(--display)">Moderator Sign-in</h3><p style="font-size:13px;color:var(--muted);margin:0 0 16px">Sign in with your Ground Truth moderator account to review and approve community stories.</p><input type="email" class="ti" id="mEmail" placeholder="Email" autocomplete="username" style="margin-bottom:10px"><input type="password" class="ti" id="mPass" placeholder="Password" autocomplete="current-password" style="margin-bottom:6px"><div id="mErr" style="color:#B42318;font-size:12.5px;min-height:17px">'+(msg?esc(msg):"")+'</div><button class="btn prim" id="mLogin" style="width:100%;margin-top:8px">Sign in</button></div>';$("mLogin").addEventListener("click",async function(){var em=$("mEmail").value.trim(),pw=$("mPass").value;if(!em||!pw)return;$("mErr").textContent="";this.disabled=true;this.textContent="Signing in…";try{await supaLogin(em,pw);}catch(err){$("mErr").textContent=err.message;this.disabled=false;this.textContent="Sign in";return;}renderAdmin();});$("mPass").addEventListener("keydown",function(e){if(e.key==="Enter")$("mLogin").click();});}
 function setPropStatus(sid,pid,st){var sp=SPACES.find(function(x){return x.id===sid;});if(!sp)return;var p=(sp.proposals||[]).find(function(x){return x.id===pid;});if(!p)return;p.status=st;saveSpaces();renderAdmin();toast(st==="approved"?"Space idea approved, now on the commons":"Space idea rejected");}
 function setStatus(id,st){var s=STORIES.find(function(x){return x.id===id;});if(!s)return;s.status=st;save();renderAdmin();apply();toast(st==="approved"?(s.vis==="heritage"?"Approved, added to the private heritage record":"Approved, now live on the map"):"Story hidden from the map");}
 $("reseed").addEventListener("click",async function(){await refreshStories();toast("Reloaded stories from Supabase");});
