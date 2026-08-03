@@ -6,7 +6,8 @@
   "civic": "Memphis Public Libraries / Community Centers / MFD Fire Stations / City of Memphis Parks, data.memphistn.gov",
   "council": "Council Districts 2023, data.memphistn.gov",
   "flood": "FEMA NFHL S_FLD_HAZ_AR, retrieved 2026-08-03. floodSharePct is the 1% annual chance zone (A, AE). flood500SharePct is the 0.2% annual chance zone, which lies outside the 1% zone, so the two do not overlap and may be read together as total mapped exposure. Computed against full-resolution geometry.",
-  "faith": "OpenStreetMap contributors via Overpass, retrieved 2026-08-03, ODbL. Named places of worship whose point falls inside the boundary, plus places this project holds itself where OSM does not tag them as places of worship. 508 unnamed OSM points are not counted. Denomination is not published; see DECISIONS D25."
+  "faith": "OpenStreetMap contributors via Overpass, retrieved 2026-08-03, ODbL. Named places of worship whose point falls inside the boundary, plus places this project holds itself where OSM does not tag them as places of worship. 508 unnamed OSM points are not counted. Denomination is not published; see DECISIONS D25.",
+  "acsDirect": "US Census Bureau ACS 5-year 2024, api.census.gov, retrieved 2026-08-03. medianIncome and medianRent are TRUE POOLED MEDIANS: household counts from B19001 and B25063 were summed across each neighborhood's whole tracts and the median interpolated inside the containing bracket, which is the Census Bureau's own method. They are not averages of tract medians, which cannot be averaged. Youth from B01001, child poverty from B17001, 16-19 not in school and not working from B14005. Tract-to-neighborhood assignment reproduces the existing tract counts for all 17 neighborhoods exactly, and total population matches the previous file to 0.00%."
  },
  "retrieved": "2026-08-03",
  "neighborhoods": {
@@ -15,19 +16,6 @@
    "population": 25481,
    "housingUnits": 11026,
    "areaKm2": 21.2,
-   "medianIncomeRange": [
-    45282,
-    111652
-   ],
-   "medianIncomeWeighted": 75161,
-   "medianRentRange": [
-    1112,
-    1718
-   ],
-   "medianAgeRange": [
-    28.3,
-    39.2
-   ],
    "povertyPct": 17.8,
    "blackPct": 11.8,
    "renterPct": 34.2,
@@ -62,26 +50,115 @@
    ],
    "peoplePerGrocery": 2548,
    "flood500SharePct": 1.3,
-   "peoplePerChurch": 1019
+   "peoplePerChurch": 1019,
+   "medianIncome": 72703,
+   "medianRent": 1203,
+   "households": 10493,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 1759
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 1910
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 1742
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 1204
+    },
+    {
+     "label": "$100k+",
+     "n": 3878
+    }
+   ],
+   "under18Pct": 28.2,
+   "under18": 7177,
+   "under5Pct": 9.1,
+   "age1824Pct": 6.2,
+   "childPovertyPct": 27.5,
+   "teen1619DisconnectedPct": 10.7,
+   "teen1619Disconnected": 88,
+   "rank": {
+    "povertyPct": {
+     "r": 12,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 16,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 11,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 12,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 6,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 11,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 14,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 16,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 8,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 16,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 16,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 2,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 16,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 12,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 2,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 6,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 5,
+     "of": 17
+    }
+   }
   },
   "Binghampton": {
    "tracts": 6,
    "population": 14641,
    "housingUnits": 7127,
    "areaKm2": 10.1,
-   "medianIncomeRange": [
-    24922,
-    64122
-   ],
-   "medianIncomeWeighted": 40438,
-   "medianRentRange": [
-    895,
-    1148
-   ],
-   "medianAgeRange": [
-    20.1,
-    50.8
-   ],
    "povertyPct": 34.7,
    "blackPct": 53.3,
    "renterPct": 56.1,
@@ -112,26 +189,115 @@
    ],
    "peoplePerGrocery": 4880,
    "flood500SharePct": 0.0,
-   "peoplePerChurch": 340
+   "peoplePerChurch": 340,
+   "medianIncome": 36947,
+   "medianRent": 953,
+   "households": 5982,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 2314
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 1178
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 1092
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 390
+    },
+    {
+     "label": "$100k+",
+     "n": 1008
+    }
+   ],
+   "under18Pct": 29.5,
+   "under18": 4317,
+   "under5Pct": 7.6,
+   "age1824Pct": 8.1,
+   "childPovertyPct": 44.7,
+   "teen1619DisconnectedPct": 33.9,
+   "teen1619Disconnected": 213,
+   "rank": {
+    "povertyPct": {
+     "r": 5,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 7,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 8,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 1,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 3,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 10,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 5,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 10,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 2,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 9,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 11,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 7,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 11,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 15,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 14,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 14,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 15,
+     "of": 17
+    }
+   }
   },
   "Downtown / Clayborn": {
    "tracts": 8,
    "population": 16570,
    "housingUnits": 10933,
    "areaKm2": 11.0,
-   "medianIncomeRange": [
-    19139,
-    90673
-   ],
-   "medianIncomeWeighted": 53022,
-   "medianRentRange": [
-    616,
-    1585
-   ],
-   "medianAgeRange": [
-    28.6,
-    41.4
-   ],
    "povertyPct": 22.6,
    "blackPct": 52.8,
    "renterPct": 81.2,
@@ -166,26 +332,115 @@
    ],
    "peoplePerGrocery": 4142,
    "flood500SharePct": 0.0,
-   "peoplePerChurch": 338
+   "peoplePerChurch": 338,
+   "medianIncome": 58693,
+   "medianRent": 1223,
+   "households": 9321,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 2602
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 1563
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 1652
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 1038
+    },
+    {
+     "label": "$100k+",
+     "n": 2466
+    }
+   ],
+   "under18Pct": 10.3,
+   "under18": 1704,
+   "under5Pct": 2.9,
+   "age1824Pct": 8.5,
+   "childPovertyPct": 35.5,
+   "teen1619DisconnectedPct": 18.4,
+   "teen1619Disconnected": 41,
+   "rank": {
+    "povertyPct": {
+     "r": 10,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 8,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 10,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 6,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 17,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 16,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 13,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 1,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 14,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 15,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 12,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 16,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 10,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 5,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 5,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 5,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 8,
+     "of": 17
+    }
+   }
   },
   "East Memphis": {
    "tracts": 11,
    "population": 39531,
    "housingUnits": 16445,
    "areaKm2": 36.4,
-   "medianIncomeRange": [
-    36908,
-    182250
-   ],
-   "medianIncomeWeighted": 90659,
-   "medianRentRange": [
-    955,
-    2165
-   ],
-   "medianAgeRange": [
-    23.3,
-    48.7
-   ],
    "povertyPct": 17.3,
    "blackPct": 24.6,
    "renterPct": 39.4,
@@ -224,26 +479,115 @@
    ],
    "peoplePerGrocery": 3953,
    "flood500SharePct": 2.6,
-   "peoplePerChurch": 878
+   "peoplePerChurch": 878,
+   "medianIncome": 72034,
+   "medianRent": 1283,
+   "households": 15181,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 2490
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 2799
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 2575
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 1613
+    },
+    {
+     "label": "$100k+",
+     "n": 5704
+    }
+   ],
+   "under18Pct": 19.2,
+   "under18": 7580,
+   "under5Pct": 6.5,
+   "age1824Pct": 14.5,
+   "childPovertyPct": 23.2,
+   "teen1619DisconnectedPct": 4.1,
+   "teen1619Disconnected": 102,
+   "rank": {
+    "povertyPct": {
+     "r": 14,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 14,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 13,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 15,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 14,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 9,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 15,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 15,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 15,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 14,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 15,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 11,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 2,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 11,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 3,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 3,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 4,
+     "of": 17
+    }
+   }
   },
   "Frayser": {
    "tracts": 13,
    "population": 42195,
    "housingUnits": 18809,
    "areaKm2": 75.3,
-   "medianIncomeRange": [
-    20563,
-    87080
-   ],
-   "medianIncomeWeighted": 37786,
-   "medianRentRange": [
-    967,
-    1371
-   ],
-   "medianAgeRange": [
-    20.9,
-    43
-   ],
    "povertyPct": 36.1,
    "blackPct": 88.4,
    "renterPct": 57.4,
@@ -278,26 +622,115 @@
    ],
    "peoplePerGrocery": 7032,
    "flood500SharePct": 2.6,
-   "peoplePerChurch": 426
+   "peoplePerChurch": 426,
+   "medianIncome": 37489,
+   "medianRent": 1161,
+   "households": 15404,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 5592
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 4218
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 2309
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 1581
+    },
+    {
+     "label": "$100k+",
+     "n": 1704
+    }
+   ],
+   "under18Pct": 34.2,
+   "under18": 14432,
+   "under5Pct": 8.9,
+   "age1824Pct": 8.0,
+   "childPovertyPct": 53.1,
+   "teen1619DisconnectedPct": 10.3,
+   "teen1619Disconnected": 240,
+   "rank": {
+    "povertyPct": {
+     "r": 4,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 5,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 3,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 13,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 2,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 13,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 2,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 8,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 11,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 7,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 5,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 3,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 12,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 2,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 13,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 9,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 12,
+     "of": 17
+    }
+   }
   },
   "Harbor Town": {
    "tracts": 2,
    "population": 6520,
    "housingUnits": 4168,
    "areaKm2": 8.1,
-   "medianIncomeRange": [
-    23231,
-    65236
-   ],
-   "medianIncomeWeighted": 58149,
-   "medianRentRange": [
-    979,
-    1713
-   ],
-   "medianAgeRange": [
-    29.6,
-    32.5
-   ],
    "povertyPct": 18.8,
    "blackPct": 29.7,
    "renterPct": 69.5,
@@ -328,26 +761,115 @@
    ],
    "peoplePerGrocery": 6520,
    "flood500SharePct": 0.0,
-   "peoplePerChurch": 543
+   "peoplePerChurch": 543,
+   "medianIncome": 55728,
+   "medianRent": 1654,
+   "households": 3928,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 924
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 800
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 730
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 382
+    },
+    {
+     "label": "$100k+",
+     "n": 1092
+    }
+   ],
+   "under18Pct": 14.4,
+   "under18": 936,
+   "under5Pct": 5.8,
+   "age1824Pct": 14.7,
+   "childPovertyPct": 16.5,
+   "teen1619DisconnectedPct": 0.0,
+   "teen1619Disconnected": 0,
+   "rank": {
+    "povertyPct": {
+     "r": 11,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 15,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 15,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 16,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 15,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 15,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 17,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 2,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 16,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 11,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 14,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 12,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 1,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 1,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 6,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 1,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 1,
+     "of": 17
+    }
+   }
   },
   "Hickory Hill": {
    "tracts": 21,
    "population": 78757,
    "housingUnits": 33842,
    "areaKm2": 86.8,
-   "medianIncomeRange": [
-    27050,
-    121667
-   ],
-   "medianIncomeWeighted": 60165,
-   "medianRentRange": [
-    1048,
-    1991
-   ],
-   "medianAgeRange": [
-    23.9,
-    59
-   ],
    "povertyPct": 15.9,
    "blackPct": 76.3,
    "renterPct": 61.5,
@@ -386,26 +908,115 @@
    ],
    "peoplePerGrocery": 6058,
    "flood500SharePct": 5.3,
-   "peoplePerChurch": 1875
+   "peoplePerChurch": 1875,
+   "medianIncome": 54931,
+   "medianRent": 1265,
+   "households": 30448,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 5635
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 8201
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 6171
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 3782
+    },
+    {
+     "label": "$100k+",
+     "n": 6659
+    }
+   ],
+   "under18Pct": 28.7,
+   "under18": 22613,
+   "under5Pct": 8.1,
+   "age1824Pct": 10.8,
+   "childPovertyPct": 22.9,
+   "teen1619DisconnectedPct": 15.9,
+   "teen1619Disconnected": 692,
+   "rank": {
+    "povertyPct": {
+     "r": 15,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 11,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 14,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 7,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 5,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 14,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 12,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 4,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 6,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 6,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 7,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 5,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 4,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 8,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 7,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 4,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 3,
+     "of": 17
+    }
+   }
   },
   "Midtown": {
    "tracts": 15,
    "population": 35177,
    "housingUnits": 20841,
    "areaKm2": 21.5,
-   "medianIncomeRange": [
-    17266,
-    121094
-   ],
-   "medianIncomeWeighted": 66918,
-   "medianRentRange": [
-    862,
-    1686
-   ],
-   "medianAgeRange": [
-    22,
-    42.9
-   ],
    "povertyPct": 15.3,
    "blackPct": 31.6,
    "renterPct": 56.9,
@@ -448,26 +1059,115 @@
    ],
    "peoplePerGrocery": 5863,
    "flood500SharePct": 0.0,
-   "peoplePerChurch": 533
+   "peoplePerChurch": 533,
+   "medianIncome": 60248,
+   "medianRent": 1130,
+   "households": 18436,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 3905
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 3868
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 3050
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 2182
+    },
+    {
+     "label": "$100k+",
+     "n": 5431
+    }
+   ],
+   "under18Pct": 12.8,
+   "under18": 4498,
+   "under5Pct": 2.9,
+   "age1824Pct": 12.6,
+   "childPovertyPct": 12.6,
+   "teen1619DisconnectedPct": 5.1,
+   "teen1619Disconnected": 89,
+   "rank": {
+    "povertyPct": {
+     "r": 16,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 10,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 17,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 14,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 16,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 8,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 11,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 9,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 13,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 13,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 13,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 17,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 3,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 16,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 4,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 10,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 7,
+     "of": 17
+    }
+   }
   },
   "North Memphis": {
    "tracts": 8,
    "population": 14934,
    "housingUnits": 8652,
    "areaKm2": 20.9,
-   "medianIncomeRange": [
-    23370,
-    43125
-   ],
-   "medianIncomeWeighted": 32910,
-   "medianRentRange": [
-    722,
-    1045
-   ],
-   "medianAgeRange": [
-    34.6,
-    52.5
-   ],
    "povertyPct": 37.4,
    "blackPct": 91.5,
    "renterPct": 60.5,
@@ -502,26 +1202,115 @@
    ],
    "peoplePerGrocery": 3734,
    "flood500SharePct": 2.3,
-   "peoplePerChurch": 166
+   "peoplePerChurch": 166,
+   "medianIncome": 31268,
+   "medianRent": 891,
+   "households": 6995,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 2996
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 2034
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 814
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 456
+    },
+    {
+     "label": "$100k+",
+     "n": 695
+    }
+   ],
+   "under18Pct": 22.8,
+   "under18": 3404,
+   "under5Pct": 5.1,
+   "age1824Pct": 6.5,
+   "childPovertyPct": 53.0,
+   "teen1619DisconnectedPct": 18.5,
+   "teen1619Disconnected": 119,
+   "rank": {
+    "povertyPct": {
+     "r": 3,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 4,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 4,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 5,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 10,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 4,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 1,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 6,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 9,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 3,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 3,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 14,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 15,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 3,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 16,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 16,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 17,
+     "of": 17
+    }
+   }
   },
   "Orange Mound": {
    "tracts": 13,
    "population": 35635,
    "housingUnits": 19909,
    "areaKm2": 26.6,
-   "medianIncomeRange": [
-    23653,
-    124583
-   ],
-   "medianIncomeWeighted": 49795,
-   "medianRentRange": [
-    744,
-    1694
-   ],
-   "medianAgeRange": [
-    27.4,
-    50.5
-   ],
    "povertyPct": 27.0,
    "blackPct": 73.4,
    "renterPct": 55.0,
@@ -556,26 +1345,115 @@
    ],
    "peoplePerGrocery": 4454,
    "flood500SharePct": 0.9,
-   "peoplePerChurch": 424
+   "peoplePerChurch": 424,
+   "medianIncome": 46422,
+   "medianRent": 1048,
+   "households": 16511,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 4900
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 3890
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 2513
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 1987
+    },
+    {
+     "label": "$100k+",
+     "n": 3221
+    }
+   ],
+   "under18Pct": 21.2,
+   "under18": 7554,
+   "under5Pct": 7.5,
+   "age1824Pct": 9.5,
+   "childPovertyPct": 41.4,
+   "teen1619DisconnectedPct": 11.2,
+   "teen1619Disconnected": 190,
+   "rank": {
+    "povertyPct": {
+     "r": 9,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 6,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 9,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 11,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 11,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 6,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 10,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 12,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 7,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 4,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 8,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 8,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 5,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 14,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 9,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 13,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 13,
+     "of": 17
+    }
+   }
   },
   "Parkway Village": {
    "tracts": 8,
    "population": 31121,
    "housingUnits": 12777,
    "areaKm2": 24.7,
-   "medianIncomeRange": [
-    27875,
-    58581
-   ],
-   "medianIncomeWeighted": 44650,
-   "medianRentRange": [
-    1043,
-    1478
-   ],
-   "medianAgeRange": [
-    25.2,
-    33.7
-   ],
    "povertyPct": 32.6,
    "blackPct": 69.7,
    "renterPct": 65.1,
@@ -614,26 +1492,115 @@
    ],
    "peoplePerGrocery": 2593,
    "flood500SharePct": 5.8,
-   "peoplePerChurch": 841
+   "peoplePerChurch": 841,
+   "medianIncome": 42494,
+   "medianRent": 1193,
+   "households": 10186,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 2708
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 3248
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 1959
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 1146
+    },
+    {
+     "label": "$100k+",
+     "n": 1125
+    }
+   ],
+   "under18Pct": 35.0,
+   "under18": 10877,
+   "under5Pct": 8.1,
+   "age1824Pct": 9.0,
+   "childPovertyPct": 50.8,
+   "teen1619DisconnectedPct": 15.8,
+   "teen1619Disconnected": 307,
+   "rank": {
+    "povertyPct": {
+     "r": 7,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 3,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 6,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 8,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 1,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 17,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 16,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 3,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 1,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 10,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 9,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 6,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 7,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 10,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 11,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 7,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 9,
+     "of": 17
+    }
+   }
   },
   "Raleigh": {
    "tracts": 17,
    "population": 82883,
    "housingUnits": 31902,
    "areaKm2": 93.5,
-   "medianIncomeRange": [
-    25667,
-    73977
-   ],
-   "medianIncomeWeighted": 50960,
-   "medianRentRange": [
-    953,
-    1600
-   ],
-   "medianAgeRange": [
-    23,
-    49.4
-   ],
    "povertyPct": 17.6,
    "blackPct": 54.3,
    "renterPct": 53.3,
@@ -668,26 +1635,115 @@
    ],
    "peoplePerGrocery": 5180,
    "flood500SharePct": 1.6,
-   "peoplePerChurch": 999
+   "peoplePerChurch": 999,
+   "medianIncome": 50636,
+   "medianRent": 1190,
+   "households": 29163,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 6057
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 8369
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 5630
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 3083
+    },
+    {
+     "label": "$100k+",
+     "n": 6024
+    }
+   ],
+   "under18Pct": 29.3,
+   "under18": 24298,
+   "under5Pct": 8.3,
+   "age1824Pct": 9.5,
+   "childPovertyPct": 23.4,
+   "teen1619DisconnectedPct": 14.9,
+   "teen1619Disconnected": 721,
+   "rank": {
+    "povertyPct": {
+     "r": 13,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 13,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 12,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 10,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 4,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 12,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 7,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 13,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 3,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 12,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 10,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 4,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 6,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 4,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 8,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 8,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 6,
+     "of": 17
+    }
+   }
   },
   "Soulsville": {
    "tracts": 4,
    "population": 7190,
    "housingUnits": 3917,
    "areaKm2": 6.9,
-   "medianIncomeRange": [
-    18182,
-    53733
-   ],
-   "medianIncomeWeighted": 33150,
-   "medianRentRange": [
-    686,
-    1145
-   ],
-   "medianAgeRange": [
-    21.3,
-    42.5
-   ],
    "povertyPct": 37.6,
    "blackPct": 91.1,
    "renterPct": 61.1,
@@ -722,26 +1778,115 @@
    ],
    "peoplePerGrocery": 7190,
    "flood500SharePct": 0.0,
-   "peoplePerChurch": 133
+   "peoplePerChurch": 133,
+   "medianIncome": 33125,
+   "medianRent": 845,
+   "households": 2814,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 1181
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 627
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 569
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 160
+    },
+    {
+     "label": "$100k+",
+     "n": 277
+    }
+   ],
+   "under18Pct": 26.8,
+   "under18": 1927,
+   "under5Pct": 7.1,
+   "age1824Pct": 9.0,
+   "childPovertyPct": 52.2,
+   "teen1619DisconnectedPct": 24.2,
+   "teen1619Disconnected": 107,
+   "rank": {
+    "povertyPct": {
+     "r": 2,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 1,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 5,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 2,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 8,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 2,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 4,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 5,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 12,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 1,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 4,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 10,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 8,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 17,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 15,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 17,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 16,
+     "of": 17
+    }
+   }
   },
   "South Memphis": {
    "tracts": 13,
    "population": 25228,
    "housingUnits": 14281,
    "areaKm2": 37.3,
-   "medianIncomeRange": [
-    12132,
-    44643
-   ],
-   "medianIncomeWeighted": 30865,
-   "medianRentRange": [
-    751,
-    1055
-   ],
-   "medianAgeRange": [
-    28.1,
-    50.9
-   ],
    "povertyPct": 43.6,
    "blackPct": 94.3,
    "renterPct": 59.6,
@@ -776,26 +1921,115 @@
    ],
    "peoplePerGrocery": 5046,
    "flood500SharePct": 0.7,
-   "peoplePerChurch": 169
+   "peoplePerChurch": 169,
+   "medianIncome": 28800,
+   "medianRent": 915,
+   "households": 11020,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 4731
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 2929
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 1639
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 1036
+    },
+    {
+     "label": "$100k+",
+     "n": 685
+    }
+   ],
+   "under18Pct": 21.2,
+   "under18": 5359,
+   "under5Pct": 5.3,
+   "age1824Pct": 7.3,
+   "childPovertyPct": 71.1,
+   "teen1619DisconnectedPct": 19.3,
+   "teen1619Disconnected": 244,
+   "rank": {
+    "povertyPct": {
+     "r": 1,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 2,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 1,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 4,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 12,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 3,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 3,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 7,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 10,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 5,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 2,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 13,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 13,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 13,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 17,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 15,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 14,
+     "of": 17
+    }
+   }
   },
   "Westwood": {
    "tracts": 5,
    "population": 24119,
    "housingUnits": 10117,
    "areaKm2": 52.3,
-   "medianIncomeRange": [
-    29016,
-    65264
-   ],
-   "medianIncomeWeighted": 43146,
-   "medianRentRange": [
-    1042,
-    1282
-   ],
-   "medianAgeRange": [
-    31.5,
-    47.1
-   ],
    "povertyPct": 33.5,
    "blackPct": 94.7,
    "renterPct": 39.7,
@@ -826,26 +2060,115 @@
    ],
    "peoplePerGrocery": 12060,
    "flood500SharePct": 1.3,
-   "peoplePerChurch": 309
+   "peoplePerChurch": 309,
+   "medianIncome": 40000,
+   "medianRent": 1090,
+   "households": 9154,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 2810
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 2605
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 1346
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 799
+    },
+    {
+     "label": "$100k+",
+     "n": 1594
+    }
+   ],
+   "under18Pct": 25.9,
+   "under18": 6236,
+   "under5Pct": 7.5,
+   "age1824Pct": 6.6,
+   "childPovertyPct": 58.8,
+   "teen1619DisconnectedPct": 15.5,
+   "teen1619Disconnected": 147,
+   "rank": {
+    "povertyPct": {
+     "r": 6,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 12,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 2,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 9,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 9,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 5,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 9,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 14,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 5,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 2,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 1,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 9,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 14,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 6,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 12,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 11,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 11,
+     "of": 17
+    }
+   }
   },
   "White Station": {
    "tracts": 5,
    "population": 18671,
    "housingUnits": 8728,
    "areaKm2": 21.0,
-   "medianIncomeRange": [
-    66650,
-    160278
-   ],
-   "medianIncomeWeighted": 117445,
-   "medianRentRange": [
-    1236,
-    2558
-   ],
-   "medianAgeRange": [
-    38.5,
-    55.6
-   ],
    "povertyPct": 7.6,
    "blackPct": 10.0,
    "renterPct": 29.5,
@@ -876,26 +2199,115 @@
    ],
    "peoplePerGrocery": 9336,
    "flood500SharePct": 3.2,
-   "peoplePerChurch": 1167
+   "peoplePerChurch": 1167,
+   "medianIncome": 109927,
+   "medianRent": 1438,
+   "households": 8407,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 717
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 947
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 1102
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 1123
+    },
+    {
+     "label": "$100k+",
+     "n": 4518
+    }
+   ],
+   "under18Pct": 20.1,
+   "under18": 3757,
+   "under5Pct": 3.7,
+   "age1824Pct": 3.8,
+   "childPovertyPct": 13.4,
+   "teen1619DisconnectedPct": 0.0,
+   "teen1619Disconnected": 0,
+   "rank": {
+    "povertyPct": {
+     "r": 17,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 17,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 16,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 17,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 13,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 1,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 8,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 17,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 17,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 17,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 17,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 15,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 17,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 9,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 1,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 2,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 2,
+     "of": 17
+    }
+   }
   },
   "Whitehaven": {
    "tracts": 18,
    "population": 68689,
    "housingUnits": 30191,
    "areaKm2": 101.2,
-   "medianIncomeRange": [
-    28621,
-    66398
-   ],
-   "medianIncomeWeighted": 45655,
-   "medianRentRange": [
-    908,
-    1529
-   ],
-   "medianAgeRange": [
-    21.2,
-    44.7
-   ],
    "povertyPct": 29.9,
    "blackPct": 87.2,
    "renterPct": 55.9,
@@ -930,7 +2342,129 @@
    ],
    "peoplePerGrocery": 6244,
    "flood500SharePct": 5.0,
-   "peoplePerChurch": 642
+   "peoplePerChurch": 642,
+   "medianIncome": 43496,
+   "medianRent": 1087,
+   "households": 26017,
+   "incomeBands": [
+    {
+     "label": "under $25k",
+     "n": 7378
+    },
+    {
+     "label": "$25\u201350k",
+     "n": 7524
+    },
+    {
+     "label": "$50\u201375k",
+     "n": 4940
+    },
+    {
+     "label": "$75\u2013100k",
+     "n": 2650
+    },
+    {
+     "label": "$100k+",
+     "n": 3525
+    }
+   ],
+   "under18Pct": 27.3,
+   "under18": 18770,
+   "under5Pct": 9.2,
+   "age1824Pct": 9.0,
+   "childPovertyPct": 47.4,
+   "teen1619DisconnectedPct": 21.5,
+   "teen1619Disconnected": 730,
+   "rank": {
+    "povertyPct": {
+     "r": 8,
+     "of": 17
+    },
+    "vacantPct": {
+     "r": 9,
+     "of": 17
+    },
+    "childPovertyPct": {
+     "r": 7,
+     "of": 17
+    },
+    "teen1619DisconnectedPct": {
+     "r": 3,
+     "of": 17
+    },
+    "under18Pct": {
+     "r": 7,
+     "of": 17
+    },
+    "over65Pct": {
+     "r": 7,
+     "of": 17
+    },
+    "disabledPct": {
+     "r": 6,
+     "of": 17
+    },
+    "renterPct": {
+     "r": 11,
+     "of": 17
+    },
+    "noInsurancePct": {
+     "r": 4,
+     "of": 17
+    },
+    "unemploymentPct": {
+     "r": 8,
+     "of": 17
+    },
+    "blackPct": {
+     "r": 6,
+     "of": 17
+    },
+    "under5Pct": {
+     "r": 1,
+     "of": 17
+    },
+    "age1824Pct": {
+     "r": 9,
+     "of": 17
+    },
+    "floodSharePct": {
+     "r": 7,
+     "of": 17
+    },
+    "medianIncome": {
+     "r": 10,
+     "of": 17
+    },
+    "medianRent": {
+     "r": 12,
+     "of": 17
+    },
+    "broadbandPct": {
+     "r": 10,
+     "of": 17
+    }
+   }
   }
- }
+ },
+ "baseline": {
+  "povertyPct": 24.4,
+  "blackPct": 63.7,
+  "over65Pct": 14.6,
+  "disabledPct": 13.9,
+  "renterPct": 54.5,
+  "vacantPct": 12.6,
+  "broadbandPct": 87.0,
+  "unemploymentPct": 5.7,
+  "noInsurancePct": 14.9,
+  "under18Pct": 25.6,
+  "under5Pct": 7.3,
+  "age1824Pct": 9.4,
+  "childPovertyPct": 35.8,
+  "teen1619DisconnectedPct": 14.1,
+  "floodSharePct": 11.3,
+  "medianIncome": 51998,
+  "medianRent": 1160
+ },
+ "baselineNote": "Population-weighted across the 17 mapped neighborhoods (households-weighted for income and rent). This is not the City of Memphis figure; it is the average of what this map covers, which is 567,342 people."
 }

@@ -307,6 +307,29 @@
   .hp-asset.none b{color:var(--faint)}
   .hp-asset.wide{grid-column:1/-1}
   .hp-asset .hp-sub{display:block;margin-top:1px;font-size:9.5px;color:var(--faint);line-height:1.3}
+  /* A stat with its baseline and its rank. Deliberately not a second coloured bar: the
+     comparison is stated in words, so it survives colour-blindness, greyscale printing and
+     a reader who has never seen a chart. */
+  .hp-cmp{padding:6px 0;border-bottom:1px solid var(--line)}
+  .hp-cmp:last-child{border-bottom:0}
+  .hp-cmprow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--muted)}
+  .hp-cmprow b{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+  /* Deliberately one colour, whatever the direction. Colouring "above average" red made
+     the map say that 91.1% Black residents was a problem, which is not a thing this map
+     gets to have an opinion about. Poverty and child poverty already carry a judged colour
+     on their meters, where the direction genuinely has an agreed meaning. Everywhere else
+     the number and the rank are the information and the hue would be an argument.
+     Same principle as D18: colour distinguishes, it does not encode. */
+  .hp-vs{display:block;font-size:10px;line-height:1.35;color:var(--muted);margin-top:2px}
+  .hp-rank{display:inline-block;margin-top:3px;font-size:9.5px;font-weight:700;letter-spacing:.02em;
+    padding:1px 7px;border-radius:999px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+  /* Income bands. Counts, so nothing here is interpolated or averaged. */
+  .hp-bands{display:flex;flex-direction:column;gap:4px;margin:10px 0 2px}
+  .hp-band{display:grid;grid-template-columns:58px 1fr 30px;align-items:center;gap:7px}
+  .hp-band .bl{font-size:10px;color:var(--muted);text-align:right}
+  .hp-band .bt{height:12px;background:var(--bg);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+  .hp-band .bf{display:block;height:100%;background:var(--hood,var(--primary));border-radius:2px}
+  .hp-band .bv{font-size:10.5px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;text-align:right}
   .hp-two .hp-alt{margin-left:auto;flex:none;max-width:34%;padding-left:10px;border-left:1px solid var(--line);text-align:right}
   .hp-two.none .hp-alt b{color:var(--text)}   /* zero groceries does not grey out 14 corner stores */
   .hp-cd{display:flex;align-items:center;gap:9px;padding:5px 0}
@@ -532,7 +555,11 @@
      panel is a bottom drawer and would cover it. z-index must clear Leaflet's own
      controls (1000) or the suggestions list renders behind the +/- buttons. */
   .mapsearch{position:absolute;top:12px;left:12px;z-index:1100;width:min(310px,calc(100% - 24px))}
-  .mapwrap .leaflet-top.leaflet-left{top:60px}
+  /* Clears the search box AND the hint under it. 60px cleared the box alone, so adding
+     the hint put it straight over the zoom buttons. The number here is only a fallback:
+     the hint wraps to one or two lines depending on width, so fitZoomControl() measures
+     the real block and sets this at runtime. */
+  .mapwrap .leaflet-top.leaflet-left{top:108px}
   .mapsearch input{width:100%;border:1.5px solid var(--border);border-radius:11px;padding:10px 30px 10px 34px;font-size:13.5px;background:#fff;box-shadow:0 3px 14px rgba(0,0,0,.11)}
   .mapsearch input:focus{outline:none;border-color:var(--primary)}
   .mapsearch .si{position:absolute;left:11px;top:17px;transform:translateY(-50%);color:var(--faint);display:inline-flex;pointer-events:none}
@@ -556,7 +583,7 @@
   .pop .paddr{font-size:11.5px;color:var(--muted);line-height:1.45;margin:0 0 11px}
   .addhere{display:block;width:100%;background:var(--primary);color:#fff;border:0;border-radius:10px;padding:10px 14px;font:inherit;font-weight:700;font-size:13px;line-height:1.2;cursor:pointer;text-align:center}
   .addhere:hover{background:var(--primaryDark)}
-  @media(max-width:860px){.mapsearch{width:calc(100% - 24px)}.mapwrap .leaflet-top.leaflet-left{top:58px}}
+  @media(max-width:860px){.mapsearch{width:calc(100% - 24px)}.mapwrap .leaflet-top.leaflet-left{top:106px}}
   .consent-opt{display:flex;gap:11px;align-items:flex-start;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:13.5px;background:#fff;cursor:pointer}
   .consent-opt.on{border-color:var(--primary);background:var(--primaryLight)}
   .consent-opt b{display:block}.consent-opt small{color:var(--muted)}
@@ -978,10 +1005,11 @@ var HOOD_SHAPES=null;
    place already is before it asks anyone to remember it, which is the point: a stranger
    should be able to read the conditions a story sits inside, and a neighbour should be
    asked a question that knows something. Loaded async and fails soft, like the shapes. */
-var HOOD_PROFILES=null;
+var HOOD_PROFILES=null,HOOD_BASE=null;
 function loadProfiles(){
   fetch("data/neighborhood-profiles.json",{cache:"no-cache"}).then(function(r){return r.json();}).then(function(d){
     HOOD_PROFILES=d.neighborhoods||null;
+    HOOD_BASE=d.baseline||null;      // the 17-neighbourhood average every stat is read against
     if(HOOD_PROFILES&&F.hood!=="all")renderCards();   // a neighbourhood already chosen gets its profile
   }).catch(function(e){console.warn("neighbourhood profiles failed:",e);});
 }
@@ -1959,6 +1987,65 @@ function floodRows(d){
     tot.toFixed(1)+'%</b> of this ground is on a flood map of some kind. A 1 in 100 chance is not once a century; it is every year.</p>';
   return out;
 }
+/* A number on its own cannot be judged. 37.6% poverty means nothing until you know the
+   figure across the rest of the map is 24.4%, and it means something else again once you
+   know it is the 2nd highest of 17. A reader new to city data needs the baseline; someone
+   choosing between neighbourhoods needs the rank. Both come from the same file.
+   The comparison is a labelled tick, never a second coloured bar, so identity never rests
+   on colour and the reader's own value stays the only thing being measured. */
+function base(k){
+  var b=HOOD_BASE&&HOOD_BASE[k];
+  if(b==null)return "";
+  return "Across these 17 neighborhoods, "+(k.indexOf("median")===0?money(b):b+"%");
+}
+function cmpRow(d,k,label,hideVal){
+  var v=d[k]; if(v==null)return "";
+  var b=HOOD_BASE&&HOOD_BASE[k], r=d.rank&&d.rank[k];
+  var isMoney=k.indexOf("median")===0;
+  var show=isMoney?money(v):v+"%";
+  // Rank is stated as plain English, not as a colour. "2nd highest of 17" is a fact;
+  // whether that is good or bad is the reader's call and depends entirely on the metric.
+  var rk="";
+  if(r){
+    /* Count from whichever end is nearer. "15th highest of 17" is technically true and
+       reads as noise; "3rd lowest of 17" is the same fact and lands immediately. */
+    var ord;
+    if(r.r===1)ord="highest";
+    else if(r.r===r.of)ord="lowest";
+    else if(r.r<=r.of/2)ord=r.r+ordSuffix(r.r)+" highest";
+    else{var fb=r.of-r.r+1;ord=fb+ordSuffix(fb)+" lowest";}
+    rk='<span class="hp-rank">'+esc(ord)+" of "+r.of+"</span>";
+  }
+  var delta="";
+  if(b!=null&&!hideVal){
+    var diff=v-b;
+    delta='<span class="hp-vs">'+
+      (Math.abs(diff)<(isMoney?2000:1.5)?"about the same as":
+        (isMoney?money(Math.abs(Math.round(diff))):Math.abs(diff).toFixed(1)+" points")+
+        (diff>0?" above":" below"))+" the 17-neighborhood average"+
+      (b!=null?" of "+(isMoney?money(b):b+"%"):"")+"</span>";
+  }else if(b!=null){
+    delta='<span class="hp-vs">17-neighborhood average '+(isMoney?money(b):b+"%")+"</span>";
+  }
+  return '<div class="hp-cmp">'+
+    '<div class="hp-cmprow"><span>'+esc(label)+'</span>'+(hideVal?"":'<b>'+show+'</b>')+'</div>'+
+    delta+rk+'</div>';
+}
+function ordSuffix(n){var s=["th","st","nd","rd"],v=n%100;return s[(v-20)%10]||s[v]||s[0];}
+/* Household counts, straight from B19001. These add up exactly across tracts, so unlike a
+   median they need no method at all and nothing is reconstructed. */
+function incomeBands(d){
+  var bs=d.incomeBands; if(!bs||!bs.length)return "";
+  var tot=bs.reduce(function(a,b){return a+b.n;},0); if(!tot)return "";
+  var max=Math.max.apply(null,bs.map(function(b){return b.n;}));
+  return '<div class="hp-bands">'+bs.map(function(b){
+    var pct=Math.round(b.n/tot*100);
+    return '<div class="hp-band"><span class="bl">'+esc(b.label)+'</span>'+
+      '<span class="bt"><span class="bf" style="width:'+(max?b.n/max*100:0)+'%"></span></span>'+
+      '<span class="bv">'+pct+'%</span></div>';
+  }).join("")+'</div>'+
+  '<p class="hp-note">'+num(tot)+' households, counted not estimated.</p>';
+}
 function assetTile(icon,n,label,cls,sub){
   return '<div class="hp-asset'+(n?'':' none')+(cls?' '+cls:'')+'">'+ic(icon,16)+
     '<div><b>'+n+'</b><span>'+esc(label)+'</span>'+
@@ -1998,20 +2085,40 @@ function hoodPage(name){
 
     '<div class="hp-block"><div class="hp-label"><h3>'+ic("join",12)+' Who lives here</h3><span>ACS 2024</span></div>'+
       '<div class="hp-head"><b>'+num(d.population)+'</b><span>people</span></div>'+
-      '<div class="hp-stat"><span>Black residents</span><b>'+d.blackPct+'%</b></div>'+
-      '<div class="hp-stat"><span>Over 65</span><b>'+d.over65Pct+'%</b></div>'+
-      '<div class="hp-stat"><span>Living with a disability</span><b>'+d.disabledPct+'%</b></div>'+
+      cmpRow(d,"blackPct","Black residents")+
+      cmpRow(d,"over65Pct","Over 65")+
+      cmpRow(d,"disabledPct","Living with a disability")+
+    '</div>'+
+
+    /* Youth sits second, directly under who lives here, because it is the same question
+       asked forward. Putting it against the over-65 figure above makes ageing versus
+       renewal readable in one glance, which is the whole argument for a cultural district
+       as economic development. */
+    '<div class="hp-block"><div class="hp-label"><h3>'+ic("sprout",12)+' Who is coming up</h3><span>ACS 2024</span></div>'+
+      '<div class="hp-head"><b>'+(d.under18!=null?num(d.under18):"—")+'</b><span>under 18<br>live here</span></div>'+
+      cmpRow(d,"under18Pct","Under 18")+
+      cmpRow(d,"under5Pct","Under 5")+
+      cmpRow(d,"age1824Pct","Ages 18 to 24")+
+      // Child poverty is not the poverty rate and is reliably higher. A combined figure
+      // hides it, and it is the number that moves different money.
+      cmpRow(d,"childPovertyPct","Children in poverty")+
+      cmpRow(d,"teen1619DisconnectedPct","16 to 19, not in school and not working")+
     '</div>'+
 
     '<div class="hp-block"><div class="hp-label"><h3>'+ic("chart",12)+' What it costs to stay</h3><span>ACS 2024</span></div>'+
-      '<div class="hp-stat"><span>Median household income, by tract</span><b>'+money(d.medianIncomeRange[0])+' – '+money(d.medianIncomeRange[1])+'</b></div>'+
-      '<div class="hp-stat"><span>Median rent, by tract</span><b>'+money(d.medianRentRange[0])+' – '+money(d.medianRentRange[1])+'</b></div>'+
-      meterRow("Living in poverty",d.povertyPct,50,d.povertyPct>=33?"strain":d.povertyPct>=20?"watch":"ok","City-wide about 22%")+
-      meterRow("Households renting",d.renterPct,100,d.renterPct>=70?"strain":d.renterPct>=55?"watch":"ok","City-wide about 55%")+
-      meterRow("Homes sitting empty",d.vacantPct,35,d.vacantPct>=20?"strain":d.vacantPct>=13?"watch":"ok","City-wide about 12%")+
+      // A true pooled median, not a range and not an average of tract medians. See the
+      // source note in neighborhood-profiles.json for the method.
+      '<div class="hp-head"><b>'+(d.medianIncome?money(d.medianIncome):"—")+'</b><span>median household<br>income a year</span></div>'+
+      cmpRow(d,"medianIncome","Compared with these 17 neighborhoods",true)+
+      incomeBands(d)+
+      '<div class="hp-stat" style="border-top:1px solid var(--line);margin-top:10px;padding-top:9px">'+
+        '<span>Median rent</span><b>'+(d.medianRent?money(d.medianRent):"—")+'</b></div>'+
+      meterRow("Living in poverty",d.povertyPct,50,d.povertyPct>=33?"strain":d.povertyPct>=20?"watch":"ok",base("povertyPct"))+
+      meterRow("Households renting",d.renterPct,100,d.renterPct>=70?"strain":d.renterPct>=55?"watch":"ok",base("renterPct"))+
+      meterRow("Homes sitting empty",d.vacantPct,35,d.vacantPct>=20?"strain":d.vacantPct>=13?"watch":"ok",base("vacantPct"))+
     '</div>'+
 
-    '<div class="hp-block"><div class="hp-label"><h3>'+ic("layers",12)+' Civic assets</h3><span>City of Memphis · USDA SNAP · OSM</span></div>'+
+    '<div class="hp-block"><div class="hp-label"><h3>'+ic("layers",12)+' What is here</h3><span>City of Memphis · USDA SNAP · OSM</span></div>'+
       '<div class="hp-assets">'+
         assetTile("book",a.libraries,a.libraries===1?"public library":"public libraries")+
         assetTile("hall",a.centers,a.centers===1?"community center":"community centers")+
@@ -2029,6 +2136,12 @@ function hoodPage(name){
            d.peoplePerChurch?"one for every "+num(d.peoplePerChurch)+" people":""):"")+
       '</div>'+
       (a.faith?'<p class="hp-note">Places of worship are named entries in OpenStreetMap plus the ones this project holds itself. It does not know every storefront church, and in Memphis that is most of them, so read this as a floor.</p>':'')+
+    '</div>'+
+
+    /* Flood and broadband used to sit inside Civic assets. A library is something the
+       neighbourhood HAS; a floodplain is something it IS IN. Filing them together asked a
+       reader to hold two opposite ideas in one box. */
+    '<div class="hp-block"><div class="hp-label"><h3>'+ic("layers",12)+' What this ground carries</h3><span>FEMA · ACS 2024</span></div>'+
       floodRows(d)+
       '<div class="hp-stat"><span>Homes without broadband</span><b>'+(100-d.broadbandPct).toFixed(1)+'%</b></div>'+
     '</div>'+
@@ -2062,7 +2175,9 @@ function dcRing(f,mi){
     ["Homes",d.housingUnits?num(d.housingUnits):"\u2014"],
     ["Black residents",d.blackPct!=null?d.blackPct+"%":"\u2014"],
     ["Living in poverty",d.povertyPct!=null?d.povertyPct+"%":"\u2014"],
-    ["Median household income",d.medianIncomeRange&&d.medianIncomeRange[0]?money(d.medianIncomeRange[0])+" \u2013 "+money(d.medianIncomeRange[1]):"\u2014"]
+    // Pooled median, same method as the neighbourhood profiles. A one-mile ring holds no
+    // whole tract, so it correctly has none rather than a number borrowed from a bigger area.
+    ["Median household income",d.medianIncome?money(d.medianIncome):"\u2014"]
   ];
   return '<div class="hp-block"><div class="hp-label"><h3>'+ic("join",12)+' Who Is Inside '+mi+' Mile'+(mi==="1"?"":"s")+'</h3><span>ACS 2024</span></div>'+
       rows.map(function(r){return '<div class="hp-stat"><span>'+esc(r[0])+'</span><b>'+r[1]+'</b></div>';}).join("")+
@@ -2482,6 +2597,21 @@ $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMe
   if(mh)mh.innerHTML=(window.matchMedia&&window.matchMedia("(pointer: coarse)").matches)
     ? 'Search a place above, or <b>press and hold</b> the map to add a memory there.'
     : 'Search a place above, or <b>right-click</b> the map to add a memory there.';
+  /* The zoom buttons sit under the search block, and the search block changes height
+     because the hint wraps to one or two lines depending on how wide the map is. A fixed
+     offset is wrong at some width by definition, so measure it. The CSS value is the
+     fallback for the moment before this runs. */
+  function fitZoomControl(){
+    var box=document.querySelector(".mapsearch"),
+        zc=document.querySelector(".mapwrap .leaflet-top.leaflet-left");
+    if(!box||!zc)return;
+    zc.style.top=(box.offsetTop+box.offsetHeight+10)+"px";
+  }
+  fitZoomControl();
+  window.addEventListener("resize",fitZoomControl);
+  // The hint disappears while the autocomplete is open, which changes the height too.
+  if(mh&&window.MutationObserver)
+    new MutationObserver(fitZoomControl).observe($("placeAc"),{attributes:true,attributeFilter:["class"]});
   // Same accessible autocomplete as the intake form: arrow keys, Enter, listbox roles.
   var acx=wireAutocomplete(pi,pac,goTo);
   pi.addEventListener("input",function(){pclr.classList.toggle("hidden",!this.value);});
