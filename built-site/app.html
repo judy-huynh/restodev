@@ -321,8 +321,6 @@
      the number and the rank are the information and the hue would be an argument.
      Same principle as D18: colour distinguishes, it does not encode. */
   .hp-vs{display:block;font-size:10px;line-height:1.35;color:var(--muted);margin-top:2px}
-  .hp-rank{display:inline-block;margin-top:3px;font-size:9.5px;font-weight:700;letter-spacing:.02em;
-    padding:1px 7px;border-radius:999px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
   /* Income bands. Counts, so nothing here is interpolated or averaged. */
   .hp-bands{display:flex;flex-direction:column;gap:4px;margin:10px 0 2px}
   .hp-band{display:grid;grid-template-columns:58px 1fr 30px;align-items:center;gap:7px}
@@ -1979,12 +1977,12 @@ function floodRows(d){
   // One decimal on both, always. Raw concatenation drops the tenth on whole numbers, so
   // one ring read "50.5%" next to "13%" and the pair looked like different measurements.
   var pc=function(v){return v.toFixed(1)+"%";};
-  var out='<div class="hp-stat" style="padding-top:9px"><span>Ground at high flood risk</span><b>'+
+  var out='<div class="hp-stat" style="padding-top:9px"><span>Land that can flood</span><b>'+
           (a!=null?pc(a):"—")+'</b></div>';
-  if(b!=null)out+='<div class="hp-stat"><span>Ground that floods less often</span><b>'+pc(b)+'</b></div>';
+  if(b!=null)out+='<div class="hp-stat"><span>Land that floods less often</span><b>'+pc(b)+'</b></div>';
   var tot=(a||0)+(b||0);
-  if(tot>0)out+='<p class="hp-note">FEMA puts the first at roughly a 1 in 100 chance of flooding in any year and the second at roughly 1 in 500. They do not overlap, so <b>'+
-    tot.toFixed(1)+'%</b> of this ground is on a flood map of some kind. A 1 in 100 chance is not once a century; it is every year.</p>';
+  if(tot>0)out+='<p class="hp-note">The first floods about once every 100 years. The second, about once every 500 years. Those are not the same land, so <b>'+
+    tot.toFixed(1)+'%</b> of this neighborhood is on a flood map. And once in 100 years does not mean it waits 100 years. It can happen any year, even two years in a row.</p>';
   return out;
 }
 /* A number on its own cannot be judged. 37.6% poverty means nothing until you know the
@@ -1996,42 +1994,72 @@ function floodRows(d){
 function base(k){
   var b=HOOD_BASE&&HOOD_BASE[k];
   if(b==null)return "";
-  return "Across these 17 neighborhoods, "+(k.indexOf("median")===0?money(b):b+"%");
+  var w=inWords(b);
+  return "Most of Memphis is closer to "+(k.indexOf("median")===0?money(b):b+"%")+
+         (w?" ("+w+")":"")+".";
 }
+/* Two things a percentage needs before an ordinary person can use it: what it means in
+   people, and whether it is unusual. Neither should sound like a report.
+   "30.6 points above the 17-neighborhood average of 63.7%" fails both. "Points" is
+   statistics vocabulary, and the ordinal rank turns a neighborhood into a league position.
+   It reads as a scorecard about Memphians rather than a description offered to them.
+
+   So: a plain "about 1 in 5" restatement, and a comparison in ordinary words. No ordinals,
+   no "points", no leaderboard. */
+/* "1 in N" only works below about half. Above that it collapses toward 1 in 1 and says
+   nothing, which left the single most important number on the page, 71.1% of children in
+   South Memphis growing up poor, with the weakest sentence under it. Over half flips to
+   "7 in 10", which is the same idea and still two small whole numbers. */
+function inWords(v){
+  if(v==null||v<4)return "";
+  if(v<=55)return "1 in "+Math.round(100/v);
+  if(v>=96)return "";                       // "10 in 10" is worse than the percentage
+  return Math.round(v/10)+" in 10";
+}
+/* `compare:false` for anything describing WHO people are rather than how they are doing.
+   Being 94.3% Black is not a score, and phrasing it as above or below an average asks the
+   reader to measure their own community against somewhere else. It is stated and left. */
+var CMP_PLAIN={
+  blackPct:{compare:false,unit:"people"},
+  over65Pct:{unit:"people"}, disabledPct:{unit:"people"},
+  under18Pct:{unit:"people"}, under5Pct:{unit:"people"}, age1824Pct:{unit:"people"},
+  childPovertyPct:{unit:"children"}, teen1619DisconnectedPct:{unit:"teenagers"}
+};
 function cmpRow(d,k,label,hideVal){
   var v=d[k]; if(v==null)return "";
-  var b=HOOD_BASE&&HOOD_BASE[k], r=d.rank&&d.rank[k];
+  var cfg=CMP_PLAIN[k]||{}, b=HOOD_BASE&&HOOD_BASE[k];
   var isMoney=k.indexOf("median")===0;
   var show=isMoney?money(v):v+"%";
-  // Rank is stated as plain English, not as a colour. "2nd highest of 17" is a fact;
-  // whether that is good or bad is the reader's call and depends entirely on the metric.
-  var rk="";
-  if(r){
-    /* Count from whichever end is nearer. "15th highest of 17" is technically true and
-       reads as noise; "3rd lowest of 17" is the same fact and lands immediately. */
-    var ord;
-    if(r.r===1)ord="highest";
-    else if(r.r===r.of)ord="lowest";
-    else if(r.r<=r.of/2)ord=r.r+ordSuffix(r.r)+" highest";
-    else{var fb=r.of-r.r+1;ord=fb+ordSuffix(fb)+" lowest";}
-    rk='<span class="hp-rank">'+esc(ord)+" of "+r.of+"</span>";
+  /* Written to be read by a 5th grader, because a lot of Memphis reads at that level and
+     a number nobody can read is a number nobody can argue with.
+     Both sides of the comparison are put in the SAME form. "1 in 5 here, 1 in 7 across
+     Memphis" is two small whole numbers a child can hold side by side. "20.4% versus a
+     14.6% average" is two decimals and a statistics word. Same fact, and only one of them
+     gets used. Short sentences, no "average", no "points", no percent signs in the
+     comparison at all. */
+  var line="";
+  if(cfg.compare!==false&&b!=null&&!hideVal){
+    var a=inWords(v), c=inWords(b), unit=cfg.unit||"people", parts=[];
+    if(a)parts.push("That is about "+a+" "+unit+".");
+    var diff=v-b, near=isMoney?2500:2;
+    if(Math.abs(diff)<near)parts.push("Most of Memphis is about the same.");
+    else if(isMoney)parts.push("Most of Memphis is closer to "+money(b)+".");
+    else if(c)parts.push("Most of Memphis is closer to "+c+".");
+    else parts.push("That is "+(diff>0?"more":"less")+" than most of Memphis.");
+    line='<span class="hp-vs">'+parts.join(" ")+'</span>';
+  }else if(cfg.compare!==false&&b!=null&&hideVal){
+    line='<span class="hp-vs">'+base(k)+'</span>';
+  }else if(cfg.compare!==false&&!hideVal){
+    var r2=inWords(v);
+    if(r2)line='<span class="hp-vs">That is about '+r2+' '+(cfg.unit||"people")+'.</span>';
   }
-  var delta="";
-  if(b!=null&&!hideVal){
-    var diff=v-b;
-    delta='<span class="hp-vs">'+
-      (Math.abs(diff)<(isMoney?2000:1.5)?"about the same as":
-        (isMoney?money(Math.abs(Math.round(diff))):Math.abs(diff).toFixed(1)+" points")+
-        (diff>0?" above":" below"))+" the 17-neighborhood average"+
-      (b!=null?" of "+(isMoney?money(b):b+"%"):"")+"</span>";
-  }else if(b!=null){
-    delta='<span class="hp-vs">17-neighborhood average '+(isMoney?money(b):b+"%")+"</span>";
-  }
+  // With no label and no value there is nothing to head the row with, so the sentence
+  // stands on its own rather than sitting under an empty line.
+  if(!label&&hideVal)return line?'<p class="hp-vs solo">'+line.replace(/<\/?span[^>]*>/g,"")+'</p>':"";
   return '<div class="hp-cmp">'+
     '<div class="hp-cmprow"><span>'+esc(label)+'</span>'+(hideVal?"":'<b>'+show+'</b>')+'</div>'+
-    delta+rk+'</div>';
+    line+'</div>';
 }
-function ordSuffix(n){var s=["th","st","nd","rd"],v=n%100;return s[(v-20)%10]||s[v]||s[0];}
 /* Household counts, straight from B19001. These add up exactly across tracts, so unlike a
    median they need no method at all and nothing is reconstructed. */
 function incomeBands(d){
@@ -2084,10 +2112,10 @@ function hoodPage(name){
     '</div>'+
 
     '<div class="hp-block"><div class="hp-label"><h3>'+ic("join",12)+' Who lives here</h3><span>ACS 2024</span></div>'+
-      '<div class="hp-head"><b>'+num(d.population)+'</b><span>people</span></div>'+
+      '<div class="hp-head"><b>'+num(d.population)+'</b><span>people live here</span></div>'+
       cmpRow(d,"blackPct","Black residents")+
-      cmpRow(d,"over65Pct","Over 65")+
-      cmpRow(d,"disabledPct","Living with a disability")+
+      cmpRow(d,"over65Pct","Elders, 65 and older")+
+      cmpRow(d,"disabledPct","People living with a disability")+
     '</div>'+
 
     /* Youth sits second, directly under who lives here, because it is the same question
@@ -2095,24 +2123,24 @@ function hoodPage(name){
        renewal readable in one glance, which is the whole argument for a cultural district
        as economic development. */
     '<div class="hp-block"><div class="hp-label"><h3>'+ic("sprout",12)+' Who is coming up</h3><span>ACS 2024</span></div>'+
-      '<div class="hp-head"><b>'+(d.under18!=null?num(d.under18):"—")+'</b><span>under 18<br>live here</span></div>'+
-      cmpRow(d,"under18Pct","Under 18")+
-      cmpRow(d,"under5Pct","Under 5")+
-      cmpRow(d,"age1824Pct","Ages 18 to 24")+
+      '<div class="hp-head"><b>'+(d.under18!=null?num(d.under18):"—")+'</b><span>kids and teens<br>live here</span></div>'+
+      cmpRow(d,"under18Pct","Kids and teens under 18")+
+      cmpRow(d,"under5Pct","Little kids under 5")+
+      cmpRow(d,"age1824Pct","Young adults, 18 to 24")+
       // Child poverty is not the poverty rate and is reliably higher. A combined figure
       // hides it, and it is the number that moves different money.
-      cmpRow(d,"childPovertyPct","Children in poverty")+
-      cmpRow(d,"teen1619DisconnectedPct","16 to 19, not in school and not working")+
+      cmpRow(d,"childPovertyPct","Kids growing up poor")+
+      cmpRow(d,"teen1619DisconnectedPct","Teens 16 to 19 not in school and not working")+
     '</div>'+
 
     '<div class="hp-block"><div class="hp-label"><h3>'+ic("chart",12)+' What it costs to stay</h3><span>ACS 2024</span></div>'+
       // A true pooled median, not a range and not an average of tract medians. See the
       // source note in neighborhood-profiles.json for the method.
-      '<div class="hp-head"><b>'+(d.medianIncome?money(d.medianIncome):"—")+'</b><span>median household<br>income a year</span></div>'+
-      cmpRow(d,"medianIncome","Compared with these 17 neighborhoods",true)+
+      '<div class="hp-head"><b>'+(d.medianIncome?money(d.medianIncome):"—")+'</b><span>a typical family<br>makes in a year</span></div>'+
+      cmpRow(d,"medianIncome","",true)+
       incomeBands(d)+
       '<div class="hp-stat" style="border-top:1px solid var(--line);margin-top:10px;padding-top:9px">'+
-        '<span>Median rent</span><b>'+(d.medianRent?money(d.medianRent):"—")+'</b></div>'+
+        '<span>Rent for a home, each month</span><b>'+(d.medianRent?money(d.medianRent):"—")+'</b></div>'+
       meterRow("Living in poverty",d.povertyPct,50,d.povertyPct>=33?"strain":d.povertyPct>=20?"watch":"ok",base("povertyPct"))+
       meterRow("Households renting",d.renterPct,100,d.renterPct>=70?"strain":d.renterPct>=55?"watch":"ok",base("renterPct"))+
       meterRow("Homes sitting empty",d.vacantPct,35,d.vacantPct>=20?"strain":d.vacantPct>=13?"watch":"ok",base("vacantPct"))+
@@ -2143,7 +2171,7 @@ function hoodPage(name){
        reader to hold two opposite ideas in one box. */
     '<div class="hp-block"><div class="hp-label"><h3>'+ic("layers",12)+' What this ground carries</h3><span>FEMA · ACS 2024</span></div>'+
       floodRows(d)+
-      '<div class="hp-stat"><span>Homes without broadband</span><b>'+(100-d.broadbandPct).toFixed(1)+'%</b></div>'+
+      '<div class="hp-stat"><span>Homes with no internet</span><b>'+(100-d.broadbandPct).toFixed(1)+'%</b></div>'+
     '</div>'+
 
     '<div class="hp-block"><div class="hp-label"><h3>'+ic("columns",12)+' Who answers for this ground</h3><span>Council 2023</span></div>'+
