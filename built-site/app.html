@@ -460,7 +460,7 @@
                 <div class="lp-gh">Community</div>
                 <button class="lrow on" id="anchorToggle"><span class="lname"><b>Cultural District</b><em>Clayborn and the sites around it</em></span><span class="sw"></span></button>
                 <button class="lrow" id="spaceToggle"><span class="lname"><b>Open spaces</b><em>Sample sites, for the demo</em></span><span class="sw"></span></button>
-                <button class="lrow" id="hoodToggle"><span class="lname"><b>Neighborhoods</b><em>Approximate, to be drawn with the room</em></span><span class="sw"></span></button>
+                <button class="lrow on" id="hoodToggle"><span class="lname"><b>Neighborhoods</b><em>Approximate, to be drawn with the room</em></span><span class="sw"></span></button>
               </div>
               <div class="lp-group">
                 <div class="lp-gh">City data · context</div>
@@ -784,7 +784,7 @@ function passes(s){
 function filtered(){return publicStories().filter(passes);}
 
 /* ── map ── */
-var map,anchorLayer,spacesLayer,hoodLayer,markersById={},anchorsOn=true,spacesOn=false,hoodsOn=false,ctxLayers={};
+var map,anchorLayer,spacesLayer,hoodLayer,markersById={},anchorsOn=true,spacesOn=false,hoodsOn=true,ctxLayers={};
 var STAR_SVG='<svg viewBox="0 0 24 24" fill="#FFC300" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path d="m12 1.6 2.95 6.4 7 .6-5.3 4.65 1.6 6.85L12 17.1l-6.25 3.5 1.6-6.85L2.05 8.6l7-.6L12 1.6Z"/></svg>';
 /* Base map tiles: Mapbox. Swap MAP_STYLE to your own Mapbox Studio style to restyle everything. */
 var MAPBOX_TOKEN="pk.eyJ1IjoiajAwYnkiLCJhIjoiY2x1bHUzbXZnMGhuczJxcG83YXY4czJ3ayJ9.S5PZpU9VDwLMjoX_0x5FDQ";
