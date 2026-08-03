@@ -34,7 +34,7 @@
 
   /* ── App bar ── */
   .appbar{display:flex;align-items:center;gap:12px;padding:0 18px;height:60px;background:var(--panel);border-bottom:1px solid var(--border);z-index:1200;flex:none}
-  .brand{display:flex;align-items:center;gap:11px;padding:0;background:none;border:0;cursor:pointer;text-align:left;flex:none}
+  .brand{display:flex;align-items:center;gap:11px;padding:0;background:none;border:0;cursor:pointer;text-align:left;flex:none;text-decoration:none;color:inherit}
   .brand:hover .bk b{color:var(--primaryDark)}
   .brand:focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:10px}
   .logo{width:36px;height:36px;border-radius:10px;background:var(--primary);display:grid;place-items:center;font-family:var(--display);font-weight:700;color:#fff;font-size:13px;box-shadow:0 6px 16px -6px rgba(255,71,126,.7);flex:none}
@@ -626,10 +626,17 @@
 <body>
 <div class="protobar"><b>MEMPHIS ROOTS</b> · The Big We · live stories via Supabase &amp; moderated · commons &amp; dreams saved on this device</div>
 <div class="appbar">
-  <button class="brand" id="navHome" aria-label="Back to the map">
+  <!-- A real link, not a button that switches views. The button kept the address bar
+       exactly as it was, so "go home" from ?hood=Frayser&dc=colossus-1 left every filter
+       applied and looked like nothing happened.
+       Relative href on purpose. It resolves to the live app.html in production, to
+       localhost while working, and to whatever path the Ground Truth tenant sits at, so
+       the same markup is correct in all three. A hardcoded judy-huynh.github.io would
+       bounce anyone testing locally onto the live site. -->
+  <a class="brand" id="navHome" href="app.html" aria-label="Memphis Roots, back to the full map">
     <span class="logo">BW</span>
     <span class="bk"><b>Memphis Roots</b><span>Culture as a Root &middot; The Big We</span></span>
-  </button>
+  </a>
   <nav class="mainnav" id="mainnav" aria-label="Main">
     <a class="nav" href="index.html">The Story</a>
     <button class="nav" id="navMap" data-view="explore">The Map</button>
@@ -2352,7 +2359,10 @@ $("eraSel").addEventListener("change",function(){F.era=this.value;apply();});
 $("campSel").addEventListener("change",function(){F.campaign=this.value;apply();});
 $("navImpact").addEventListener("click",function(){showView("impact");});
 $("navMap").addEventListener("click",function(){showView("explore");});
-$("navHome").addEventListener("click",function(){showView("explore");});
+/* navHome has no handler any more: it is an <a href="app.html"> and the browser does the
+   work. That also buys back the things a button never had, middle-click and cmd-click to
+   open a clean map in a new tab, and it is why the reload is cheap now: boot fetches four
+   files, about 23KB, because the context layers wait to be asked for. */
 /* mobile panel drawer */
 $("panel").addEventListener("click",function(e){if(e.target===this||e.target.classList.contains("p-head")){this.classList.toggle("up");}});
 
