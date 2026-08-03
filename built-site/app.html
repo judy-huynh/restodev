@@ -282,6 +282,7 @@
   .hp-asset b{display:block;font-size:15px;font-weight:700;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
   .hp-asset span{font-size:10.5px;line-height:1.25}
   .hp-asset.none b{color:var(--faint)}
+  .hp-asset.wide{grid-column:1/-1}
   .hp-cd{display:flex;align-items:center;gap:9px;padding:5px 0}
   .hp-cdn{font-size:12.5px;font-weight:600;min-width:72px}
   .hp-cdv{font-size:11.5px;color:var(--muted);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
@@ -375,8 +376,24 @@
   .mk-star svg{width:100%;height:100%;display:block}
   .anchor-lbl{font-size:11px;font-weight:700;color:var(--anchor);white-space:nowrap;text-shadow:0 1px 3px #fff,0 0 3px #fff,0 0 3px #fff;transform:translate(10px,-6px)}
   .anchor-lbl.star-lbl{font-size:13.5px;font-weight:800;color:var(--primaryDark);transform:translate(20px,-9px)}
-  .leaflet-popup-content-wrapper{border-radius:14px;box-shadow:var(--shadow)}
-  .leaflet-popup-content{margin:0;width:auto!important}
+  /* `margin:0` with `width:auto!important` was overriding the width Leaflet computes for
+     itself, and with no padding either the box shrink-wrapped to the longest single word.
+     The flood popup came out 43px wide and 270px tall, one word per line. The add-a-memory
+     popup escaped it only because .addpop sets its own min-width.
+     Constraints, not auto: a floor so a short label cannot collapse into a column, a
+     ceiling so a long one cannot run across the map. */
+  .leaflet-popup-content-wrapper{border-radius:12px;box-shadow:var(--shadow);padding:0}
+  /* max-content, not auto. `auto` inside Leaflet's shrink-to-fit wrapper resolves toward
+     min-content, so every popup collapsed to its narrowest possible column and then grew
+     downward. max-content asks for the natural one-line width and max-width clamps it, so
+     a short label gets one line and a long one wraps at a readable measure. */
+  .leaflet-popup-content{margin:0;width:max-content!important;min-width:150px;max-width:260px;
+    padding:10px 13px;font-size:12.5px;line-height:1.45;color:var(--muted)}
+  .leaflet-popup-content .pt{display:block;font-size:13px;font-weight:750;color:var(--text);line-height:1.3}
+  .leaflet-popup-content .pm{display:block;margin-top:3px;font-size:11.5px;color:var(--muted)}
+  .leaflet-popup-content .pq{display:block;margin-top:5px;padding-top:5px;border-top:1px solid var(--line);
+    font-size:10.5px;color:var(--faint)}
+  .leaflet-popup-content p{margin:0}
 
   /* ── Detail slide-over ── */
   .detail{position:absolute;inset:0;background:var(--panel);z-index:60;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);min-height:0}
@@ -497,6 +514,15 @@
   .mapsearch input{width:100%;border:1.5px solid var(--border);border-radius:11px;padding:10px 30px 10px 34px;font-size:13.5px;background:#fff;box-shadow:0 3px 14px rgba(0,0,0,.11)}
   .mapsearch input:focus{outline:none;border-color:var(--primary)}
   .mapsearch .si{position:absolute;left:11px;top:17px;transform:translateY(-50%);color:var(--faint);display:inline-flex;pointer-events:none}
+  /* Right-click is not a discoverable gesture, so it has to be said once, quietly, next
+     to the other way in. pointer-events:none so the hint never eats a click on the map. */
+  .maphint{margin:6px 0 0;padding:5px 9px;border-radius:8px;background:rgba(255,255,255,.86);
+    backdrop-filter:blur(3px);font-size:11px;line-height:1.35;color:var(--muted);
+    box-shadow:0 2px 8px rgba(0,0,0,.08);pointer-events:none;width:fit-content;max-width:100%}
+  .maphint b{color:var(--text);font-weight:700}
+  /* Once someone is typing, the search results are the thing to read. The hint sits
+     between the field and the list otherwise, which is exactly where the eye is going. */
+  .aclist:not(.hidden) ~ .maphint{display:none}
   .msclear{position:absolute;right:8px;top:8px;width:20px;height:20px;border:0;background:none;color:var(--muted);font-size:17px;line-height:1;cursor:pointer}
   .mk-found{width:18px;height:18px;border-radius:50%;background:var(--cta,#FFC300);border:3px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.18)}
   /* "Add a Memory Here" popup, used by both the map click and a search result */
@@ -680,6 +706,7 @@
           <input id="placeIn" autocomplete="off" placeholder="Find a place in Memphis">
           <button type="button" class="msclear hidden" id="placeClear" aria-label="Clear">&times;</button>
           <div class="aclist hidden" id="placeAc"></div>
+          <p class="maphint" id="mapHint"></p>
         </div>
         <div class="vignette"></div>
         <button class="locbtn" id="locBtn" type="button" aria-pressed="false" title="Show where I am" aria-label="Show where I am"><span class="locdot"></span></button>
@@ -1387,9 +1414,19 @@ function initMap(){
   anchorLayer=L.layerGroup();
   if(anchorsOn)anchorLayer.addTo(map);
   loadCultural();
-  // Clicking empty map offers to start a story there. Leaflet markers stop click
-  // propagation, so taps on stories, anchors and spaces do not reach this.
-  map.on("click",function(e){openAddHere(e.latlng,"map-click");});
+  /* Adding a memory is a RIGHT-CLICK, not a click.
+     A left-click anywhere on the map used to offer to start a story, and in practice
+     people pan, zoom and click around to read the thing. Every one of those reads landed
+     an "Add a Memory Here" popup on top of what they were looking at. Reading and adding
+     are different intentions and the gesture should be different too.
+     Left-click is now free to do nothing, which is what a map should do when you are
+     looking at it. The ways to add are: right-click a spot, search for a place, or the
+     Share Your Story button, which never depended on hitting the right pixel. */
+  map.on("contextmenu",function(e){
+    if(e.originalEvent&&e.originalEvent.preventDefault)e.originalEvent.preventDefault();
+    openAddHere(e.latlng,"map-rightclick");
+  });
+  bindLongPressAdd();
   map.on("locationfound",onMeFound);
   map.on("locationerror",onMeFailed);
   renderMarkers();
@@ -1432,14 +1469,21 @@ function loadHoodShapes(){
             l.setStyle(hoodStyle(f.properties.name,F.hood===f.properties.name));
           });
         }
-        // First click reads the neighborhood: zoom to it, highlight it, show only its
-        // stories. Only once you are already looking at it does a second click offer to
-        // add a memory. Otherwise the popup lands on top of the thing you came to see.
-        l.on("click",function(e){
-          var name=f.properties.name;
-          if(F.hood===name){openAddHere(e.latlng,"map-click",name);return;}
-          var sel=$("hoodSel");
+        // A click reads the neighborhood: zoom to it, highlight it, show only its
+        // stories. It never adds. Clicking a selected shape a second time used to offer
+        // the form, and since the shapes tile the whole city that fired on any click
+        // inside a neighborhood you were already reading. Right-click adds.
+        l.on("click",function(){
+          var name=f.properties.name,sel=$("hoodSel");
+          if(F.hood===name)return;
           if(sel){sel.value=name;sel.dispatchEvent(new Event("change"));}
+        });
+        // Paths do not bubble (bubblingMouseEvents:false), so the map's own contextmenu
+        // handler never sees a right-click that lands on a polygon. Repeat it here, and
+        // pass the neighborhood name through so the form starts already knowing it.
+        l.on("contextmenu",function(e){
+          if(e.originalEvent&&e.originalEvent.preventDefault)e.originalEvent.preventDefault();
+          openAddHere(e.latlng,"map-rightclick",f.properties.name);
         });
       }});
     if(hoodsOn)hoodLayer.addTo(map);
@@ -1511,13 +1555,15 @@ function loadCultural(){
         // is a cluttered map; a number you ask for is a quiet one.
         .bindTooltip(function(){return starTip(p);},{direction:"top",offset:[0,-s/2],className:"startip"})
         .addTo(anchorLayer);
-      // Same rule as the neighborhoods, for the same reason. First click reads the place:
-      // its history, its address and its memories fill the panel on the left, where there
-      // is room to teach. Nothing covers the map. Only once you are already reading it
-      // does a second click offer to add a memory.
-      m.on("click",function(){
-        if(F.site===p.name){openAddHere([lat,lng],"cultural-site",p.name,p.name);return;}
-        selectSite(p.name);
+      // Same rule as the neighborhoods, for the same reason. A click reads the place: its
+      // history, its address and its memories fill the panel on the left, where there is
+      // room to teach. Nothing covers the map, and nothing is added by accident.
+      // The site page already carries an "Add a Memory Here" button, so the old
+      // second-click-to-add was a hidden duplicate of a labelled one.
+      m.on("click",function(){selectSite(p.name);});
+      m.on("contextmenu",function(e){
+        if(e.originalEvent&&e.originalEvent.preventDefault)e.originalEvent.preventDefault();
+        openAddHere([lat,lng],"cultural-site",p.name,p.name);
       });
       if(isAnchor)L.marker([lat,lng],{icon:L.divIcon({className:"",html:'<div class="anchor-lbl star-lbl">'+esc(p.name)+'</div>',iconSize:[0,0]}),interactive:false,zIndexOffset:800}).addTo(anchorLayer);
     });
@@ -1564,6 +1610,33 @@ function selectSite(n){
 }
 /* The "start a story here" popup. Shared by an empty-map click and the second click on
    an already-selected neighborhood, so both routes behave identically. */
+/* A phone has no right-click. Chrome on Android synthesises `contextmenu` from a long
+   press but iOS Safari does not do it reliably on a plain element, so this is explicit:
+   press and hold for 550ms without moving more than a few pixels.
+   The movement threshold is the whole trick. Without it every pan that starts slowly
+   fires an add, which is the bug this change exists to remove, just with a different
+   gesture. */
+function bindLongPressAdd(){
+  var el=map.getContainer(),timer=null,start=null;
+  var cancel=function(){if(timer){clearTimeout(timer);timer=null;}start=null;};
+  el.addEventListener("touchstart",function(e){
+    if(e.touches.length!==1)return cancel();
+    var t=e.touches[0];start={x:t.clientX,y:t.clientY};
+    timer=setTimeout(function(){
+      timer=null;
+      if(!start)return;
+      var pt=map.mouseEventToLatLng({clientX:start.x,clientY:start.y});
+      openAddHere(pt,"map-longpress");
+      cancel();
+    },550);
+  },{passive:true});
+  el.addEventListener("touchmove",function(e){
+    if(!start||!timer)return;
+    var t=e.touches[0];
+    if(Math.abs(t.clientX-start.x)>8||Math.abs(t.clientY-start.y)>8)cancel();   // it is a pan
+  },{passive:true});
+  ["touchend","touchcancel"].forEach(function(n){el.addEventListener(n,cancel,{passive:true});});
+}
 function openAddHere(latlng,src,label,corner){
   var ll=L.latLng(latlng);
   L.popup({closeButton:false,className:"addpop"})
@@ -1628,6 +1701,14 @@ function highlightHood(name){
    circles and SVG starts to drag on a phone somewhere under that. */
 var ctxCanvas=null;
 function ctxRenderer(){if(!ctxCanvas)ctxCanvas=L.canvas({pane:"ctx",padding:.4});return ctxCanvas;}
+/* One shape for every context popup: a title, an optional plain line, and an optional
+   quiet source line under a rule. Built from parts rather than glued with <br>, so the
+   three sizes are decided in CSS once instead of in each layer's string. */
+function pop(title,meta,src){
+  return '<span class="pt">'+esc(title)+'</span>'+
+    (meta?'<span class="pm">'+esc(meta)+'</span>':'')+
+    (src?'<span class="pq">'+esc(src)+'</span>':'');
+}
 function ctxCircle(color,r){return {radius:r||5,fillColor:color,color:"#fff",weight:1,fillOpacity:.9,pane:"ctx",renderer:ctxRenderer()};}
 var CTX={
   /* Two bands, drawn as one layer because they answer one question. The 500-year goes on
@@ -1639,14 +1720,14 @@ var CTX={
   flood:{files:["flood500.geojson","flood.geojson"],build:function(d500,d100){
     var g=L.layerGroup();
     L.geoJSON(d500,{pane:"ctx",style:function(){return{color:"#7FA9E0",weight:.8,dashArray:"3 3",fillColor:"#7FA9E0",fillOpacity:.13,pane:"ctx"};},
-      onEachFeature:function(f,l){l.bindPopup("<b>Floods less often, but does flood</b><br>About a 1 in 500 chance in any year.<br>FEMA calls this zone X, 0.2% annual chance.");}}).addTo(g);
+      onEachFeature:function(f,l){l.bindPopup(pop("Floods less often","About a 1 in 500 chance in any year.","FEMA zone X, 0.2% annual chance"));}}).addTo(g);
     L.geoJSON(d100,{pane:"ctx",style:function(){return{color:"#2b6cb0",weight:1,fillColor:"#3A86FF",fillOpacity:.22,pane:"ctx"};},
-      onEachFeature:function(f,l){l.bindPopup("<b>High flood risk</b><br>About a 1 in 100 chance in any year.<br>FEMA zone "+(f.properties.zone||"A")+", the Special Flood Hazard Area.");}}).addTo(g);
+      onEachFeature:function(f,l){l.bindPopup(pop("High flood risk","About a 1 in 100 chance in any year.","FEMA zone "+(f.properties.zone||"A")+", Special Flood Hazard Area"));}}).addTo(g);
     return g;}},
-  food:{files:["food.geojson"],build:function(d){var FULL={"Grocery Store":1,"Supermarket":1,"Super Store":1,"Farmers and Markets":1};return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle(FULL[f.properties.type]?"#1B7A3D":"#E0A100",5));},onEachFeature:function(f,l){l.bindPopup("<b>"+esc(f.properties.name||"Food retailer")+"</b><br>"+esc(f.properties.type||""));}});}},
-  parks:{files:["parks.geojson"],build:function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#17C3B2",4));},onEachFeature:function(f,l){l.bindPopup("<b>"+esc(f.properties.name||"Park")+"</b><br>City of Memphis park");}});}},
-  comm:{files:["community.geojson"],build:function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#8338EC",6));},onEachFeature:function(f,l){l.bindPopup("<b>"+esc(f.properties.name||"Community center")+"</b>"+(f.properties.street?"<br>"+esc(f.properties.street):""));}});}},
-  lib:{files:["libraries.geojson"],build:function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#3A86FF",6));},onEachFeature:function(f,l){l.bindPopup("<b>"+esc(f.properties.name||"Library")+"</b>"+(f.properties.street?"<br>"+esc(f.properties.street):""));}});}},
+  food:{files:["food.geojson"],build:function(d){var FULL={"Grocery Store":1,"Supermarket":1,"Super Store":1,"Farmers and Markets":1};return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle(FULL[f.properties.type]?"#1B7A3D":"#E0A100",5));},onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Food retailer",f.properties.type||"",FULL[f.properties.type]?"Full-service · USDA SNAP":"USDA SNAP"));}});}},
+  parks:{files:["parks.geojson"],build:function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#17C3B2",4));},onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Park","","City of Memphis park"));}});}},
+  comm:{files:["community.geojson"],build:function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#8338EC",6));},onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Community center",f.properties.street||"","City of Memphis"));}});}},
+  lib:{files:["libraries.geojson"],build:function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#3A86FF",6));},onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Library",f.properties.street||"","Memphis Public Libraries"));}});}},
   /* Churches, and the rest. Small and semi-transparent on purpose: there are 1,117 of
      them and the density IS the finding, so they should read as a texture over the city
      rather than as 1,117 things to click one at a time.
@@ -1658,8 +1739,7 @@ var CTX={
       return L.circleMarker(ll,{radius:loc?6:3,fillColor:loc?"#7A1F3D":"#A4262C",
         color:loc?"#fff":"#fff",weight:loc?1.6:.7,fillOpacity:loc?1:.72,pane:"ctx",renderer:ctxRenderer()});},
     onEachFeature:function(f,l){var p=f.properties;
-      l.bindPopup("<b>"+esc(p.name)+"</b>"+(p.street?"<br>"+esc(p.street):"")+
-        (p.note?'<br><em style="color:#7A1F3D">'+esc(p.note)+"</em>":""));}});}}
+      l.bindPopup(pop(p.name,p.street||"",p.note||(p.src==="local"?"Held by this project":"OpenStreetMap")));}});}}
 };
 /* Fetched once, kept. `pending` holds the in-flight promise so a double tap does not
    start a second download of the same megabyte. */
@@ -1815,8 +1895,8 @@ function floodRows(d){
     tot.toFixed(1)+'%</b> of this ground is on a flood map of some kind. A 1 in 100 chance is not once a century; it is every year.</p>';
   return out;
 }
-function assetTile(icon,n,label){
-  return '<div class="hp-asset'+(n?'':' none')+'">'+ic(icon,16)+'<div><b>'+n+'</b><span>'+esc(label)+'</span></div></div>';
+function assetTile(icon,n,label,cls){
+  return '<div class="hp-asset'+(n?'':' none')+(cls?' '+cls:'')+'">'+ic(icon,16)+'<div><b>'+n+'</b><span>'+esc(label)+'</span></div></div>';
 }
 function hoodPrompts(d){
   var out=[];
@@ -1882,7 +1962,13 @@ function hoodPage(name){
         assetTile("hall",a.centers,a.centers===1?"community center":"community centers")+
         assetTile("tree",a.parks,a.parks===1?"park":"parks")+
         assetTile("star",a.cultural||0,"Cultural District")+
+        // Full width, and last, because it is usually the largest number in the block by
+        // an order of magnitude and would make a half-tile look like a rounding error.
+        (a.faith!=null?assetTile("church",a.faith,
+           (a.faith===1?"church or place of worship":"churches and places of worship")+
+           (d.peoplePerChurch?", one for every "+num(d.peoplePerChurch)+" people":""),"wide"):"")+
       '</div>'+
+      (a.faith?'<p class="hp-note">Places of worship are named entries in OpenStreetMap plus the ones this project holds itself. It does not know every storefront church, and in Memphis that is most of them, so read this as a floor.</p>':'')+
       floodRows(d)+
       '<div class="hp-stat"><span>Homes without broadband</span><b>'+(100-d.broadbandPct).toFixed(1)+'%</b></div>'+
     '</div>'+
@@ -2329,6 +2415,12 @@ $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMe
       draft.corner=f.short;draft.cornerTyped=true;
     });
   }
+  // The gesture differs by device, so the hint has to as well. Coarse pointer means a
+  // finger, and a finger cannot right-click.
+  var mh=$("mapHint");
+  if(mh)mh.innerHTML=(window.matchMedia&&window.matchMedia("(pointer: coarse)").matches)
+    ? 'Search a place above, or <b>press and hold</b> the map to add a memory there.'
+    : 'Search a place above, or <b>right-click</b> the map to add a memory there.';
   // Same accessible autocomplete as the intake form: arrow keys, Enter, listbox roles.
   var acx=wireAutocomplete(pi,pac,goTo);
   pi.addEventListener("input",function(){pclr.classList.toggle("hidden",!this.value);});

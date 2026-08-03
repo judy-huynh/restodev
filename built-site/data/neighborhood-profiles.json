@@ -5,7 +5,8 @@
   "food": "USDA SNAP retailer locations, Memphis",
   "civic": "Memphis Public Libraries / Community Centers / MFD Fire Stations / City of Memphis Parks, data.memphistn.gov",
   "council": "Council Districts 2023, data.memphistn.gov",
-  "flood": "FEMA NFHL S_FLD_HAZ_AR, retrieved 2026-08-03. floodSharePct is the 1% annual chance zone (A, AE). flood500SharePct is the 0.2% annual chance zone, which lies outside the 1% zone, so the two do not overlap and may be read together as total mapped exposure. Computed against full-resolution geometry."
+  "flood": "FEMA NFHL S_FLD_HAZ_AR, retrieved 2026-08-03. floodSharePct is the 1% annual chance zone (A, AE). flood500SharePct is the 0.2% annual chance zone, which lies outside the 1% zone, so the two do not overlap and may be read together as total mapped exposure. Computed against full-resolution geometry.",
+  "faith": "OpenStreetMap contributors via Overpass, retrieved 2026-08-03, ODbL. Named places of worship whose point falls inside the boundary, plus places this project holds itself where OSM does not tag them as places of worship. 508 unnamed OSM points are not counted. Denomination is not published; see DECISIONS D25."
  },
  "retrieved": "2026-08-03",
  "neighborhoods": {
@@ -46,7 +47,8 @@
     "centers": 1,
     "fire": 1,
     "parks": 7,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 25
    },
    "council": [
     {
@@ -59,7 +61,8 @@
     }
    ],
    "peoplePerGrocery": 2548,
-   "flood500SharePct": 1.3
+   "flood500SharePct": 1.3,
+   "peoplePerChurch": 1019
   },
   "Binghampton": {
    "tracts": 6,
@@ -98,7 +101,8 @@
     "centers": 1,
     "fire": 1,
     "parks": 3,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 43
    },
    "council": [
     {
@@ -107,7 +111,8 @@
     }
    ],
    "peoplePerGrocery": 4880,
-   "flood500SharePct": 0.0
+   "flood500SharePct": 0.0,
+   "peoplePerChurch": 340
   },
   "Downtown / Clayborn": {
    "tracts": 8,
@@ -146,7 +151,8 @@
     "centers": 1,
     "fire": 4,
     "parks": 28,
-    "cultural": 16
+    "cultural": 16,
+    "faith": 49
    },
    "council": [
     {
@@ -159,7 +165,8 @@
     }
    ],
    "peoplePerGrocery": 4142,
-   "flood500SharePct": 0.0
+   "flood500SharePct": 0.0,
+   "peoplePerChurch": 338
   },
   "East Memphis": {
    "tracts": 11,
@@ -198,7 +205,8 @@
     "centers": 0,
     "fire": 3,
     "parks": 4,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 45
    },
    "council": [
     {
@@ -215,7 +223,8 @@
     }
    ],
    "peoplePerGrocery": 3953,
-   "flood500SharePct": 2.6
+   "flood500SharePct": 2.6,
+   "peoplePerChurch": 878
   },
   "Frayser": {
    "tracts": 13,
@@ -254,7 +263,8 @@
     "centers": 2,
     "fire": 4,
     "parks": 23,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 99
    },
    "council": [
     {
@@ -267,7 +277,8 @@
     }
    ],
    "peoplePerGrocery": 7032,
-   "flood500SharePct": 2.6
+   "flood500SharePct": 2.6,
+   "peoplePerChurch": 426
   },
   "Harbor Town": {
    "tracts": 2,
@@ -306,7 +317,8 @@
     "centers": 0,
     "fire": 1,
     "parks": 5,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 12
    },
    "council": [
     {
@@ -315,7 +327,8 @@
     }
    ],
    "peoplePerGrocery": 6520,
-   "flood500SharePct": 0.0
+   "flood500SharePct": 0.0,
+   "peoplePerChurch": 543
   },
   "Hickory Hill": {
    "tracts": 21,
@@ -354,7 +367,8 @@
     "centers": 1,
     "fire": 4,
     "parks": 11,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 42
    },
    "council": [
     {
@@ -371,7 +385,8 @@
     }
    ],
    "peoplePerGrocery": 6058,
-   "flood500SharePct": 5.3
+   "flood500SharePct": 5.3,
+   "peoplePerChurch": 1875
   },
   "Midtown": {
    "tracts": 15,
@@ -410,7 +425,8 @@
     "centers": 0,
     "fire": 4,
     "parks": 7,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 66
    },
    "council": [
     {
@@ -431,7 +447,8 @@
     }
    ],
    "peoplePerGrocery": 5863,
-   "flood500SharePct": 0.0
+   "flood500SharePct": 0.0,
+   "peoplePerChurch": 533
   },
   "North Memphis": {
    "tracts": 8,
@@ -470,7 +487,8 @@
     "centers": 4,
     "fire": 4,
     "parks": 13,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 90
    },
    "council": [
     {
@@ -483,7 +501,8 @@
     }
    ],
    "peoplePerGrocery": 3734,
-   "flood500SharePct": 2.3
+   "flood500SharePct": 2.3,
+   "peoplePerChurch": 166
   },
   "Orange Mound": {
    "tracts": 13,
@@ -522,7 +541,8 @@
     "centers": 4,
     "fire": 3,
     "parks": 15,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 84
    },
    "council": [
     {
@@ -535,7 +555,8 @@
     }
    ],
    "peoplePerGrocery": 4454,
-   "flood500SharePct": 0.9
+   "flood500SharePct": 0.9,
+   "peoplePerChurch": 424
   },
   "Parkway Village": {
    "tracts": 8,
@@ -574,7 +595,8 @@
     "centers": 2,
     "fire": 3,
     "parks": 6,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 37
    },
    "council": [
     {
@@ -591,7 +613,8 @@
     }
    ],
    "peoplePerGrocery": 2593,
-   "flood500SharePct": 5.8
+   "flood500SharePct": 5.8,
+   "peoplePerChurch": 841
   },
   "Raleigh": {
    "tracts": 17,
@@ -630,7 +653,8 @@
     "centers": 2,
     "fire": 3,
     "parks": 11,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 83
    },
    "council": [
     {
@@ -643,7 +667,8 @@
     }
    ],
    "peoplePerGrocery": 5180,
-   "flood500SharePct": 1.6
+   "flood500SharePct": 1.6,
+   "peoplePerChurch": 999
   },
   "Soulsville": {
    "tracts": 4,
@@ -682,7 +707,8 @@
     "centers": 1,
     "fire": 1,
     "parks": 3,
-    "cultural": 5
+    "cultural": 5,
+    "faith": 54
    },
    "council": [
     {
@@ -695,7 +721,8 @@
     }
    ],
    "peoplePerGrocery": 7190,
-   "flood500SharePct": 0.0
+   "flood500SharePct": 0.0,
+   "peoplePerChurch": 133
   },
   "South Memphis": {
    "tracts": 13,
@@ -734,7 +761,8 @@
     "centers": 2,
     "fire": 3,
     "parks": 19,
-    "cultural": 3
+    "cultural": 3,
+    "faith": 149
    },
    "council": [
     {
@@ -747,7 +775,8 @@
     }
    ],
    "peoplePerGrocery": 5046,
-   "flood500SharePct": 0.7
+   "flood500SharePct": 0.7,
+   "peoplePerChurch": 169
   },
   "Westwood": {
    "tracts": 5,
@@ -786,7 +815,8 @@
     "centers": 2,
     "fire": 4,
     "parks": 17,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 78
    },
    "council": [
     {
@@ -795,7 +825,8 @@
     }
    ],
    "peoplePerGrocery": 12060,
-   "flood500SharePct": 1.3
+   "flood500SharePct": 1.3,
+   "peoplePerChurch": 309
   },
   "White Station": {
    "tracts": 5,
@@ -834,7 +865,8 @@
     "centers": 0,
     "fire": 1,
     "parks": 3,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 16
    },
    "council": [
     {
@@ -843,7 +875,8 @@
     }
    ],
    "peoplePerGrocery": 9336,
-   "flood500SharePct": 3.2
+   "flood500SharePct": 3.2,
+   "peoplePerChurch": 1167
   },
   "Whitehaven": {
    "tracts": 18,
@@ -882,7 +915,8 @@
     "centers": 1,
     "fire": 8,
     "parks": 13,
-    "cultural": 0
+    "cultural": 0,
+    "faith": 107
    },
    "council": [
     {
@@ -895,7 +929,8 @@
     }
    ],
    "peoplePerGrocery": 6244,
-   "flood500SharePct": 5.0
+   "flood500SharePct": 5.0,
+   "peoplePerChurch": 642
   }
  }
 }
