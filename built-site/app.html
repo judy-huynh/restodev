@@ -177,8 +177,9 @@
   .mk svg{width:100%;height:100%;display:block}
   .mk-wrap{transition:.16s}
   .mk-wrap.hi .mk,.mk-wrap.sel .mk{transform:scale(1.42);filter:drop-shadow(0 6px 10px rgba(36,28,59,.55))}
-  .mk-anchor{width:14px;height:14px;transform:rotate(45deg);background:var(--anchor);border:2px solid #fff;opacity:.92;box-shadow:0 2px 6px rgba(0,0,0,.4)}
-  .mk-star{width:32px;height:32px;filter:drop-shadow(0 2px 5px rgba(36,28,59,.5))}
+  .mk-star{width:22px;height:22px;filter:drop-shadow(0 2px 5px rgba(36,28,59,.5));transition:transform .16s}
+  .mk-star:hover{transform:scale(1.25)}
+  .mk-star.lg{width:34px;height:34px}
   .mk-star svg{width:100%;height:100%;display:block}
   .anchor-lbl{font-size:11px;font-weight:700;color:var(--anchor);white-space:nowrap;text-shadow:0 1px 3px #fff,0 0 3px #fff,0 0 3px #fff;transform:translate(10px,-6px)}
   .anchor-lbl.star-lbl{font-size:13.5px;font-weight:800;color:var(--primaryDark);transform:translate(20px,-9px)}
@@ -293,6 +294,13 @@
   .pop{padding:13px 14px 12px}
   .pop .pname{font-size:14px;font-weight:700;line-height:1.3;margin:0 0 3px;color:var(--text)}
   .pop .paddr{font-size:11.5px;color:var(--muted);line-height:1.45;margin:0 0 11px}
+  /* Cultural District site popup */
+  .cultpop .leaflet-popup-content-wrapper{border-radius:14px;padding:0;overflow:hidden}
+  .cultpop .leaflet-popup-content{margin:0!important;width:auto!important;min-width:210px;max-width:262px}
+  .cultpop .leaflet-popup-tip{box-shadow:none}
+  .pop .pcat{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:0 0 4px}
+  .pop.cult .paddr{margin:0 0 8px}
+  .pop .pdesc{font-size:11.5px;color:var(--muted);line-height:1.5;margin:0}
   .addhere{display:block;width:100%;background:var(--primary);color:#fff;border:0;border-radius:10px;padding:10px 14px;font:inherit;font-weight:700;font-size:13px;line-height:1.2;cursor:pointer;text-align:center}
   .addhere:hover{background:var(--primaryDark)}
   @media(max-width:860px){.mapsearch{width:calc(100% - 24px)}.mapwrap .leaflet-top.leaflet-left{top:58px}}
@@ -470,7 +478,7 @@
             <div class="lp-body" id="lpBody">
               <div class="lp-group">
                 <div class="lp-gh">Community</div>
-                <button class="lrow on" id="anchorToggle"><span class="lname"><b>Cultural District</b><em>Clayborn and the sites around it</em></span><span class="sw"></span></button>
+                <button class="lrow on" id="anchorToggle"><span class="lname"><b>Cultural District</b><em>24 sites, Clayborn at the center</em></span><span class="sw"></span></button>
                 <button class="lrow" id="spaceToggle"><span class="lname"><b>Open spaces</b><em>Sample sites, for the demo</em></span><span class="sw"></span></button>
                 <button class="lrow on" id="hoodToggle"><span class="lname"><b>Neighborhoods</b><em>Approximate, to be drawn with the room</em></span><span class="sw"></span></button>
               </div>
@@ -596,17 +604,12 @@ var CAMPAIGNS={
 var MODES={web:"Website",kiosk:"Event kiosk",share:"Interview",ambassador:"Story ambassador"};
 var eraLabel=function(id){for(var i=0;i<ERAS.length;i++)if(ERAS[i][0]===id)return ERAS[i][1];return id;};
 var CLAYBORN=[35.1365,-90.0511];
-// The Cultural District web named in the RestoDev Framework (ASD v2, Investment Thesis).
-// Clayborn is the anchor, the Grandmother; the rest are the constellation around it.
-// Coordinates geocoded from the street addresses in the comments, 2026-07-30.
-var ANCHORS=[
-  {n:"Clayborn Temple",lat:35.1365,lng:-90.0511,star:true},        // 294 Hernando St
-  {n:"National Civil Rights Museum",lat:35.1346,lng:-90.0576},     // 450 Mulberry St
-  {n:"R.S. Lewis Funeral Home",lat:35.1354,lng:-90.0493},          // 374 Vance Ave
-  {n:"Stax Museum · Soulsville",lat:35.1158,lng:-90.0311},         // 926 E McLemore Ave
-  {n:"Aretha Franklin Birth Home",lat:35.1143,lng:-90.0488},       // 406 Lucy Ave
-  {n:"People's Grocery",lat:35.1195,lng:-90.0388}                  // Mississippi Blvd & Walker Ave, UNVERIFIED
-];
+/* The Cultural District web named in the RestoDev Framework (ASD v2, Investment Thesis).
+   Clayborn is the anchor, the Grandmother; the rest are the constellation around it.
+   The six hardcoded anchors were replaced by data/cultural.geojson (24 sites, with
+   category, address and description), so the map and the data are one file, not two
+   lists that drift. Loaded async in loadCultural(). */
+var CULTURAL=[];
 /* NEIGHBORHOODS: a gazetteer, deliberately not a boundary file.
    There is no official Memphis neighborhood boundary layer. What exists is:
    the city's "Neighborhoods" service (really CDC service areas, 110 overlapping
@@ -979,15 +982,8 @@ function initMap(){
   map.createPane("hoods");map.getPane("hoods").style.zIndex=340; // neighborhoods sit under everything
   loadHoodShapes();
   anchorLayer=L.layerGroup();
-  ANCHORS.forEach(function(a){
-    if(a.star){
-      L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="mk-star">'+STAR_SVG+'</div>',iconSize:[32,32],iconAnchor:[16,16]}),interactive:false,zIndexOffset:-600}).addTo(anchorLayer);
-      L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="anchor-lbl star-lbl">'+esc(a.n)+'</div>',iconSize:[0,0]}),interactive:false,zIndexOffset:800}).addTo(anchorLayer);
-      return;
-    }
-    L.marker([a.lat,a.lng],{icon:L.divIcon({className:"",html:'<div class="mk-anchor" title="'+esc(a.n)+'"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:true,title:a.n}).addTo(anchorLayer);
-  });
   if(anchorsOn)anchorLayer.addTo(map);
+  loadCultural();
   // Clicking empty map offers to start a story there. Leaflet markers stop click
   // propagation, so taps on stories, anchors and spaces do not reach this.
   map.on("click",function(e){openAddHere(e.latlng,"map-click");});
@@ -1026,6 +1022,38 @@ function loadHoodShapes(){
     if(hoodsOn)hoodLayer.addTo(map);
     if(window.__refreshHood)window.__refreshHood();   // a form already open gets its suggestion
   }).catch(function(e){console.warn("neighborhood shapes failed:",e);});
+}
+/* The Cultural District: 24 sites from data/cultural.geojson, each a star.
+   Clayborn carries a name on the map because it is the anchor everything else is
+   read against; the other 23 name themselves on hover, so the district reads as a
+   constellation and not as a wall of labels. Click any star for the address and what
+   happened there. Fails soft, like the neighborhoods: no file, no stars, map still works. */
+function cultPopup(p){
+  return '<div class="pop cult">'+
+    (p.category?'<p class="pcat">'+esc(p.category)+'</p>':'')+
+    '<p class="pname">'+esc(p.name||"Cultural District site")+'</p>'+
+    (p.street?'<p class="paddr">'+esc(p.street)+'</p>':'')+
+    (p.description?'<p class="pdesc">'+esc(p.description)+'</p>':'')+
+    '</div>';
+}
+function loadCultural(){
+  fetch("data/cultural.geojson").then(function(r){return r.json();}).then(function(d){
+    CULTURAL=(d.features||[]).filter(function(f){
+      return f.geometry&&f.geometry.type==="Point"&&isFinite(f.geometry.coordinates[0])&&isFinite(f.geometry.coordinates[1]);
+    });
+    CULTURAL.forEach(function(f){
+      var p=f.properties||{},c=f.geometry.coordinates,lat=c[1],lng=c[0];
+      var isAnchor=/clayborn/i.test(p.name||""),s=isAnchor?34:22;
+      L.marker([lat,lng],{
+        icon:L.divIcon({className:"",html:'<div class="mk-star'+(isAnchor?" lg":"")+'">'+STAR_SVG+'</div>',iconSize:[s,s],iconAnchor:[s/2,s/2]}),
+        title:p.name||"",zIndexOffset:isAnchor?-500:-600
+      })
+        .bindTooltip(esc(p.name||""),{direction:"top",offset:[0,-s/2],className:"hoodtip"})
+        .bindPopup(cultPopup(p),{closeButton:true,className:"cultpop"})
+        .addTo(anchorLayer);
+      if(isAnchor)L.marker([lat,lng],{icon:L.divIcon({className:"",html:'<div class="anchor-lbl star-lbl">'+esc(p.name)+'</div>',iconSize:[0,0]}),interactive:false,zIndexOffset:800}).addTo(anchorLayer);
+    });
+  }).catch(function(e){console.warn("cultural district failed:",e);});
 }
 /* The "start a story here" popup. Shared by an empty-map click and the second click on
    an already-selected neighborhood, so both routes behave identically. */

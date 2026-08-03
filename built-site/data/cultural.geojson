@@ -1,0 +1,413 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.04229,
+     35.13461
+    ]
+   },
+   "properties": {
+    "id": 1,
+    "name": "AMEC Building",
+    "category": "Civil Rights",
+    "street": "588 Vance Ave, Memphis, TN 38126",
+    "description": "African M.E. church building tied to the Clayborn Temple congregation and the 1968 sanitation workers' organizing."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.04881,
+     35.11418
+    ]
+   },
+   "properties": {
+    "id": 2,
+    "name": "Aretha Franklin Birth Home",
+    "category": "Music",
+    "street": "406 Lucy Ave, Memphis, TN 38106",
+    "description": "Birthplace of the Queen of Soul, Aretha Franklin, born in this South Memphis home in 1942."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.04431,
+     35.13433
+    ]
+   },
+   "properties": {
+    "id": 3,
+    "name": "Cornelia Crenshaw Memorial Library",
+    "category": "Community",
+    "street": "531 Vance Ave, Memphis, TN 38126",
+    "description": "Public library named for civil rights activist Cornelia Crenshaw, a key supporter of the 1968 sanitation workers' strike."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.04874,
+     35.13899
+    ]
+   },
+   "properties": {
+    "id": 4,
+    "name": "First Baptist Beale (Ida B. Wells Office)",
+    "category": "Civil Rights",
+    "street": "379 Beale St, Memphis, TN 38103",
+    "description": "Historic Beale Street church that housed the newspaper office of journalist and anti-lynching crusader Ida B. Wells."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.05025,
+     35.13306
+    ]
+   },
+   "properties": {
+    "id": 5,
+    "name": "Grigg's Business and Practical Arts College",
+    "category": "Education",
+    "street": "492 S 4th St, Memphis, TN 38126",
+    "description": "One of Memphis's Black business and vocational colleges, serving the community through the segregation era."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.05109,
+     35.13655
+    ]
+   },
+   "properties": {
+    "id": 6,
+    "name": "Historic Clayborn Temple",
+    "category": "Civil Rights",
+    "street": "294 Hernando St, Memphis, TN 38126",
+    "description": "Rallying point and headquarters for the 1968 sanitation workers' strike, birthplace of the 'I AM A MAN' banners."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.03387,
+     35.11777
+    ]
+   },
+   "properties": {
+    "id": 7,
+    "name": "LeMoyne-Owen College",
+    "category": "Education",
+    "street": "807 Walker Ave, Memphis, TN 38126",
+    "description": "Historically Black college with roots to 1862, long a center of Black education and civil rights activism in Memphis."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.05744,
+     35.13458
+    ]
+   },
+   "properties": {
+    "id": 8,
+    "name": "Lorraine Motel / National Civil Rights Museum",
+    "category": "Civil Rights",
+    "street": "450 Mulberry St, Memphis, TN 38103",
+    "description": "Site of Dr. Martin Luther King Jr.'s assassination in 1968, now the National Civil Rights Museum."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.04936,
+     35.12162
+    ]
+   },
+   "properties": {
+    "id": 9,
+    "name": "Mason Temple",
+    "category": "Civil Rights",
+    "street": "930 Mason St, Memphis, TN 38126",
+    "description": "World headquarters of the Church of God in Christ, where Dr. King gave his final 'Mountaintop' speech in 1968."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.04235,
+     35.13484
+    ]
+   },
+   "properties": {
+    "id": 10,
+    "name": "NAACP Memphis Headquarters",
+    "category": "Civil Rights",
+    "street": "588 Vance Ave, Memphis, TN 38126",
+    "description": "Longtime home of the Memphis branch of the NAACP."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.0504,
+     35.139
+    ]
+   },
+   "properties": {
+    "id": 11,
+    "name": "Old Daisy Theater",
+    "category": "Music",
+    "street": "329 Beale St, Memphis, TN 38103",
+    "description": "Historic 1917 Beale Street movie house, an entertainment anchor of Black Memphis."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.05555,
+     35.14022
+    ]
+   },
+   "properties": {
+    "id": 12,
+    "name": "Orpheum Theatre Balcony Project",
+    "category": "Music",
+    "street": "203 S Main St, Memphis, TN 38103",
+    "description": "Grand 1928 theatre near Beale Street; the Balcony Project reckons with its segregated past."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.03876,
+     35.11948
+    ]
+   },
+   "properties": {
+    "id": 13,
+    "name": "People's Grocery",
+    "category": "Civil Rights",
+    "street": "Walker Ave & Mississippi Blvd, Memphis, TN 38106",
+    "description": "Site of the 1892 lynching at 'the Curve' that launched Ida B. Wells's national anti-lynching campaign."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.04934,
+     35.13528
+    ]
+   },
+   "properties": {
+    "id": 14,
+    "name": "R.S. Lewis Funeral Home",
+    "category": "Civil Rights",
+    "street": "374 Vance Ave, Memphis, TN 38126",
+    "description": "Black-owned funeral home that provided the hearse for Dr. King and supported the civil rights movement."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.0477,
+     35.13907
+    ]
+   },
+   "properties": {
+    "id": 15,
+    "name": "Robert R. Church Auditorium",
+    "category": "Civil Rights",
+    "street": "364 Beale St, Memphis, TN 38103",
+    "description": "Auditorium in Church Park, built by Robert R. Church Sr., the South's first Black millionaire."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.05005,
+     35.13427
+    ]
+   },
+   "properties": {
+    "id": 16,
+    "name": "Robert R. Church Home",
+    "category": "Civil Rights",
+    "street": "384 S 4th St, Memphis, TN 38126",
+    "description": "Home site associated with Robert R. Church, pioneering Black businessman and civic leader."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.05231,
+     35.13819
+    ]
+   },
+   "properties": {
+    "id": 17,
+    "name": "Rock 'n' Soul Museum + Hall of Fame",
+    "category": "Music",
+    "street": "191 Beale St, Memphis, TN 38103",
+    "description": "Smithsonian-affiliated museum telling the story of Memphis music and the people who made it."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.04341,
+     35.11107
+    ]
+   },
+   "properties": {
+    "id": 18,
+    "name": "Royal Studios",
+    "category": "Music",
+    "street": "1320 S Lauderdale St, Memphis, TN 38106",
+    "description": "One of the oldest continuously operating recording studios, home of Hi Records and Al Green's soul sound."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.03118,
+     35.11576
+    ]
+   },
+   "properties": {
+    "id": 19,
+    "name": "Stax / Soulsville Foundation Campus",
+    "category": "Music",
+    "street": "926 E McLemore Ave, Memphis, TN 38106",
+    "description": "Site of Stax Records, birthplace of Memphis soul, now the Stax Museum and Soulsville campus."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.04575,
+     35.1372
+    ]
+   },
+   "properties": {
+    "id": 20,
+    "name": "Universal Life Building",
+    "category": "Civil Rights",
+    "street": "480 Dr Martin Luther King Jr Ave, Memphis, TN 38126",
+    "description": "Landmark home of Universal Life Insurance, a cornerstone of Black economic power in Memphis."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.05016,
+     35.13926
+    ]
+   },
+   "properties": {
+    "id": 21,
+    "name": "Withers Collection Museum & Gallery",
+    "category": "Music",
+    "street": "333 Beale St, Memphis, TN 38103",
+    "description": "Gallery of photographer Ernest Withers, who documented the civil rights movement and Memphis music."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.03988,
+     35.12833
+    ]
+   },
+   "properties": {
+    "id": 22,
+    "name": "Club Paradise / The Soul Train Lounge",
+    "category": "Music",
+    "street": "645 E Georgia Ave, Memphis, TN 38126",
+    "description": "Legendary Memphis music venue that hosted soul and blues greats."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.04461,
+     35.12431
+    ]
+   },
+   "properties": {
+    "id": 23,
+    "name": "Lewis Park / Martin Stadium",
+    "category": "Community",
+    "street": "Crump Blvd, Memphis, TN 38126",
+    "description": "Park and former Martin Stadium, home of the Memphis Red Sox of the Negro Leagues."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -90.03051,
+     35.11603
+    ]
+   },
+   "properties": {
+    "id": 24,
+    "name": "Memphis Slim House",
+    "category": "Music",
+    "street": "1130 College St, Memphis, TN 38106",
+    "description": "Restored home of blues pianist Memphis Slim, now a collaboratory for local musicians."
+   }
+  }
+ ]
+}
