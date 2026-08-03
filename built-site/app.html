@@ -837,64 +837,67 @@ function featureLabel(f){
   if((f.place_type||[]).indexOf("address")>-1&&f.address)return f.address+" "+t;
   return t;
 }
-function mbQuery(q,types){
-  var url="https://api.mapbox.com/geocoding/v5/mapbox.places/"+encodeURIComponent(q)+".json"
-    +"?access_token="+MAPBOX_TOKEN+"&country=US&bbox="+MEMPHIS_BBOX
-    +"&proximity="+CLAYBORN[1]+","+CLAYBORN[0]+"&limit=10&autocomplete=true"
-    +(types?"&types="+types:"");
-  return fetch(url).then(function(r){if(!r.ok)throw new Error("geocode "+r.status);return r.json();})
+/* Mapbox Search Box: the POI index. The old v5 geocoder returns literally zero results
+   for types=poi, which is why "The Rambler", "Stax Museum" and "Central BBQ" found
+   nothing and fell back to "Hotel Pl", "Museum Drive" and "Central Avenue". Search Box
+   knows all three. It is weaker the other way: it does not return "Orange Mound" the
+   neighborhood, and it has never heard of Clayborn Temple. So we ask both and merge. */
+var POI_TYPES="poi";
+var PLACE_TYPES="street,address,neighborhood,place,locality";
+function sbQuery(q,types){
+  var url="https://api.mapbox.com/search/searchbox/v1/forward?q="+encodeURIComponent(q)
+    +"&access_token="+MAPBOX_TOKEN+"&country=US&bbox="+MEMPHIS_BBOX
+    +"&proximity="+CLAYBORN[1]+","+CLAYBORN[0]+"&limit=6&types="+types;
+  return fetch(url).then(function(r){if(!r.ok)throw new Error("searchbox "+r.status);return r.json();})
     .then(function(d){
       return (d.features||[]).map(function(f){
-        return {name:f.place_name.replace(/, United States$/,""),short:featureLabel(f),
-                kind:(f.place_type||[])[0]||"",lat:f.center[1],lng:f.center[0]};
-      });
-    });
+        var p=f.properties||{},c=(f.geometry||{}).coordinates||[];
+        return {name:(p.full_address||p.place_formatted||"").replace(/, United States$/,""),
+                short:p.name||"",kind:p.feature_type||"poi",lat:c[1],lng:c[0]};
+      }).filter(function(x){return x.short&&isFinite(x.lat)&&isFinite(x.lng);});
+    })
+    .catch(function(){return [];});   // never let POI lookup break the search
+}
+/* Merge the two indexes into one list a person can read top-down.
+   Order is by how well the label answers what was typed, not by which index it came
+   from: an exact name match first, then a prefix match, then the rest. Within a tier the
+   two alternate so neither can crowd the other out. Ranking by result type instead of by
+   the words was tried and was worse: it put "Belle Haven" above "Beale Street". */
+function mergeResults(poi,place,q){
+  var qn=(q||"").trim().toLowerCase(),out=[],seen={},inter=[],i;
+  for(i=0;i<Math.max(poi.length,place.length);i++){
+    if(poi[i])inter.push(poi[i]);
+    if(place[i])inter.push(place[i]);
+  }
+  var tier=function(x){
+    var s=(x.short||"").toLowerCase();
+    if(s===qn)return 0;
+    if(s.indexOf(qn)===0)return 1;
+    return 2;
+  };
+  inter.forEach(function(x,n){x._t=tier(x);x._n=n;});
+  inter.sort(function(a,b){return (a._t-b._t)||(a._n-b._n);});
+  inter.forEach(function(x){
+    var k=(x.short+"|"+Math.round(x.lat*1e4)+","+Math.round(x.lng*1e4)).toLowerCase();
+    if(seen[k])return;seen[k]=1;out.push(x);
+  });
+  return out;
 }
 function geocode(q,limit){
   limit=limit||6;
   var local=localPlaces(q);
-  var wantsAddress=/\d/.test(q);   // a number in the query means they are typing an address
-  return mbQuery(q,null).then(function(remote){
-    // Mapbox's own relevance is good and we do not second-guess it: re-ranking by type
-    // put "Belle Haven" above "Beale Street" for the query "Beale". The one case it gets
-    // wrong is a bare street name like "Poplar", where five neighborhoods crowd the
-    // street out entirely. Only then do we ask again, for streets specifically.
-    var isStreet=function(x){return x.kind==="address"||x.kind==="poi";};
-    var first=-1;
-    for(var i=0;i<remote.length;i++)if(isStreet(remote[i])){first=i;break;}
-    if(first>-1){
-      // A street exists but Mapbox buried it: searching "Poplar" returns five
-      // neighborhoods before Poplar Avenue. Give the best street match a seat at the top
-      // and leave everything else exactly where Mapbox put it.
-      // Unless the top hit already IS what they typed. "Orange Mound" must not get
-      // "Orange Avenue" shoved above the neighborhood of that exact name.
-      var qn=q.trim().toLowerCase();
-      var topMatches=remote.length&&(remote[0].short||"").toLowerCase().indexOf(qn)===0;
-      if(first>1&&!topMatches)remote.unshift(remote.splice(first,1)[0]);
-      return remote;
-    }
-    if(!q.trim())return remote;
-    return mbQuery(q,"address,poi").then(function(streets){
-      var seen={};remote.forEach(function(x){seen[x.name]=1;});
-      var fresh=streets.filter(function(x){return !seen[x.name];});
-      // Streets lead here, not trail. We only got here because the person typed something
-      // with no street in the results at all, and "Poplar" in Memphis means Poplar Avenue
-      // long before it means a subdivision called Green Meadows.
-      return fresh.concat(remote);
-    }).catch(function(){return remote;});
-  }).then(function(remote){
-    if(wantsAddress){   // typing a house number: put real addresses first, order kept otherwise
-      var idx=remote.map(function(x,i){return [x,i];});
-      idx.sort(function(a,b){
-        var w=function(x){return x.kind==="address"?0:(x.kind==="poi"?1:2);};
-        return (w(a[0])-w(b[0]))||(a[1]-b[1]);
-      });
-      remote=idx.map(function(p){return p[0];});
-    }
-    return local.concat(remote).slice(0,limit);
-  })
-  // Offline or rate-limited: still answer from the local gazetteer if we can.
-  .catch(function(e){if(local.length)return local;throw e;});
+  // Two indexes, asked in parallel. One call with everything in it lets POIs eat all six
+  // slots: "Poplar" came back as six businesses with Poplar in the name and no Poplar
+  // Avenue, and "Orange Mound" as five shops and not the neighborhood. Asking separately
+  // guarantees both kinds get a seat, and mergeResults decides the order.
+  return Promise.all([sbQuery(q,POI_TYPES),sbQuery(q,PLACE_TYPES)])
+    .then(function(r){
+      var merged=mergeResults(r[0],r[1],q);
+      if(!merged.length&&!local.length)throw new Error("no results");
+      return local.concat(merged).slice(0,limit);
+    })
+    // Offline or rate-limited: still answer from the local gazetteer if we can.
+    .catch(function(e){if(local.length)return local;throw e;});
 }
 function debounce(fn,ms){var t;return function(){var a=arguments,c=this;clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);},ms);};}
 
