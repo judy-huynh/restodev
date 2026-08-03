@@ -138,6 +138,49 @@
   .sitepage .shadd{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:14px;padding:11px;border-radius:10px;background:var(--primary);color:#fff;font-size:13px;font-weight:700}
   .sitepage .shadd:hover{background:var(--primaryDark)}
   .sitepage .sp-count{display:flex;align-items:center;gap:6px;margin:0;padding:9px 18px;border-top:1px solid var(--line);background:rgba(255,255,255,.55);font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  /* ── moderator desk ── */
+  .deskbar{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 12px}
+  .deskbar select{font:inherit;font-size:12px;padding:6px 9px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--text)}
+  .deskbody{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--panel)}
+  .deskbody.nodesk{display:block;border:0;background:none}
+  @media(max-width:900px){.deskbody{grid-template-columns:1fr}}
+  .deskbody .queue{border-right:1px solid var(--line);max-height:640px;overflow:auto}
+  @media(max-width:900px){.deskbody .queue{border-right:0;border-bottom:1px solid var(--line);max-height:250px}}
+  .qrow{display:flex;gap:9px;width:100%;text-align:left;padding:11px 13px;border:0;border-bottom:1px solid var(--line);border-left:3px solid transparent;background:none;cursor:pointer}
+  .qrow:hover{background:var(--bg)}
+  .qrow.on{background:var(--primaryLight);border-left-color:var(--primary)}
+  .qrow .qdot{width:7px;height:7px;border-radius:2px;transform:rotate(45deg);flex:none;margin-top:5px}
+  .qrow .qd{min-width:0;flex:1}
+  .qrow .qt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12.5px;line-height:1.4;color:var(--text)}
+  .qrow .qm{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:10.5px;color:var(--faint);margin-top:3px}
+  .qrow .qflag{width:6px;height:6px;border-radius:50%;background:#5B4B8A;flex:none}
+  .deskbody .editor{padding:16px 18px 20px;min-width:0}
+  .ehead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .ehead h3{font-family:var(--display);font-size:16px;margin:0}
+  .ktag-sm{flex:none;white-space:nowrap;align-self:flex-start}
+  .eid{font-size:10.5px;color:var(--faint);margin:3px 0 0}
+  .elegend{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:0 0 8px}
+  .elegend.priv{color:#5B4B8A}
+  .efl{display:block;font-size:11px;font-weight:700;color:var(--muted);margin:0 0 4px}
+  .ehint{font-size:10.5px;color:var(--faint);margin:5px 0 14px}
+  .egrid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .egrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+  @media(max-width:640px){.egrid2,.egrid3{grid-template-columns:1fr}}
+  .tagrow{display:flex;flex-wrap:wrap;gap:6px}
+  .mtag{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:11.5px;font-weight:650;padding:5px 10px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:var(--muted);cursor:pointer}
+  .mtag:hover{border-color:var(--muted);color:var(--text)}
+  .mtag.on{background:var(--text);border-color:var(--text);color:#fff}
+  .privbox .mtag.on{background:#5B4B8A;border-color:#5B4B8A}
+  .privbox{border:1px dashed #5B4B8A;border-radius:12px;padding:13px 14px;background:#F3F0FA;margin:14px 0 0}
+  .privmeta{font-size:10.5px;color:var(--muted);margin:8px 0 0}
+  .eacts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
+  .eacts .btn.prim{background:var(--primary);color:#fff;border:0;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700}
+  .esaved{font-size:12px;font-weight:700;color:var(--ok)}
+  .card .feattag{display:inline-flex;align-items:center;gap:4px;margin-left:6px;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--gold)}
+  .cchips{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0 6px}
+  .cchip{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:10.5px;font-weight:650;padding:3px 8px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer}
+  .cchip:hover{border-color:var(--primary);color:var(--text)}
+  .cchip .csw{width:7px;height:7px;border-radius:2px;transform:rotate(45deg);flex:none}
   /* neighborhood profile, at the top of the story column */
   .hoodpage{margin:-10px -12px 14px;border-bottom:1px solid var(--line)}
   .hoodpage .hp-dot{display:inline-block;width:8px;height:8px;border-radius:3px;transform:rotate(45deg);vertical-align:0}
@@ -576,7 +619,16 @@
         <button data-tab="approved">Live <span id="nAppr"></span></button>
         <button data-tab="rejected">Rejected</button>
       </div>
-      <div id="adminList"></div>
+      <div class="deskbar" id="deskbar">
+        <select id="mfHood" aria-label="Filter by neighborhood"><option value="">All neighborhoods</option></select>
+        <select id="mfEra" aria-label="Filter by era"><option value="">All eras</option></select>
+        <select id="mfKind" aria-label="Filter by story type"><option value="">All types</option></select>
+        <select id="mfFlag" aria-label="Filter by moderator tag"><option value="">Any moderator tag</option></select>
+      </div>
+      <div class="deskbody" id="deskBody">
+        <div class="queue" id="adminList"></div>
+        <div class="editor" id="modEditor"></div>
+      </div>
       <div class="adminbar"><button id="reseed"><span class="ic" data-ic="refresh" data-s="15"></span> Reload stories</button><button id="signout" style="display:none">Sign out</button><button id="backExplore">← Back to map</button></div>
     </div>
   </section>
@@ -845,14 +897,36 @@ function contactRow(c){
   if(c.phone)parts.push('<span>'+ic("phone",12)+' <a href="tel:'+esc((c.phone+"").replace(/[^0-9+]/g,""))+'">'+esc(c.phone)+'</a></span>');
   return '<div class="contactrow"><span class="cr-lab">'+ic("lock",11)+' Contact</span>'+parts.join("")+'</div>';
 }
-function rowToStory(r){var a=r.answers||{},photo=null,audio=null;(r.media||[]).forEach(function(m){if(m.kind==="photo"&&!photo)photo=m.url;if(m.kind==="audio"&&!audio)audio=m.url;});var src=r.source||{};return{id:r.id,kind:a.kind||"memory",place:a.place_type||"",hood:r.location_label||HOOD_OTHER,corner:a.corner||r.location_label||"",era:a.era||"today",story:a.story||"",lat:r.lat,lng:r.lng,name:r.display_name,vis:CONSENT2VIS[r.consent_level]||"first",inst:!!a.inst,contact:a.contact||null,photo:photo,audio:audio,campaign:src.campaign||"web",mode:src.mode||"web",affirms:AFF[r.id]||0,status:r.status||"approved"};}
-async function supaFetchApproved(){var res=await fetch(SUPA.url+"/rest/v1/stories?tenant_id=eq."+SUPA.tid+"&status=eq.approved&select=id,status,display_name,consent_level,answers,lat,lng,location_label,media,source,submitted_at&order=submitted_at.desc&limit=500",{headers:supaHeaders()});if(!res.ok)throw new Error("load "+res.status);return (await res.json()).map(rowToStory);}
+function rowToStory(r){var a=r.answers||{},photo=null,audio=null;(r.media||[]).forEach(function(m){if(m.kind==="photo"&&!photo)photo=m.url;if(m.kind==="audio"&&!audio)audio=m.url;});var src=r.source||{};return{id:r.id,kind:a.kind||"memory",place:a.place_type||"",hood:r.location_label||HOOD_OTHER,corner:a.corner||r.location_label||"",era:a.era||"today",story:a.story||"",lat:r.lat,lng:r.lng,name:r.display_name,vis:CONSENT2VIS[r.consent_level]||"first",inst:!!a.inst,contact:a.contact||null,photo:photo,audio:audio,campaign:src.campaign||"web",mode:src.mode||"web",featured:!!r.featured,affirms:AFF[r.id]||0,status:r.status||"approved"};}
+async function supaFetchApproved(){var res=await fetch(SUPA.url+"/rest/v1/stories?tenant_id=eq."+SUPA.tid+"&status=eq.approved&select=id,status,display_name,consent_level,answers,lat,lng,location_label,media,source,submitted_at,featured&order=submitted_at.desc&limit=500",{headers:supaHeaders()});if(!res.ok)throw new Error("load "+res.status);return (await res.json()).map(rowToStory);}
 async function supaUpload(dataUrl,kind){var blob=await (await fetch(dataUrl)).blob();var ext=kind==="audio"?"webm":"jpg";var path="memphis-roots/"+Date.now()+"-"+Math.random().toString(36).slice(2,10)+"."+ext;var res=await fetch(SUPA.url+"/storage/v1/object/story-media/"+path,{method:"POST",headers:{apikey:SUPA.key,Authorization:"Bearer "+SUPA.key,"Content-Type":blob.type||"application/octet-stream"},body:blob});if(!res.ok)throw new Error("media "+res.status);return{url:SUPA.url+"/storage/v1/object/public/story-media/"+path,kind:kind};}
 async function supaSubmit(d){var media=[];if(d.photo){try{media.push(await supaUpload(d.photo,"photo"));}catch(e){}}if(d.audio){try{media.push(await supaUpload(d.audio,"audio"));}catch(e){}}var row={id:(window.crypto&&crypto.randomUUID?crypto.randomUUID():uid()),tenant_id:SUPA.tid,status:"pending",consent_level:VIS2CONSENT[d.vis]||"first_name",display_name:(d.vis==="anon"||d.vis==="heritage")?null:(d.name||null),answers:{kind:d.kind,place_type:d.place||null,era:d.era,story:d.story,corner:d.corner||null,inst:!!d.inst,contact:((d.name||d.email||d.phone)?{name:d.name||null,email:d.email||null,phone:d.phone||null}:null)},lat:d.lat,lng:d.lng,location_label:d.hood||null,media:media,source:{campaign:d.campaign,mode:d.mode,locSource:d.locSource||"unset"}};var res=await fetch(SUPA.url+"/rest/v1/stories",{method:"POST",headers:Object.assign(supaHeaders(),{Prefer:"return=minimal"}),body:JSON.stringify(row)});if(!res.ok&&res.status!==409)throw new Error("submit "+res.status+": "+(await res.text()).slice(0,140));return true;}
 async function supaLogin(email,password){var res=await fetch(SUPA.url+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:SUPA.key,"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password})});var d=await res.json();if(!res.ok||!d.access_token)throw new Error(d.error_description||d.msg||"sign-in failed");SUPA.session=d;try{sessionStorage.setItem("mr_sess",JSON.stringify(d));}catch(e){}}
 function supaLogout(){SUPA.session=null;try{sessionStorage.removeItem("mr_sess");}catch(e){}}
 async function supaAuthed(path,opts){opts=opts||{};var res=await fetch(SUPA.url+"/rest/v1/"+path,Object.assign({},opts,{headers:Object.assign(supaHeaders(SUPA.session&&SUPA.session.access_token),opts.headers||{})}));if(res.status===401){supaLogout();throw new Error("SESSION");}if(!res.ok)throw new Error((opts.method||"GET")+" "+res.status);var t=await res.text();return t?JSON.parse(t):null;}
-async function supaByStatus(st){return supaAuthed("stories?tenant_id=eq."+SUPA.tid+"&status=eq."+st+"&select=id,status,display_name,consent_level,answers,lat,lng,location_label,media,source,submitted_at&order=submitted_at.desc&limit=300");}
+/* Editing a story from the moderator desk. Only the fields the desk owns are sent, so a
+   save can never clobber media, consent or the submitted timestamp. */
+async function supaSaveStory(s,answers){
+  return supaAuthed("stories?id=eq."+s.id,{method:"PATCH",headers:{Prefer:"return=minimal"},
+    body:JSON.stringify({location_label:s.hood,lat:s.lat,lng:s.lng,display_name:s.name||null,
+      featured:!!s.featured,answers:answers})});
+}
+/* The moderator-only layer. A separate table with its own row-level rule, because anyone
+   can read `stories` with the publishable key: a private tag kept there would be public
+   the moment it was saved. Nothing here is ever fetched by the map. */
+async function supaGetInternal(ids){
+  if(!ids.length)return {};
+  var q="story_internal?select=story_id,workflow,value,note,updated_by,updated_at&story_id=in.("+ids.join(",")+")";
+  var rows=await supaAuthed(q)||[];
+  var out={};rows.forEach(function(r){out[r.story_id]=r;});return out;
+}
+async function supaSaveInternal(id,v){
+  return supaAuthed("story_internal?on_conflict=story_id",{method:"POST",
+    headers:{Prefer:"resolution=merge-duplicates,return=minimal"},
+    body:JSON.stringify({story_id:id,workflow:v.workflow||[],value:v.value||[],note:v.note||null,
+      updated_by:(SUPA.session&&SUPA.session.user&&SUPA.session.user.email)||null,updated_at:new Date().toISOString()})});
+}
+async function supaByStatus(st){return supaAuthed("stories?tenant_id=eq."+SUPA.tid+"&status=eq."+st+"&select=id,status,display_name,consent_level,answers,lat,lng,location_label,media,source,submitted_at,featured&order=submitted_at.desc&limit=300");}
 async function supaSetStatus(id,st){await supaAuthed("stories?id=eq."+id,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(st==="approved"?{status:"approved",approved_at:new Date().toISOString(),rejected_at:null}:{status:"rejected",rejected_at:new Date().toISOString(),approved_at:null})});}
 async function refreshStories(){try{STORIES=await supaFetchApproved();}catch(e){console.warn("refresh failed",e);}renderSelects();apply();}
 
@@ -1467,10 +1541,18 @@ function renderCards(){
   // A building is the more specific answer, so it wins over its neighbourhood.
   var head=f?sitePage(f):(F.hood!=="all"?hoodPage(F.hood):"");
   var body=list.length?list.map(function(s){var k=KIND[s.kind]||KIND.memory;
+    // How a story is filed used to be invisible. The three chips are the filing, made
+    // readable and clickable, so a card is a way into the map rather than a dead end.
     return '<div class="card" data-id="'+s.id+'">'+cardThumb(s)+
       '<div class="cbody"><span class="ktag" style="background:'+k.color+'">'+ic(k.icon,12)+' '+esc(k.short)+'</span>'+
+      (s.featured?'<span class="feattag">'+ic("star",11)+' Featured</span>':"")+
       '<div class="snip">'+esc(s.story)+'</div>'+
-      '<div class="cfoot"><span>'+esc(displayName(s))+'</span>·<span>'+esc(s.hood)+'</span>·<span>'+esc(eraLabel(s.era))+'</span>'+
+      '<div class="cchips">'+
+        '<button class="cchip" data-chip="hood" data-v="'+esc(s.hood)+'"><span class="csw" style="background:'+hoodColor(s.hood)+'"></span>'+esc(s.hood)+'</button>'+
+        '<button class="cchip" data-chip="era" data-v="'+esc(s.era)+'">'+esc(eraLabel(s.era))+'</button>'+
+        '<button class="cchip" data-chip="kind" data-v="'+esc(s.kind)+'">'+ic(k.icon,11)+' '+esc(k.short)+'</button>'+
+      '</div>'+
+      '<div class="cfoot"><span>'+esc(displayName(s))+'</span>'+
         (s.photo?'<span class="badge">'+ic("camera",12)+' Photo</span>':"")+(s.audio?'<span class="badge">'+ic("audio",12)+' Voice</span>':"")+'</div></div></div>';
   }).join("")
   // With a site selected the empty state is about that place, not about the filters.
@@ -1482,6 +1564,16 @@ function renderCards(){
   var sa=$("siteAdd");if(sa)sa.addEventListener("click",function(){addMemoryAtSite(f);});
   var hc=$("hoodClear");if(hc)hc.addEventListener("click",function(){
     var sel=$("hoodSel");if(sel){sel.value="all";sel.dispatchEvent(new Event("change"));}
+  });
+  $("cards").querySelectorAll("[data-chip]").forEach(function(b){
+    b.addEventListener("click",function(e){
+      e.stopPropagation();
+      var t=b.dataset.chip,v=b.dataset.v;
+      if(t==="hood"){var sel=$("hoodSel");if(sel){sel.value=v;sel.dispatchEvent(new Event("change"));return;}}
+      else if(t==="era"){F.era=v;renderSelects();}
+      else if(t==="kind"){F.kinds=new Set([v]);}
+      apply();
+    });
   });
   $("cards").querySelectorAll(".card").forEach(function(c){
     c.addEventListener("click",function(){selectStory(c.dataset.id,true);});
@@ -1911,23 +2003,177 @@ function renderThanks(s){var isV=s.kind==="future";
 /* ── admin ── */
 var adminTab="pending";
 document.querySelectorAll(".tabs button").forEach(function(b){b.addEventListener("click",function(){adminTab=b.dataset.tab;document.querySelectorAll(".tabs button").forEach(function(x){x.classList.remove("on");});b.classList.add("on");renderAdmin();});});
+["mfHood","mfEra","mfKind","mfFlag"].forEach(function(id){var el=$(id);if(!el)return;
+  el.addEventListener("change",function(){
+    modFilters={hood:$("mfHood").value,era:$("mfEra").value,kind:$("mfKind").value,flag:$("mfFlag").value};
+    if(!modVisible().some(function(s){return s.id===modSel;})){var f=modVisible()[0];modSel=f?f.id:null;}
+    renderQueue();renderEditor();});});
+/* ── the moderator desk ───────────────────────────────────────────────────────
+   The page used to do two things, approve and reject, and everything else meant
+   opening Supabase. Now a story can be filed, fixed and followed up here: the queue
+   on the left, the story on the right, and a private layer nothing public can read. */
+var MOD_WORKFLOW=["Needs follow-up","Call this person back","Waiting on consent","Ready to publish","Transcribe the audio"];
+var MOD_VALUE=["Strong quote","Good for press","Ties to a Cultural District site","2068 vision worth featuring","Elder voice, record more"];
+var modRows=[],modInternal={},modSel=null,modFilters={hood:"",era:"",kind:"",flag:""};
+
+function modFilterOptions(){
+  var mk=function(id,opts,cur){
+    var el=$(id);if(!el)return;
+    el.innerHTML=el.querySelector("option").outerHTML+opts;
+    el.value=cur||"";
+  };
+  mk("mfHood",NEIGHBORHOODS.map(function(n){return '<option>'+esc(n.n)+'</option>';}).join(""),modFilters.hood);
+  mk("mfEra",ERAS.map(function(e){return '<option value="'+e[0]+'">'+esc(e[1])+'</option>';}).join(""),modFilters.era);
+  mk("mfKind",Object.keys(KIND).map(function(k){return '<option value="'+k+'">'+esc(KIND[k].label)+'</option>';}).join(""),modFilters.kind);
+  mk("mfFlag",MOD_WORKFLOW.concat(MOD_VALUE).map(function(t){return '<option>'+esc(t)+'</option>';}).join(""),modFilters.flag);
+}
+function modVisible(){
+  return modRows.filter(function(s){
+    if(modFilters.hood&&s.hood!==modFilters.hood)return false;
+    if(modFilters.era&&s.era!==modFilters.era)return false;
+    if(modFilters.kind&&s.kind!==modFilters.kind)return false;
+    if(modFilters.flag){
+      var v=modInternal[s.id]||{};
+      if(!(v.workflow||[]).concat(v.value||[]).some(function(t){return t===modFilters.flag;}))return false;
+    }
+    return true;
+  });
+}
+function renderQueue(){
+  var list=modVisible();
+  $("adminList").innerHTML=list.length?list.map(function(s){
+    var k=KIND[s.kind]||KIND.memory,v=modInternal[s.id]||{},flags=(v.workflow||[]).length+(v.value||[]).length;
+    return '<button type="button" class="qrow'+(s.id===modSel?" on":"")+'" data-q="'+s.id+'">'+
+      '<span class="qdot" style="background:'+hoodColor(s.hood)+'"></span>'+
+      '<span class="qd"><span class="qt">'+esc(s.story)+'</span>'+
+      '<span class="qm"><b style="color:'+k.color+'">'+esc(k.short)+'</b> · '+esc(s.hood)+' · '+esc(eraLabel(s.era))+
+        (s.audio?' · voice':'')+(s.featured?' · featured':'')+
+        (flags?'<span class="qflag" title="'+flags+' moderator tags"></span>':'')+'</span></span></button>';
+  }).join(""):'<div class="empty">'+(modRows.length?"Nothing here with those filters.":"Nothing in this queue.")+'</div>';
+  $("adminList").querySelectorAll("[data-q]").forEach(function(b){
+    b.addEventListener("click",function(){modSel=b.dataset.q;renderQueue();renderEditor();});
+  });
+}
+function modTagRow(list,cur,attr){
+  return '<div class="tagrow">'+list.map(function(t){
+    return '<button type="button" class="mtag'+(cur.indexOf(t)>-1?" on":"")+'" data-'+attr+'="'+esc(t)+'">'+esc(t)+'</button>';
+  }).join("")+'</div>';
+}
+function renderEditor(){
+  var s=modRows.find(function(x){return x.id===modSel;});
+  if(!s){$("modEditor").innerHTML='<div class="empty">Pick a story from the queue.</div>';return;}
+  var k=KIND[s.kind]||KIND.memory,v=modInternal[s.id]||{workflow:[],value:[],note:""};
+  $("modEditor").innerHTML=
+    '<div class="ehead"><div><h3>'+esc(displayName(s))+'</h3>'+
+      '<p class="eid">'+esc(s.id.slice(0,8))+' · '+esc((CAMPAIGNS[s.campaign]||{label:s.campaign}).label)+' · '+
+      (s.vis==="anon"?"anonymous":s.vis==="heritage"?"heritage-only":"named")+' · '+
+      (s.inst?"ok to share with the city":"community-only")+'</p></div>'+
+      '<span class="ktag ktag-sm" style="background:'+k.color+'">'+ic(k.icon,12)+' '+esc(k.short)+'</span></div>'+
+
+    '<p class="elegend">'+ic("edit",12)+' The story</p>'+
+    '<textarea class="ti" id="mStory" rows="5">'+esc(s.story)+'</textarea>'+
+    '<p class="ehint">Saving replaces what the person said. No earlier version is kept.</p>'+
+
+    '<p class="elegend">'+ic("tag",12)+' How it is filed · public</p>'+
+    '<div class="egrid3">'+
+      '<div><label class="efl" for="mHood">Neighborhood</label><select class="ti" id="mHood">'+
+        NEIGHBORHOODS.map(function(n){return '<option'+(n.n===s.hood?" selected":"")+'>'+esc(n.n)+'</option>';}).join("")+
+        '<option'+(s.hood===HOOD_OTHER?" selected":"")+'>'+esc(HOOD_OTHER)+'</option></select></div>'+
+      '<div><label class="efl" for="mEra">Era</label><select class="ti" id="mEra">'+
+        ERAS.map(function(e){return '<option value="'+e[0]+'"'+(e[0]===s.era?" selected":"")+'>'+esc(e[1])+'</option>';}).join("")+'</select></div>'+
+      '<div><label class="efl" for="mKind">Story type</label><select class="ti" id="mKind">'+
+        Object.keys(KIND).map(function(x){return '<option value="'+x+'"'+(x===s.kind?" selected":"")+'>'+esc(KIND[x].label)+'</option>';}).join("")+'</select></div>'+
+    '</div>'+
+    '<div class="egrid2" style="margin-top:9px">'+
+      '<div><label class="efl" for="mCorner">Corner, as they said it</label><input class="ti" id="mCorner" value="'+esc(s.corner)+'"></div>'+
+      '<div><label class="efl" for="mName">Shown as</label><input class="ti" id="mName" value="'+esc(s.name||"")+'"'+(s.vis==="anon"?' disabled placeholder="Anonymous"':'')+'></div>'+
+    '</div>'+
+    '<div class="tagrow" style="margin-top:10px"><button type="button" class="mtag'+(s.featured?" on":"")+'" id="mFeat">'+ic("star",12)+' Feature on the map</button></div>'+
+    '<p class="ehint">The only moderator decision the public sees.</p>'+
+
+    '<div class="privbox">'+
+      '<p class="elegend priv">'+ic("lock",12)+' Moderators only · never leaves this page</p>'+
+      '<label class="efl">Workflow</label>'+modTagRow(MOD_WORKFLOW,v.workflow||[],"w")+
+      '<label class="efl" style="margin-top:10px">Value to the project</label>'+modTagRow(MOD_VALUE,v.value||[],"v")+
+      '<label class="efl" style="margin-top:10px" for="mNote">Note for the team</label>'+
+      '<textarea class="ti" id="mNote" rows="2" placeholder="What the next person needs to know.">'+esc(v.note||"")+'</textarea>'+
+      (v.updated_by?'<p class="privmeta">Last touched by '+esc(v.updated_by)+'</p>':'')+
+    '</div>'+
+
+    '<div class="eacts">'+
+      '<button class="btn prim" id="mSave">'+ic("check",13)+' Save changes</button>'+
+      (s.status!=="approved"?'<button class="approve" id="mAppr">'+ic("check",13)+' Approve</button>':"")+
+      (s.status!=="rejected"?'<button class="reject" id="mRej">'+ic("x",13)+' Reject</button>':"")+
+      '<span class="esaved" id="mSaved"></span>'+
+    '</div>'+
+    (s.audio?'<audio controls src="'+s.audio+'" style="width:100%;margin-top:12px"></audio>':"")+
+    contactRow(s.contact);
+
+  var live=function(){
+    s.story=$("mStory").value; s.corner=$("mCorner").value;
+    if(!$("mName").disabled)s.name=$("mName").value;
+    renderQueue();
+  };
+  $("mStory").addEventListener("input",live);
+  $("mCorner").addEventListener("input",live);
+  $("mName").addEventListener("input",live);
+  $("mHood").addEventListener("change",function(){s.hood=this.value;renderQueue();});
+  $("mEra").addEventListener("change",function(){s.era=this.value;renderQueue();});
+  $("mKind").addEventListener("change",function(){s.kind=this.value;renderQueue();});
+  $("mFeat").addEventListener("click",function(){s.featured=!s.featured;this.classList.toggle("on",s.featured);renderQueue();});
+  var vv=modInternal[s.id]=modInternal[s.id]||{workflow:[],value:[],note:""};
+  $("modEditor").querySelectorAll("[data-w]").forEach(function(b){b.addEventListener("click",function(){
+    var t=b.dataset.w,i=(vv.workflow||[]).indexOf(t);
+    if(i>-1)vv.workflow.splice(i,1);else (vv.workflow=vv.workflow||[]).push(t);
+    b.classList.toggle("on",i<0);renderQueue();});});
+  $("modEditor").querySelectorAll("[data-v]").forEach(function(b){b.addEventListener("click",function(){
+    var t=b.dataset.v,i=(vv.value||[]).indexOf(t);
+    if(i>-1)vv.value.splice(i,1);else (vv.value=vv.value||[]).push(t);
+    b.classList.toggle("on",i<0);renderQueue();});});
+  $("mNote").addEventListener("input",function(){vv.note=this.value;});
+  $("mSave").addEventListener("click",function(){saveStoryEdits(s,vv,this);});
+  var ap=$("mAppr");if(ap)ap.addEventListener("click",function(){modStory(s.id,"approved");});
+  var rj=$("mRej");if(rj)rj.addEventListener("click",function(){modStory(s.id,"rejected");});
+}
+/* One save writes both halves: the public row, and the moderator layer beside it. */
+async function saveStoryEdits(s,v,btn){
+  btn.disabled=true;btn.textContent="Saving…";
+  var answers={kind:s.kind,place_type:s.place||null,era:s.era,story:s.story,corner:s.corner||null,
+               inst:!!s.inst,contact:s.contact||null};
+  try{
+    await supaSaveStory(s,answers);
+    await supaSaveInternal(s.id,v);
+  }catch(e){
+    if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;}
+    btn.disabled=false;btn.innerHTML=ic("check",13)+" Save changes";toast("Couldn't save: "+e.message);return;
+  }
+  btn.disabled=false;btn.innerHTML=ic("check",13)+" Save changes";
+  var f=$("mSaved");if(f){f.textContent="Saved";setTimeout(function(){if(f)f.textContent="";},1800);}
+  await refreshStories();
+}
 async function renderAdmin(){
-  var tabsEl=document.querySelector("#v-admin .tabs"),sb=$("signout");
-  if(!SUPA.session){ if(tabsEl)tabsEl.style.display="none"; if(sb)sb.style.display="none"; renderLogin(); return; }
+  var tabsEl=document.querySelector("#v-admin .tabs"),sb=$("signout"),bar=$("deskbar"),body=$("deskBody");
+  if(!SUPA.session){
+    if(tabsEl)tabsEl.style.display="none"; if(sb)sb.style.display="none";
+    if(bar)bar.style.display="none"; if(body)body.classList.add("nodesk");
+    renderLogin(); return;
+  }
   if(tabsEl)tabsEl.style.display=""; if(sb)sb.style.display="";
-  var pend=[];SPACES.forEach(function(sp){(sp.proposals||[]).forEach(function(p){if(p.status==="pending")pend.push({sp:sp,p:p});});});
-  var propsHtml=(adminTab==="pending"&&pend.length)?('<div class="prophead" style="color:var(--anchor)">'+ic("plot",14)+' Space ideas awaiting review · '+pend.length+' <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint)">(this device)</span></div>'+pend.map(function(x){return '<div class="scard"><div class="thumb ph" style="background:#FFF4D6;color:var(--anchor)">'+ic("plot",22)+'</div><div style="flex:1;min-width:0"><div class="meta"><b>'+esc(x.sp.name)+'</b></div><div class="txt">"'+esc(x.p.text)+'"</div><div class="meta">proposed by '+esc(x.p.name||"a neighbor")+'</div><div class="acts"><button class="approve" data-approveprop="'+x.sp.id+'~'+x.p.id+'">'+ic("check",13)+' Approve idea</button><button class="reject" data-rejectprop="'+x.sp.id+'~'+x.p.id+'">'+ic("x",13)+' Reject</button></div></div></div>';}).join("")+'<div class="prophead" style="margin-top:18px">Stories · Supabase</div>'):"";
-  $("adminList").innerHTML=propsHtml+'<div class="empty">Loading…</div>';wireProps();
+  if(bar)bar.style.display=""; if(body)body.classList.remove("nodesk");
+  modFilterOptions();
+  $("adminList").innerHTML='<div class="empty">Loading…</div>';
+  $("modEditor").innerHTML="";
   var rows;
   try{ rows=await supaByStatus(adminTab); }
-  catch(e){ if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;} $("adminList").innerHTML=propsHtml+'<div class="empty">Couldn\'t load ('+esc(e.message)+')</div>';wireProps();return; }
-  if(adminTab==="pending")$("nPend").textContent=(rows.length+pend.length)?"("+(rows.length+pend.length)+")":"";
-  if(adminTab==="approved")$("nAppr").textContent=rows.length?"("+rows.length+")":"";
-  var storiesHtml=rows.length?rows.map(function(r){var s=rowToStory(r),k=KIND[s.kind]||KIND.memory,src=photoSrc(s.photo);var thumb=src?'<img class="thumb" src="'+src+'">':'<div class="thumb ph" style="color:'+k.color+'">'+ic(k.icon,22)+'</div>';return '<div class="scard">'+thumb+'<div style="flex:1;min-width:0"><div class="kline"><span class="ktag" style="background:'+k.color+'">'+ic(k.icon,12)+' '+esc(k.label)+'</span><span class="pill-status '+s.status+'">'+s.status+'</span>'+(s.vis==="heritage"?'<span class="pill-status heritage">heritage-only</span>':"")+(s.inst?'<span class="meta">'+ic("check",12)+' ok to share w/ city</span>':'<span class="meta">community-only</span>')+'</div><div class="meta">'+esc(displayName(s))+' · '+esc(s.hood)+' · '+esc(eraLabel(s.era))+(s.campaign&&CAMPAIGNS[s.campaign]&&s.campaign!=="web"?' · '+esc(CAMPAIGNS[s.campaign].label):"")+'</div><div class="txt">'+esc(s.story)+'</div>'+(s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+contactRow(s.contact)+'<div class="acts">'+(s.status!=="approved"?'<button class="approve" data-appr="'+s.id+'">'+ic("check",13)+' Approve</button>':"")+(s.status!=="rejected"?'<button class="reject" data-rej="'+s.id+'">'+ic("x",13)+' Reject</button>':"")+'</div></div></div>';}).join(""):'<div class="empty">'+(adminTab==="pending"?"No stories pending review.":adminTab==="approved"?"No approved stories yet.":"No rejected stories.")+'</div>';
-  $("adminList").innerHTML=propsHtml+storiesHtml;
-  $("adminList").querySelectorAll("[data-appr]").forEach(function(b){b.addEventListener("click",function(){modStory(b.dataset.appr,"approved");});});
-  $("adminList").querySelectorAll("[data-rej]").forEach(function(b){b.addEventListener("click",function(){modStory(b.dataset.rej,"rejected");});});
-  wireProps();
+  catch(e){ if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;}
+            $("adminList").innerHTML='<div class="empty">Couldn\'t load ('+esc(e.message)+')</div>';return; }
+  modRows=rows.map(rowToStory);
+  try{ modInternal=await supaGetInternal(modRows.map(function(s){return s.id;})); }
+  catch(e){ modInternal={}; console.warn("internal layer unavailable",e); }
+  if(adminTab==="pending")$("nPend").textContent=modRows.length?"("+modRows.length+")":"";
+  if(adminTab==="approved")$("nAppr").textContent=modRows.length?"("+modRows.length+")":"";
+  if(!modRows.some(function(s){return s.id===modSel;}))modSel=modRows.length?modRows[0].id:null;
+  renderQueue();renderEditor();
 }
 function wireProps(){$("adminList").querySelectorAll("[data-approveprop]").forEach(function(b){b.addEventListener("click",function(){var a=b.dataset.approveprop.split("~");setPropStatus(a[0],a[1],"approved");});});$("adminList").querySelectorAll("[data-rejectprop]").forEach(function(b){b.addEventListener("click",function(){var a=b.dataset.rejectprop.split("~");setPropStatus(a[0],a[1],"rejected");});});}
 async function modStory(id,st){try{await supaSetStatus(id,st);}catch(e){if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;}toast(e.message);return;}toast(st==="approved"?"Approved, now live on the map":"Story rejected");await refreshStories();renderAdmin();}
