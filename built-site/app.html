@@ -33,20 +33,26 @@
   ::-webkit-scrollbar-thumb{background:#E4D8E0;border-radius:20px;border:3px solid var(--panel)}
 
   /* ── App bar ── */
-  .appbar{display:flex;align-items:center;gap:14px;padding:0 18px;height:60px;background:var(--panel);border-bottom:1px solid var(--border);z-index:1200;flex:none}
-  .logo{width:36px;height:36px;border-radius:10px;background:var(--primary);display:grid;place-items:center;font-family:var(--display);font-weight:700;color:#fff;font-size:13px;box-shadow:0 6px 16px -6px rgba(255,71,126,.7)}
+  .appbar{display:flex;align-items:center;gap:12px;padding:0 18px;height:60px;background:var(--panel);border-bottom:1px solid var(--border);z-index:1200;flex:none}
+  .brand{display:flex;align-items:center;gap:11px;padding:0;background:none;border:0;cursor:pointer;text-align:left;flex:none}
+  .brand:hover .bk b{color:var(--primaryDark)}
+  .brand:focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:10px}
+  .logo{width:36px;height:36px;border-radius:10px;background:var(--primary);display:grid;place-items:center;font-family:var(--display);font-weight:700;color:#fff;font-size:13px;box-shadow:0 6px 16px -6px rgba(255,71,126,.7);flex:none}
   .bk{display:block}
-  .bk b{display:block;font-family:var(--display);font-size:15px;line-height:1.1;letter-spacing:-.01em}
+  .bk b{display:block;font-family:var(--display);font-size:15px;line-height:1.1;letter-spacing:-.01em;transition:color .14s}
   .bk span{display:block;font-size:11px;color:var(--muted);letter-spacing:.03em;line-height:1.2}
-  .back-story{margin-left:6px;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted);padding:7px 12px;border-radius:9px;border:1px solid var(--border)}
-  .back-story:hover{color:var(--primaryDark);border-color:var(--primaryLight)}
-  .appbar .sp{margin-left:auto}
-  .modlink{font-size:12.5px;font-weight:600;color:var(--muted);padding:8px 12px;border-radius:9px}
-  .modlink:hover{background:var(--line)}
-  .addbtn{display:inline-flex;align-items:center;gap:7px;background:var(--text);color:#fff;font-weight:700;font-size:13.5px;padding:10px 17px;border-radius:11px;box-shadow:var(--shadow-sm)}
+  /* Every destination wears the same shape, so the bar reads as one set of choices
+     rather than four things that happen to sit next to each other. */
+  .mainnav{display:flex;align-items:center;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+  .mainnav::-webkit-scrollbar{display:none}
+  .nav{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;font-weight:600;color:var(--muted);background:none;border:0;padding:8px 12px;border-radius:9px;white-space:nowrap;cursor:pointer;text-decoration:none;transition:.14s}
+  .nav:hover{background:var(--bg);color:var(--text)}
+  .nav:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .nav.on{background:var(--primaryLight);color:var(--primaryDark);font-weight:700}
+  .nav.quiet{color:var(--faint)}
+  .nav.quiet:hover{color:var(--text)}
+  .addbtn{display:inline-flex;align-items:center;gap:7px;background:var(--text);color:#fff;font-weight:700;font-size:13.5px;padding:10px 17px;border-radius:11px;box-shadow:var(--shadow-sm);flex:none;margin-left:8px}
   .addbtn:hover{background:#3a2f57}
-  .databtn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--primaryDark);background:var(--primaryLight);padding:8px 13px;border-radius:9px;border:1px solid #F6C9D8}
-  .databtn:hover{background:#FCD9E4;transform:translateY(-1px)}
 
   /* inline icons */
   .ic{display:inline-block;vertical-align:-.15em;flex:none;pointer-events:none}
@@ -570,13 +576,11 @@
     .detail{border-radius:20px 20px 0 0}
   }
   @media(max-width:860px){
-    .appbar{gap:8px;padding:0 12px;height:54px}
-    .bk span{display:none}
-    .bk b{font-size:14.5px;white-space:nowrap}
-    .back-story{display:none}
-    .modlink{padding:6px 9px;font-size:12.5px}
-    .databtn{padding:7px 10px}
-    .dtail{display:none}
+    .appbar{gap:6px;padding:0 10px;height:54px}
+    .bk{display:none}
+    .mainnav{gap:0}
+    .nav{padding:7px 9px;font-size:12.5px}
+    .addbtn{padding:9px 12px;font-size:13px;margin-left:4px}
     .maptools{top:10px;right:10px;width:210px}
     .addbtn{padding:9px 13px;font-size:13px}
     .addtail{display:none}
@@ -588,13 +592,17 @@
 <body>
 <div class="protobar"><b>MEMPHIS ROOTS</b> · The Big We · live stories via Supabase &amp; moderated · commons &amp; dreams saved on this device</div>
 <div class="appbar">
-  <div class="logo">BW</div>
-  <div class="bk"><b>Memphis Roots</b><span>Culture as a Root · The Big We</span></div>
-  <a class="back-story" href="index.html">← The story</a>
-  <div class="sp"></div>
-  <button class="databtn" id="navData"><span class="ic" data-ic="chart" data-s="15"></span><span class="dtail"> The data</span></button>
-  <button class="modlink" id="navImpact">Impact</button>
-  <button class="modlink" id="navMod">Moderate</button>
+  <button class="brand" id="navHome" aria-label="Back to the map">
+    <span class="logo">BW</span>
+    <span class="bk"><b>Memphis Roots</b><span>Culture as a Root &middot; The Big We</span></span>
+  </button>
+  <nav class="mainnav" id="mainnav" aria-label="Main">
+    <a class="nav" href="index.html">The story</a>
+    <button class="nav" id="navMap" data-view="explore">The map</button>
+    <button class="nav" id="navImpact" data-view="impact">Impact</button>
+    <button class="nav" id="navData">The data</button>
+    <button class="nav quiet" id="navMod" data-view="admin">Moderate</button>
+  </nav>
   <button class="addbtn" id="navAdd">+ Share<span class="addtail"> your story</span></button>
 </div>
 
@@ -1860,6 +1868,8 @@ function dreamBox(s){
 
 /* ── views ── */
 function showView(v){["explore","capture","thanks","admin","impact"].forEach(function(n){$("v-"+n).classList.toggle("hidden",n!==v);});
+  // The nav shows which of these you are looking at, which it never used to.
+  document.querySelectorAll("#mainnav [data-view]").forEach(function(b){b.classList.toggle("on",b.dataset.view===v);});
   if(v==="explore"){initMap();setTimeout(function(){map.invalidateSize();},60);}
   if(v==="admin")renderAdmin();
   if(v==="impact")renderImpact();}
@@ -1972,6 +1982,8 @@ $("hoodSel").addEventListener("change",function(){
 $("eraSel").addEventListener("change",function(){F.era=this.value;apply();});
 $("campSel").addEventListener("change",function(){F.campaign=this.value;apply();});
 $("navImpact").addEventListener("click",function(){showView("impact");});
+$("navMap").addEventListener("click",function(){showView("explore");});
+$("navHome").addEventListener("click",function(){showView("explore");});
 /* mobile panel drawer */
 $("panel").addEventListener("click",function(e){if(e.target===this||e.target.classList.contains("p-head")){this.classList.toggle("up");}});
 
