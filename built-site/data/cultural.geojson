@@ -32,7 +32,10 @@
     "name": "Aretha Franklin Birth Home",
     "category": "Music",
     "street": "406 Lucy Ave, Memphis, TN 38106",
-    "description": "Birthplace of the Queen of Soul, Aretha Franklin, born in this South Memphis home in 1942."
+    "description": "Birthplace of the Queen of Soul, Aretha Franklin, born in this South Memphis home in 1942.",
+    "photo": "media/cultural/aretha-franklin-birth-home.jpg",
+    "photoCredit": "WillyBearden, CC BY-SA 4.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Aretha_Franklin_Birthplace.jpg"
    }
   },
   {
@@ -66,7 +69,10 @@
     "name": "First Baptist Beale (Ida B. Wells Office)",
     "category": "Civil Rights",
     "street": "379 Beale St, Memphis, TN 38103",
-    "description": "Historic Beale Street church that housed the newspaper office of journalist and anti-lynching crusader Ida B. Wells."
+    "description": "Historic Beale Street church that housed the newspaper office of journalist and anti-lynching crusader Ida B. Wells.",
+    "photo": "media/cultural/first-baptist-beale-ida-b-wells-office.jpg",
+    "photoCredit": "John Phelan, CC BY-SA 4.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:First_Baptist_Church,_Beale_St,_Memphis_TN.jpg"
    }
   },
   {
@@ -83,7 +89,10 @@
     "name": "Grigg's Business and Practical Arts College",
     "category": "Education",
     "street": "492 S 4th St, Memphis, TN 38126",
-    "description": "One of Memphis's Black business and vocational colleges, serving the community through the segregation era."
+    "description": "One of Memphis's Black business and vocational colleges, serving the community through the segregation era.",
+    "photo": "media/cultural/grigg-s-business-and-practical-arts-college.jpg",
+    "photoCredit": "Dclemens1971, CC BY 4.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Griggs_Practical_College.jpg"
    }
   },
   {
@@ -100,7 +109,10 @@
     "name": "Historic Clayborn Temple",
     "category": "Civil Rights",
     "street": "294 Hernando St, Memphis, TN 38126",
-    "description": "Rallying point and headquarters for the 1968 sanitation workers' strike, birthplace of the 'I AM A MAN' banners."
+    "description": "Rallying point and headquarters for the 1968 sanitation workers' strike, birthplace of the 'I AM A MAN' banners.",
+    "photo": "media/cultural/historic-clayborn-temple.jpg",
+    "photoCredit": "Jayhedges24, CC BY-SA 4.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Clayborn_Temple_from_Pontotoc_Ave..jpg"
    }
   },
   {
@@ -117,7 +129,10 @@
     "name": "LeMoyne-Owen College",
     "category": "Education",
     "street": "807 Walker Ave, Memphis, TN 38126",
-    "description": "Historically Black college with roots to 1862, long a center of Black education and civil rights activism in Memphis."
+    "description": "Historically Black college with roots to 1862, long a center of Black education and civil rights activism in Memphis.",
+    "photo": "media/cultural/lemoyne-owen-college.jpg",
+    "photoCredit": "Dclemens1971, CC BY 4.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Campus_of_LeMoyne%E2%80%93Owen_College_01.jpg"
    }
   },
   {
@@ -134,7 +149,10 @@
     "name": "Lorraine Motel / National Civil Rights Museum",
     "category": "Civil Rights",
     "street": "450 Mulberry St, Memphis, TN 38103",
-    "description": "Site of Dr. Martin Luther King Jr.'s assassination in 1968, now the National Civil Rights Museum."
+    "description": "Site of Dr. Martin Luther King Jr.'s assassination in 1968, now the National Civil Rights Museum.",
+    "photo": "media/cultural/lorraine-motel-national-civil-rights-museum.jpg",
+    "photoCredit": "Matthew T Rader, CC BY-SA 4.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Lorraine_Motel,_Memphis,_Tennessee.jpg"
    }
   },
   {
@@ -151,7 +169,10 @@
     "name": "Mason Temple",
     "category": "Civil Rights",
     "street": "930 Mason St, Memphis, TN 38126",
-    "description": "World headquarters of the Church of God in Christ, where Dr. King gave his final 'Mountaintop' speech in 1968."
+    "description": "World headquarters of the Church of God in Christ, where Dr. King gave his final 'Mountaintop' speech in 1968.",
+    "photo": "media/cultural/mason-temple.jpg",
+    "photoCredit": "Jim Roberts, CC BY-SA 4.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Mason_Temple,_Church_of_God_in_Christ_Memphis,_Tennessee.jpg"
    }
   },
   {
@@ -185,7 +206,10 @@
     "name": "Old Daisy Theater",
     "category": "Music",
     "street": "329 Beale St, Memphis, TN 38103",
-    "description": "Historic 1917 Beale Street movie house, an entertainment anchor of Black Memphis."
+    "description": "Historic 1917 Beale Street movie house, an entertainment anchor of Black Memphis.",
+    "photo": "media/cultural/old-daisy-theater.jpg",
+    "photoCredit": "Sallyelaine444, CC BY-SA 4.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Daisy_Theater_-_Memphis,_Tennessee.jpg"
    }
   },
   {
@@ -202,7 +226,10 @@
     "name": "Orpheum Theatre Balcony Project",
     "category": "Music",
     "street": "203 S Main St, Memphis, TN 38103",
-    "description": "Grand 1928 theatre near Beale Street; the Balcony Project reckons with its segregated past."
+    "description": "Grand 1928 theatre near Beale Street; the Balcony Project reckons with its segregated past.",
+    "photo": "media/cultural/orpheum-theatre-balcony-project.jpg",
+    "photoCredit": "Bjoertvedt, CC BY-SA 4.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Memphis_IMG_2845_Orpheum.jpg"
    }
   },
   {
@@ -219,7 +246,10 @@
     "name": "People's Grocery",
     "category": "Civil Rights",
     "street": "Walker Ave & Mississippi Blvd, Memphis, TN 38106",
-    "description": "Site of the 1892 lynching at 'the Curve' that launched Ida B. Wells's national anti-lynching campaign."
+    "description": "Site of the 1892 lynching at 'the Curve' that launched Ida B. Wells's national anti-lynching campaign.",
+    "photo": "media/cultural/people-s-grocery.jpg",
+    "photoCredit": "Photographer unknown, c.1890, public domain, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Peoples-grocery.jpg"
    }
   },
   {
@@ -236,7 +266,10 @@
     "name": "R.S. Lewis Funeral Home",
     "category": "Civil Rights",
     "street": "374 Vance Ave, Memphis, TN 38126",
-    "description": "Black-owned funeral home that provided the hearse for Dr. King and supported the civil rights movement."
+    "description": "Black-owned funeral home that provided the hearse for Dr. King and supported the civil rights movement.",
+    "photo": "media/cultural/r-s-lewis-funeral-home.jpg",
+    "photoCredit": "Magnolia677, CC BY 4.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:R.S._Lewis_%26_Sons_Funeral_Home,_Memphis,_Tennessee.jpg"
    }
   },
   {
@@ -253,7 +286,10 @@
     "name": "Robert R. Church Auditorium",
     "category": "Civil Rights",
     "street": "364 Beale St, Memphis, TN 38103",
-    "description": "Auditorium in Church Park, built by Robert R. Church Sr., the South's first Black millionaire."
+    "description": "Auditorium in Church Park, built by Robert R. Church Sr., the South's first Black millionaire.",
+    "photo": "media/cultural/robert-r-church-auditorium.jpg",
+    "photoCredit": "Thomas R Machnitzki, CC BY 3.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Robert_Church_Park_Memphis_TN_012.jpg"
    }
   },
   {
@@ -287,7 +323,10 @@
     "name": "Rock 'n' Soul Museum + Hall of Fame",
     "category": "Music",
     "street": "191 Beale St, Memphis, TN 38103",
-    "description": "Smithsonian-affiliated museum telling the story of Memphis music and the people who made it."
+    "description": "Smithsonian-affiliated museum telling the story of Memphis music and the people who made it.",
+    "photo": "media/cultural/rock-n-soul-museum-hall-of-fame.jpg",
+    "photoCredit": "Gary J. Wood, CC BY-SA 2.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Memphis_Rock_N_Soul_Museum.jpg"
    }
   },
   {
@@ -304,7 +343,10 @@
     "name": "Royal Studios",
     "category": "Music",
     "street": "1320 S Lauderdale St, Memphis, TN 38106",
-    "description": "One of the oldest continuously operating recording studios, home of Hi Records and Al Green's soul sound."
+    "description": "One of the oldest continuously operating recording studios, home of Hi Records and Al Green's soul sound.",
+    "photo": "media/cultural/royal-studios.jpg",
+    "photoCredit": "Thomas R Machnitzki, CC BY 3.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Royal_Studios_Lauderdale_St_Memphis_TN_001.jpg"
    }
   },
   {
@@ -321,7 +363,10 @@
     "name": "Stax / Soulsville Foundation Campus",
     "category": "Music",
     "street": "926 E McLemore Ave, Memphis, TN 38106",
-    "description": "Site of Stax Records, birthplace of Memphis soul, now the Stax Museum and Soulsville campus."
+    "description": "Site of Stax Records, birthplace of Memphis soul, now the Stax Museum and Soulsville campus.",
+    "photo": "media/cultural/stax-soulsville-foundation-campus.jpg",
+    "photoCredit": "Avalon Frost, CC BY 2.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Stax_Museum_of_American_Soul_Music_exterior.jpg"
    }
   },
   {
@@ -338,7 +383,10 @@
     "name": "Universal Life Building",
     "category": "Civil Rights",
     "street": "480 Dr Martin Luther King Jr Ave, Memphis, TN 38126",
-    "description": "Landmark home of Universal Life Insurance, a cornerstone of Black economic power in Memphis."
+    "description": "Landmark home of Universal Life Insurance, a cornerstone of Black economic power in Memphis.",
+    "photo": "media/cultural/universal-life-building.jpg",
+    "photoCredit": "Spencer Kellum, CC BY-SA 3.0, via Wikimedia Commons",
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Universal_Life_Insurance_Company_Memphis.JPG"
    }
   },
   {
