@@ -234,6 +234,13 @@
   /* neighborhood profile, at the top of the story column */
   .hoodpage{margin:-10px -12px 14px;border-bottom:1px solid var(--line)}
   .dc-badge{display:grid;place-items:center;width:46px;height:22px;border-radius:6px;color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.02em;border:2px solid #fff;box-shadow:0 2px 6px rgba(36,28,59,.45)}
+  .dcmeta{display:flex;flex-wrap:wrap;gap:14px;margin:8px 0 10px}
+  .dcmeta span{display:flex;flex-direction:column;font-size:12.5px;color:var(--text)}
+  .dcmeta b{font-size:9.5px;font-weight:800;letter-spacing:.02em;color:var(--faint)}
+  .dcdecl{border-left:2px solid var(--hood);padding:2px 0 2px 10px;margin:0 0 12px}
+  .dcdecl p{margin:0 0 3px;font-size:11.5px;color:var(--muted);line-height:1.45}
+  .dcdecl b{color:var(--text)}
+  .dcdecl .dcsrc{color:var(--faint);font-size:10.5px;margin-top:3px}
   .dctabs{display:flex;gap:6px;margin:4px 0 2px}
   .dctab{font:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:var(--muted);cursor:pointer}
   .dctab:hover{border-color:var(--hood);color:var(--text)}
@@ -1771,8 +1778,17 @@ function dcPage(id){
       '<button class="sp-link" id="dcLink">'+ic("join",12)+' Copy Link</button></div>'+
       '<p class="shk" style="color:'+col+'"><span class="hp-dot" style="background:'+col+'"></span> Data Center</p>'+
       '<h2>'+esc(p.operator)+' '+esc(p.name)+'</h2>'+
-      '<p class="hp-sub">'+esc(p.street)+' &middot; '+esc(p.status)+'</p>'+
-      (p.note?'<p class="sp-desc" style="margin-bottom:12px">'+esc(p.note)+'</p>':'')+
+      '<p class="hp-sub">'+esc(p.street)+'</p>'+
+      '<div class="dcmeta">'+
+        '<span><b>Runs it</b>'+esc(p.operator)+'</span>'+
+        (p.owner&&p.owner!==p.operator?'<span><b>Owns it</b>'+esc(p.owner)+'</span>':'')+
+        '<span><b>Status</b>'+esc(p.status)+'</span>'+
+      '</div>'+
+      (p.note?'<p class="sp-desc" style="margin-bottom:10px">'+esc(p.note)+'</p>':'')+
+      (p.declared?'<div class="dcdecl">'+
+        (p.declared.power?'<p><b>Power</b> '+esc(p.declared.power)+'</p>':'')+
+        (p.declared.water?'<p><b>Water</b> '+esc(p.declared.water)+'</p>':'')+
+        '<p class="dcsrc">Declared and reported figures, not measured.</p></div>':'')+
       '<div class="dctabs" role="group" aria-label="Radius">'+
         ["1","5"].map(function(m){return '<button type="button" class="dctab'+(m===dcRadius?" on":"")+'" data-dcr="'+m+'">'+m+' Mile'+(m==="1"?"":"s")+'</button>';}).join("")+
       '</div>'+
