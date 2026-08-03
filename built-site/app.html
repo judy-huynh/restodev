@@ -102,17 +102,40 @@
   /* ── Explore layout ── */
   .explore{display:grid;grid-template-columns:384px 1fr;height:100%}
   .panel{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0;position:relative;z-index:20}
-  .p-head{padding:18px 20px 14px;border-bottom:1px solid var(--line)}
-  .p-head h1{font-family:var(--display);font-size:19px;margin:0 0 3px;letter-spacing:-.01em}
-  .p-head .meta{font-size:12.5px;color:var(--muted);margin:0}
-  .search{position:relative;margin-top:14px}
+  /* The header and filters were 404px of a 771px panel, so 52% of the story pane was
+     chrome and the stories got what was left. Title and count share a line now, the
+     mission sentence moved into the collapsible half, and the padding is tighter. */
+  .p-head{padding:11px 16px 10px;border-bottom:1px solid var(--line)}
+  /* The toggle rides on the title's line rather than taking one of its own. On its own
+     row it cost 38px, which was most of what tightening the header had just saved. */
+  .p-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .p-head h1{font-family:var(--display);font-size:16px;margin:0;letter-spacing:-.01em;line-height:1.2}
+  .p-head .meta{font-size:11.5px;color:var(--muted);margin:2px 0 0;line-height:1.3}
+  /* Collapse control. The count keeps working when the panel is shut, so a filtered map
+     can never look like an empty one. */
+  .ftoggle{display:inline-flex;align-items:center;gap:6px;flex:none;
+    padding:4px 7px;border:1px solid var(--line);border-radius:8px;background:var(--bg);
+    font:inherit;font-size:10.5px;font-weight:700;letter-spacing:.02em;color:var(--muted);cursor:pointer}
+  .ftoggle:hover{border-color:var(--border);color:var(--text)}
+  .ftoggle:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .ftoggle .ft-l{display:inline-flex;align-items:center;gap:6px}
+  .ftoggle .ft-n{display:inline-grid;place-items:center;min-width:15px;height:15px;padding:0 4px;
+    border-radius:999px;background:var(--primary);color:#fff;font-size:9.5px;font-weight:800}
+  /* An explicit display beats the user-agent [hidden]{display:none}, so the badge sat
+     there showing "0". It has to be said again, more specifically. */
+  .ftoggle .ft-n[hidden]{display:none}
+  .ftoggle .chev{display:inline-flex;transition:transform .18s ease}
+  .ftoggle[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+  .filters[hidden]{display:none}
+  .p-mission{font-size:11px;color:var(--faint);margin:0;line-height:1.5}
+  .search{position:relative;margin-top:9px}
   .search input{width:100%;border:1.5px solid var(--border);border-radius:11px;padding:11px 12px 11px 38px;font-size:13.5px;background:var(--bg)}
   .search input:focus{outline:none;border-color:var(--primary);background:#fff}
   .search .si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--faint);display:inline-flex}
 
   /* filters */
-  .filters{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
-  .fgroup .flabel{font-size:10.5px;font-weight:700;letter-spacing:.02em;color:var(--faint);margin-bottom:7px}
+  .filters{padding:11px 16px 13px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:9px}
+  .fgroup .flabel{font-size:10.5px;font-weight:700;letter-spacing:.02em;color:var(--faint);margin-bottom:6px}
   .kchips{display:flex;flex-wrap:wrap;gap:6px}
   .kchip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:999px;padding:6px 11px;font-size:12px;font-weight:600;color:var(--muted);transition:.14s}
   .kchip .kd{width:9px;height:9px;border-radius:50%}
@@ -283,6 +306,9 @@
   .hp-asset span{font-size:10.5px;line-height:1.25}
   .hp-asset.none b{color:var(--faint)}
   .hp-asset.wide{grid-column:1/-1}
+  .hp-asset .hp-sub{display:block;margin-top:1px;font-size:9.5px;color:var(--faint);line-height:1.3}
+  .hp-two .hp-alt{margin-left:auto;flex:none;max-width:34%;padding-left:10px;border-left:1px solid var(--line);text-align:right}
+  .hp-two.none .hp-alt b{color:var(--text)}   /* zero groceries does not grey out 14 corner stores */
   .hp-cd{display:flex;align-items:center;gap:9px;padding:5px 0}
   .hp-cdn{font-size:12.5px;font-weight:600;min-width:72px}
   .hp-cdv{font-size:11.5px;color:var(--muted);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
@@ -679,12 +705,17 @@
     <div class="explore">
       <aside class="panel" id="panel">
         <div class="p-head">
-          <h1>Community Memories</h1>
+          <div class="p-title">
+            <h1>Community Memories</h1>
+            <button class="ftoggle" id="fToggle" aria-expanded="true" aria-controls="filters">
+              <span class="ft-l">Filters<span class="ft-n" id="fCount" hidden></span></span>
+              <span class="chev" data-ic="chevDown" data-s="13"></span>
+            </button>
+          </div>
           <p class="meta" id="panelMeta"></p>
-          <p style="font-size:11.5px;color:var(--faint);margin:5px 0 0;line-height:1.5">A community-owned record, culture as the root of healing. Stewarded by The Big We.</p>
           <div class="search"><span class="si" data-ic="search" data-s="15"></span><input id="searchIn" placeholder="Filter stories by word, name or corner…"></div>
         </div>
-        <div class="filters">
+        <div class="filters" id="filters">
           <div class="fgroup"><div class="flabel">Category</div><div class="kchips" id="kchips"></div></div>
           <div class="frow">
             <select id="hoodSel" aria-label="Neighborhood"></select>
@@ -694,6 +725,7 @@
             <select id="campSel" aria-label="Event or campaign"></select>
           </div>
           <div class="activefilters" id="activeF"></div>
+          <p class="p-mission">A community-owned record, culture as the root of healing. Stewarded by The Big We.</p>
         </div>
         <div class="cards" id="cards"></div>
         <!-- detail slides over the panel -->
@@ -1832,6 +1864,42 @@ function renderActiveF(){
   $("activeF").innerHTML=chips.join("")+(any?'<button class="clearf" id="clearAll">Clear All Filters</button>':"");
   var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){F={kinds:new Set(),hood:"all",era:"all",campaign:"all",place:null,site:null,dc:null,q:""};$("searchIn").value="";apply();});
   $("activeF").querySelectorAll("[data-clr]").forEach(function(b){b.addEventListener("click",function(){F[b.dataset.clr]=b.dataset.clr==="place"?null:"all";apply();});});
+  renderFCount();
+}
+/* How many filters are on, shown on the collapse control. This is the whole reason the
+   panel is safe to shut: a closed panel with "2" on it still says the list is filtered,
+   where a closed panel with nothing on it would let someone read a filtered map as an
+   empty one. Search counts, because it filters as hard as any of the others. */
+function activeFilterCount(){
+  return (F.kinds.size?1:0)+(F.hood!=="all"?1:0)+(F.era!=="all"?1:0)+
+         (F.campaign&&F.campaign!=="all"?1:0)+(F.place?1:0)+(F.q?1:0);
+}
+function renderFCount(){
+  var el=$("fCount");if(!el)return;
+  var n=activeFilterCount();
+  el.textContent=n;el.hidden=n===0;
+  var t=$("fToggle");
+  if(t)t.setAttribute("aria-label",n?"Filters, "+n+" active":"Filters");
+}
+/* Open or shut, remembered. Default is open: the first thing a person needs to know is
+   that the map can be filtered at all, and a workshop demo starts by showing exactly
+   that. Once they have shut it, it stays shut. */
+function setFiltersOpen(open,remember){
+  var f=$("filters"),t=$("fToggle");
+  if(!f||!t)return;
+  f.hidden=!open;
+  t.setAttribute("aria-expanded",open?"true":"false");
+  if(remember){try{localStorage.setItem("mr_filters_open",open?"1":"0");}catch(e){}}
+}
+function initFilterToggle(){
+  var t=$("fToggle");if(!t)return;
+  var saved=null;
+  try{saved=localStorage.getItem("mr_filters_open");}catch(e){}
+  setFiltersOpen(saved===null?true:saved==="1",false);
+  t.addEventListener("click",function(){
+    setFiltersOpen(this.getAttribute("aria-expanded")!=="true",true);
+  });
+  renderFCount();
 }
 function cardThumb(s){var src=photoSrc(s.photo);var k=KIND[s.kind]||KIND.memory;
   return src?'<img class="thumb" src="'+src+'" alt="" loading="lazy">':'<div class="thumb ph" style="background:'+k.color+'22;color:'+k.color+'">'+ic(k.icon,24)+'</div>';}
@@ -1895,8 +1963,22 @@ function floodRows(d){
     tot.toFixed(1)+'%</b> of this ground is on a flood map of some kind. A 1 in 100 chance is not once a century; it is every year.</p>';
   return out;
 }
-function assetTile(icon,n,label,cls){
-  return '<div class="hp-asset'+(n?'':' none')+(cls?' '+cls:'')+'">'+ic(icon,16)+'<div><b>'+n+'</b><span>'+esc(label)+'</span></div></div>';
+function assetTile(icon,n,label,cls,sub){
+  return '<div class="hp-asset'+(n?'':' none')+(cls?' '+cls:'')+'">'+ic(icon,16)+
+    '<div><b>'+n+'</b><span>'+esc(label)+'</span>'+
+    (sub?'<span class="hp-sub">'+esc(sub)+'</span>':'')+'</div></div>';
+}
+/* Two figures in one tile, for a count whose meaning is entirely in the comparison.
+   The food block used to lead with a big "7,190 people per grocery store", then list the
+   two counts underneath, then explain in a sentence that 93% of the retailers here are
+   convenience stores. Putting 1 next to 14 makes the same point without making it, which
+   is the version a person in the room can argue with. */
+function twoUpTile(icon,a,aLabel,aSub,b,bLabel){
+  if(a==null&&b==null)return "";
+  return '<div class="hp-asset wide hp-two'+(a?'':' none')+'">'+ic(icon,16)+
+    '<div><b>'+(a||0)+'</b><span>'+esc(aLabel)+'</span>'+
+      (aSub?'<span class="hp-sub">'+esc(aSub)+'</span>':'')+'</div>'+
+    '<div class="hp-alt"><b>'+(b||0)+'</b><span>'+esc(bLabel)+'</span></div></div>';
 }
 function hoodPrompts(d){
   var out=[];
@@ -1948,25 +2030,22 @@ function hoodPage(name){
       meterRow("Homes sitting empty",d.vacantPct,35,d.vacantPct>=20?"strain":d.vacantPct>=13?"watch":"ok","City-wide about 12%")+
     '</div>'+
 
-    '<div class="hp-block"><div class="hp-label"><h3>'+ic("basket",12)+' Buying food</h3><span>USDA SNAP</span></div>'+
-      '<div class="hp-head"><b>'+(d.peoplePerGrocery?num(d.peoplePerGrocery):"—")+'</b><span>people per full-service<br>grocery store</span></div>'+
-      '<div class="hp-stat"><span>Full-service groceries and markets</span><b>'+a.snapFull+'</b></div>'+
-      '<div class="hp-stat"><span>Convenience and corner stores</span><b>'+conv+'</b></div>'+
-      (a.snapAll&&a.snapFull/a.snapAll<0.2
-        ? '<p class="hp-note">'+Math.round((1-a.snapFull/a.snapAll)*100)+'% of the food retailers here are convenience stores. Counting all '+a.snapAll+' would say this neighborhood is well served.</p>' : '')+
-    '</div>'+
-
-    '<div class="hp-block"><div class="hp-label"><h3>'+ic("layers",12)+' Civic assets</h3><span>City of Memphis</span></div>'+
+    '<div class="hp-block"><div class="hp-label"><h3>'+ic("layers",12)+' Civic assets</h3><span>City of Memphis · USDA SNAP · OSM</span></div>'+
       '<div class="hp-assets">'+
         assetTile("book",a.libraries,a.libraries===1?"public library":"public libraries")+
         assetTile("hall",a.centers,a.centers===1?"community center":"community centers")+
         assetTile("tree",a.parks,a.parks===1?"park":"parks")+
         assetTile("star",a.cultural||0,"Cultural District")+
-        // Full width, and last, because it is usually the largest number in the block by
-        // an order of magnitude and would make a half-tile look like a rounding error.
+        // Food and faith run full width, and last. Both are counts that only mean
+        // something next to a second number, so both carry one. The four above are plain
+        // tallies and a half tile says everything there is to say about them.
+        twoUpTile("basket",a.snapFull,
+          a.snapFull===1?"full-service grocery":"full-service groceries",
+          d.peoplePerGrocery?"one for every "+num(d.peoplePerGrocery)+" people":"",
+          conv,"convenience and corner stores")+
         (a.faith!=null?assetTile("church",a.faith,
-           (a.faith===1?"church or place of worship":"churches and places of worship")+
-           (d.peoplePerChurch?", one for every "+num(d.peoplePerChurch)+" people":""),"wide"):"")+
+           a.faith===1?"place of worship":"places of worship","wide",
+           d.peoplePerChurch?"one for every "+num(d.peoplePerChurch)+" people":""):"")+
       '</div>'+
       (a.faith?'<p class="hp-note">Places of worship are named entries in OpenStreetMap plus the ones this project holds itself. It does not know every storefront church, and in Memphis that is most of them, so read this as a floor.</p>':'')+
       floodRows(d)+
@@ -3147,6 +3226,7 @@ campaignParam=params.get("campaign")||"web";eventParam=params.get("event")||"";c
   });
 })();
 hydrateIcons(document);
+initFilterToggle();
 renderKChips();renderSelects();renderActiveF();renderMeta();renderCards();
 if(mode==="share"||mode==="kiosk"){showView("explore");startCapture(kindParam||null);}
 else if(mode==="admin"){showView("admin");}
