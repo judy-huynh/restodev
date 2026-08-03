@@ -856,7 +856,7 @@ var HOOD_SHAPES=null;
    asked a question that knows something. Loaded async and fails soft, like the shapes. */
 var HOOD_PROFILES=null;
 function loadProfiles(){
-  fetch("data/neighborhood-profiles.json").then(function(r){return r.json();}).then(function(d){
+  fetch("data/neighborhood-profiles.json",{cache:"no-cache"}).then(function(r){return r.json();}).then(function(d){
     HOOD_PROFILES=d.neighborhoods||null;
     if(HOOD_PROFILES&&F.hood!=="all")renderCards();   // a neighbourhood already chosen gets its profile
   }).catch(function(e){console.warn("neighbourhood profiles failed:",e);});
@@ -1311,7 +1311,7 @@ function initMap(){
    If the fetch fails the map simply has no boundaries and the form falls back to
    centres, which is why the form never waits on this. */
 function loadHoodShapes(){
-  fetch("data/neighborhoods.geojson").then(function(r){return r.json();}).then(function(d){
+  fetch("data/neighborhoods.geojson",{cache:"no-cache"}).then(function(r){return r.json();}).then(function(d){
     HOOD_SHAPES=d.features||[];
     /* bubblingMouseEvents:false is the whole reason a neighborhood click behaved oddly.
        Leaflet paths bubble their clicks up to the map by default, so every click on a
@@ -1350,7 +1350,7 @@ function starTip(p){
     (n?n+' '+(n===1?"memory":"memories")+' here':"No memories yet")+'</span>';
 }
 function loadCultural(){
-  fetch("data/cultural.geojson").then(function(r){return r.json();}).then(function(d){
+  fetch("data/cultural.geojson",{cache:"no-cache"}).then(function(r){return r.json();}).then(function(d){
     CULTURAL=(d.features||[]).filter(function(f){
       return f.geometry&&f.geometry.type==="Point"&&isFinite(f.geometry.coordinates[0])&&isFinite(f.geometry.coordinates[1]);
     });
@@ -1457,7 +1457,7 @@ function highlightHood(name){
 }
 /* context layers (real Memphis city data), off by default, below story pins */
 function ctxCircle(color,r){return {radius:r||5,fillColor:color,color:"#fff",weight:1,fillOpacity:.9,pane:"ctx"};}
-function loadCtx(file,key,builder){fetch("data/"+file).then(function(r){return r.json();}).then(function(d){ctxLayers[key]=builder(d);}).catch(function(e){console.warn("context layer failed:",file,e);});}
+function loadCtx(file,key,builder){fetch("data/"+file,{cache:"no-cache"}).then(function(r){return r.json();}).then(function(d){ctxLayers[key]=builder(d);}).catch(function(e){console.warn("context layer failed:",file,e);});}
 function loadContext(){
   loadCtx("flood.geojson","flood",function(d){return L.geoJSON(d,{pane:"ctx",style:function(){return{color:"#2b6cb0",weight:1,fillColor:"#3A86FF",fillOpacity:.22,pane:"ctx"};},onEachFeature:function(f,l){l.bindPopup("<b>Flood zone "+(f.properties.zone||"")+"</b><br>FEMA high-risk area");}});});
   loadCtx("food.geojson","food",function(d){var FULL={"Grocery Store":1,"Supermarket":1,"Super Store":1,"Farmers and Markets":1};return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle(FULL[f.properties.type]?"#1B7A3D":"#E0A100",5));},onEachFeature:function(f,l){l.bindPopup("<b>"+(f.properties.name||"Food retailer")+"</b><br>"+(f.properties.type||""));}});});
@@ -1714,6 +1714,9 @@ function renderCards(){
   });
   $("cards").querySelectorAll(".card").forEach(function(c){
     c.addEventListener("click",function(){selectStory(c.dataset.id,true);});
+    // The card is focusable, so it has to open from the keyboard as well as the mouse.
+    c.addEventListener("keydown",function(e){
+      if(e.key==="Enter"||e.key===" "){e.preventDefault();selectStory(c.dataset.id,true);}});
     c.addEventListener("mouseenter",function(){hiMarker(c.dataset.id,true);});
     c.addEventListener("mouseleave",function(){hiMarker(c.dataset.id,false);});
   });
