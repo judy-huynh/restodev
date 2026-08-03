@@ -2545,7 +2545,14 @@ function renderEditor(){
       '<p class="elegend priv">'+ic("lock",12)+' Moderators only · never leaves this page</p>'+
       '<label class="efl">Workflow</label>'+modTagRow(MOD_WORKFLOW,v.workflow||[],"w")+
       '<label class="efl" style="margin-top:10px">Value to the project</label>'+modTagRow(MOD_VALUE,v.value||[],"v")+
-      '<label class="efl" style="margin-top:10px" for="mNote">Note for the team</label>'+
+      '<label class="efl" style="margin-top:12px">Contact, as they gave it</label>'+
+      '<div class="egrid3">'+
+        '<div><input class="ti" id="mcName" placeholder="Name" value="'+esc((s.contact&&s.contact.name)||"")+'"></div>'+
+        '<div><input class="ti" id="mcEmail" type="email" placeholder="Email" value="'+esc((s.contact&&s.contact.email)||"")+'"></div>'+
+        '<div><input class="ti" id="mcPhone" type="tel" placeholder="Phone" value="'+esc((s.contact&&s.contact.phone)||"")+'"></div>'+
+      '</div>'+
+      '<p class="privmeta">For fixing a typo in an email or a missed digit in a phone number. Clearing all three removes the contact from the story.</p>'+
+      '<label class="efl" style="margin-top:12px" for="mNote">Note for the team</label>'+
       '<textarea class="ti" id="mNote" rows="2" placeholder="What the next person needs to know.">'+esc(v.note||"")+'</textarea>'+
       (v.updated_by?'<p class="privmeta">Last touched by '+esc(v.updated_by)+'</p>':'')+
     '</div>'+
@@ -2582,6 +2589,13 @@ function renderEditor(){
     if(i>-1)vv.value.splice(i,1);else (vv.value=vv.value||[]).push(t);
     b.classList.toggle("on",i<0);renderQueue();});});
   $("mNote").addEventListener("input",function(){vv.note=this.value;});
+  ["mcName:name","mcEmail:email","mcPhone:phone"].forEach(function(pair){
+    var bits=pair.split(":"),el=$(bits[0]);
+    if(el)el.addEventListener("input",function(){
+      s.contact=s.contact||{};s.contact[bits[1]]=this.value.trim()||null;
+      if(!s.contact.name&&!s.contact.email&&!s.contact.phone)s.contact=null;
+    });
+  });
   $("mSave").addEventListener("click",function(){saveStoryEdits(s,vv,this);});
   var ap=$("mAppr");if(ap)ap.addEventListener("click",function(){modStory(s.id,"approved");});
   var rj=$("mRej");if(rj)rj.addEventListener("click",function(){modStory(s.id,"rejected");});
