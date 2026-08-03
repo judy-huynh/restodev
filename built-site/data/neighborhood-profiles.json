@@ -1,1 +1,901 @@
-{"note":"Neighbourhood profiles. Each neighbourhood is a union of whole census tracts, so counts are exact sums and nothing is apportioned across a boundary. Medians are ranges because medians cannot be averaged; percentages are weighted by tract population or housing units. Asset counts are what falls inside the boundary, which is not the same as what is within walking distance of it.","sources":{"acs":"Shelby Co Tract ACS Demo 5Y 2024, data.memphistn.gov","food":"USDA SNAP retailer locations, Memphis","civic":"Memphis Public Libraries / Community Centers / MFD Fire Stations / City of Memphis Parks, data.memphistn.gov","council":"Council Districts 2023, data.memphistn.gov","flood":"FEMA flood zones as carried in data/flood.geojson"},"retrieved":"2026-08-03","neighborhoods":{"Berclair":{"tracts":6,"population":25481,"housingUnits":11026,"areaKm2":21.2,"medianIncomeRange":[45282,111652],"medianIncomeWeighted":75161,"medianRentRange":[1112,1718],"medianAgeRange":[28.3,39.2],"povertyPct":17.8,"blackPct":11.8,"renterPct":34.2,"vacantPct":4.8,"broadbandPct":90.5,"transitPct":0.1,"unemploymentPct":1.7,"noInsurancePct":15.0,"over65Pct":15.0,"disabledPct":10.7,"commuteMin":21.4,"floodSharePct":0.0,"assets":{"snapAll":28,"snapFull":10,"libraries":1,"centers":1,"fire":1,"parks":7,"cultural":0},"council":[{"cd":5,"share":68},{"cd":2,"share":32}],"peoplePerGrocery":2548},"Binghampton":{"tracts":6,"population":14641,"housingUnits":7127,"areaKm2":10.1,"medianIncomeRange":[24922,64122],"medianIncomeWeighted":40438,"medianRentRange":[895,1148],"medianAgeRange":[20.1,50.8],"povertyPct":34.7,"blackPct":53.3,"renterPct":56.1,"vacantPct":16.1,"broadbandPct":74.6,"transitPct":1.5,"unemploymentPct":6.4,"noInsurancePct":20.0,"over65Pct":15.1,"disabledPct":15.2,"commuteMin":21.5,"floodSharePct":0.0,"assets":{"snapAll":23,"snapFull":3,"libraries":1,"centers":1,"fire":1,"parks":3,"cultural":0},"council":[{"cd":5,"share":100}],"peoplePerGrocery":4880},"Downtown / Clayborn":{"tracts":8,"population":16570,"housingUnits":10933,"areaKm2":11.0,"medianIncomeRange":[19139,90673],"medianIncomeWeighted":53022,"medianRentRange":[616,1585],"medianAgeRange":[28.6,41.4],"povertyPct":22.6,"blackPct":52.8,"renterPct":81.2,"vacantPct":14.8,"broadbandPct":86.5,"transitPct":1.1,"unemploymentPct":2.7,"noInsurancePct":9.5,"over65Pct":9.7,"disabledPct":11.3,"commuteMin":19.1,"floodSharePct":14.7,"assets":{"snapAll":19,"snapFull":4,"libraries":2,"centers":1,"fire":4,"parks":28,"cultural":16},"council":[{"cd":7,"share":53},{"cd":6,"share":47}],"peoplePerGrocery":4142},"East Memphis":{"tracts":11,"population":39531,"housingUnits":16445,"areaKm2":36.4,"medianIncomeRange":[36908,182250],"medianIncomeWeighted":90659,"medianRentRange":[955,2165],"medianAgeRange":[23.3,48.7],"povertyPct":17.3,"blackPct":24.6,"renterPct":39.4,"vacantPct":7.7,"broadbandPct":93.3,"transitPct":0.5,"unemploymentPct":3.2,"noInsurancePct":8.4,"over65Pct":15.4,"disabledPct":10.3,"commuteMin":17.6,"floodSharePct":0.0,"assets":{"snapAll":33,"snapFull":10,"libraries":1,"centers":0,"fire":3,"parks":4,"cultural":0},"council":[{"cd":5,"share":58},{"cd":2,"share":32},{"cd":4,"share":9}],"peoplePerGrocery":3953},"Frayser":{"tracts":13,"population":42195,"housingUnits":18809,"areaKm2":75.3,"medianIncomeRange":[20563,87080],"medianIncomeWeighted":37786,"medianRentRange":[967,1371],"medianAgeRange":[20.9,43],"povertyPct":36.1,"blackPct":88.4,"renterPct":57.4,"vacantPct":18.1,"broadbandPct":84.6,"transitPct":0.8,"unemploymentPct":6.6,"noInsurancePct":13.6,"over65Pct":12.0,"disabledPct":18.8,"commuteMin":21.0,"floodSharePct":6.5,"assets":{"snapAll":52,"snapFull":6,"libraries":1,"centers":2,"fire":4,"parks":23,"cultural":0},"council":[{"cd":7,"share":80},{"cd":1,"share":7}],"peoplePerGrocery":7032},"Harbor Town":{"tracts":2,"population":6520,"housingUnits":4168,"areaKm2":8.1,"medianIncomeRange":[23231,65236],"medianIncomeWeighted":58149,"medianRentRange":[979,1713],"medianAgeRange":[29.6,32.5],"povertyPct":18.8,"blackPct":29.7,"renterPct":69.5,"vacantPct":5.7,"broadbandPct":97.5,"transitPct":2.2,"unemploymentPct":4.3,"noInsurancePct":3.8,"over65Pct":10.0,"disabledPct":9.8,"commuteMin":18.6,"floodSharePct":40.6,"assets":{"snapAll":4,"snapFull":1,"libraries":0,"centers":0,"fire":1,"parks":5,"cultural":0},"council":[{"cd":7,"share":100}],"peoplePerGrocery":6520},"Hickory Hill":{"tracts":21,"population":78757,"housingUnits":33842,"areaKm2":86.8,"medianIncomeRange":[27050,121667],"medianIncomeWeighted":60165,"medianRentRange":[1048,1991],"medianAgeRange":[23.9,59],"povertyPct":15.9,"blackPct":76.3,"renterPct":61.5,"vacantPct":10.0,"broadbandPct":93.7,"transitPct":0.4,"unemploymentPct":6.7,"noInsurancePct":15.1,"over65Pct":11.1,"disabledPct":11.4,"commuteMin":20.4,"floodSharePct":0.0,"assets":{"snapAll":87,"snapFull":13,"libraries":0,"centers":1,"fire":4,"parks":11,"cultural":0},"council":[{"cd":3,"share":69},{"cd":2,"share":18},{"cd":4,"share":8}],"peoplePerGrocery":6058},"Midtown":{"tracts":15,"population":35177,"housingUnits":20841,"areaKm2":21.5,"medianIncomeRange":[17266,121094],"medianIncomeWeighted":66918,"medianRentRange":[862,1686],"medianAgeRange":[22,42.9],"povertyPct":15.3,"blackPct":31.6,"renterPct":56.9,"vacantPct":11.5,"broadbandPct":88.6,"transitPct":1.1,"unemploymentPct":3.3,"noInsurancePct":11.8,"over65Pct":16.1,"disabledPct":13.1,"commuteMin":18.9,"floodSharePct":0.0,"assets":{"snapAll":37,"snapFull":6,"libraries":0,"centers":0,"fire":4,"parks":7,"cultural":0},"council":[{"cd":5,"share":39},{"cd":6,"share":28},{"cd":4,"share":18},{"cd":7,"share":15}],"peoplePerGrocery":5863},"North Memphis":{"tracts":8,"population":14934,"housingUnits":8652,"areaKm2":20.9,"medianIncomeRange":[23370,43125],"medianIncomeWeighted":32910,"medianRentRange":[722,1045],"medianAgeRange":[34.6,52.5],"povertyPct":37.4,"blackPct":91.5,"renterPct":60.5,"vacantPct":19.1,"broadbandPct":66.6,"transitPct":8.7,"unemploymentPct":8.9,"noInsurancePct":14.7,"over65Pct":19.5,"disabledPct":21.3,"commuteMin":25.6,"floodSharePct":1.5,"assets":{"snapAll":22,"snapFull":4,"libraries":2,"centers":4,"fire":4,"parks":13,"cultural":0},"council":[{"cd":7,"share":86},{"cd":5,"share":14}],"peoplePerGrocery":3734},"Orange Mound":{"tracts":13,"population":35635,"housingUnits":19909,"areaKm2":26.6,"medianIncomeRange":[23653,124583],"medianIncomeWeighted":49795,"medianRentRange":[744,1694],"medianAgeRange":[27.4,50.5],"povertyPct":27.0,"blackPct":73.4,"renterPct":55.0,"vacantPct":17.1,"broadbandPct":82.1,"transitPct":1.5,"unemploymentPct":8.2,"noInsurancePct":15.1,"over65Pct":17.8,"disabledPct":14.0,"commuteMin":19.6,"floodSharePct":0.0,"assets":{"snapAll":55,"snapFull":8,"libraries":2,"centers":4,"fire":3,"parks":15,"cultural":0},"council":[{"cd":4,"share":80},{"cd":5,"share":19}],"peoplePerGrocery":4454},"Parkway Village":{"tracts":8,"population":31121,"housingUnits":12777,"areaKm2":24.7,"medianIncomeRange":[27875,58581],"medianIncomeWeighted":44650,"medianRentRange":[1043,1478],"medianAgeRange":[25.2,33.7],"povertyPct":32.6,"blackPct":69.7,"renterPct":65.1,"vacantPct":20.3,"broadbandPct":86.1,"transitPct":1.1,"unemploymentPct":6.1,"noInsurancePct":20.4,"over65Pct":8.6,"disabledPct":10.3,"commuteMin":19.6,"floodSharePct":0.0,"assets":{"snapAll":41,"snapFull":12,"libraries":1,"centers":2,"fire":3,"parks":6,"cultural":0},"council":[{"cd":4,"share":50},{"cd":3,"share":44},{"cd":5,"share":6}],"peoplePerGrocery":2593},"Raleigh":{"tracts":17,"population":82883,"housingUnits":31902,"areaKm2":93.5,"medianIncomeRange":[25667,73977],"medianIncomeWeighted":50960,"medianRentRange":[953,1600],"medianAgeRange":[23,49.4],"povertyPct":17.6,"blackPct":54.3,"renterPct":53.3,"vacantPct":8.6,"broadbandPct":88.7,"transitPct":0.4,"unemploymentPct":4.3,"noInsurancePct":19.2,"over65Pct":12.2,"disabledPct":14.7,"commuteMin":24.2,"floodSharePct":0.0,"assets":{"snapAll":81,"snapFull":16,"libraries":1,"centers":2,"fire":3,"parks":11,"cultural":0},"council":[{"cd":1,"share":47},{"cd":7,"share":14}],"peoplePerGrocery":5180},"Soulsville":{"tracts":4,"population":7190,"housingUnits":3917,"areaKm2":6.9,"medianIncomeRange":[18182,53733],"medianIncomeWeighted":33150,"medianRentRange":[686,1145],"medianAgeRange":[21.3,42.5],"povertyPct":37.6,"blackPct":91.1,"renterPct":61.1,"vacantPct":28.1,"broadbandPct":69.8,"transitPct":2.7,"unemploymentPct":9.8,"noInsurancePct":13.3,"over65Pct":20.5,"disabledPct":16.3,"commuteMin":19.8,"floodSharePct":0.0,"assets":{"snapAll":15,"snapFull":1,"libraries":0,"centers":1,"fire":1,"parks":3,"cultural":5},"council":[{"cd":4,"share":50},{"cd":6,"share":50}],"peoplePerGrocery":7190},"South Memphis":{"tracts":13,"population":25228,"housingUnits":14281,"areaKm2":37.3,"medianIncomeRange":[12132,44643],"medianIncomeWeighted":30865,"medianRentRange":[751,1055],"medianAgeRange":[28.1,50.9],"povertyPct":43.6,"blackPct":94.3,"renterPct":59.6,"vacantPct":22.8,"broadbandPct":78.7,"transitPct":2.4,"unemploymentPct":8.0,"noInsurancePct":14.4,"over65Pct":20.4,"disabledPct":18.2,"commuteMin":21.1,"floodSharePct":1.8,"assets":{"snapAll":46,"snapFull":5,"libraries":2,"centers":2,"fire":3,"parks":19,"cultural":3},"council":[{"cd":6,"share":82},{"cd":4,"share":17}],"peoplePerGrocery":5046},"Westwood":{"tracts":5,"population":24119,"housingUnits":10117,"areaKm2":52.3,"medianIncomeRange":[29016,65264],"medianIncomeWeighted":43146,"medianRentRange":[1042,1282],"medianAgeRange":[31.5,47.1],"povertyPct":33.5,"blackPct":94.7,"renterPct":39.7,"vacantPct":9.5,"broadbandPct":84.7,"transitPct":0.3,"unemploymentPct":9.2,"noInsurancePct":15.2,"over65Pct":18.0,"disabledPct":14.2,"commuteMin":24.0,"floodSharePct":0.6,"assets":{"snapAll":27,"snapFull":2,"libraries":0,"centers":2,"fire":4,"parks":17,"cultural":0},"council":[{"cd":6,"share":100}],"peoplePerGrocery":12060},"White Station":{"tracts":5,"population":18671,"housingUnits":8728,"areaKm2":21.0,"medianIncomeRange":[66650,160278],"medianIncomeWeighted":117445,"medianRentRange":[1236,2558],"medianAgeRange":[38.5,55.6],"povertyPct":7.6,"blackPct":10.0,"renterPct":29.5,"vacantPct":3.7,"broadbandPct":96.1,"transitPct":0.0,"unemploymentPct":1.7,"noInsurancePct":3.4,"over65Pct":26.0,"disabledPct":14.7,"commuteMin":18.3,"floodSharePct":0.0,"assets":{"snapAll":8,"snapFull":2,"libraries":0,"centers":0,"fire":1,"parks":3,"cultural":0},"council":[{"cd":2,"share":87}],"peoplePerGrocery":9336},"Whitehaven":{"tracts":18,"population":68689,"housingUnits":30191,"areaKm2":101.2,"medianIncomeRange":[28621,66398],"medianIncomeWeighted":45655,"medianRentRange":[908,1529],"medianAgeRange":[21.2,44.7],"povertyPct":29.9,"blackPct":87.2,"renterPct":55.9,"vacantPct":13.8,"broadbandPct":85.2,"transitPct":0.8,"unemploymentPct":6.6,"noInsurancePct":17.8,"over65Pct":16.3,"disabledPct":15.2,"commuteMin":21.3,"floodSharePct":0.0,"assets":{"snapAll":92,"snapFull":11,"libraries":2,"centers":1,"fire":8,"parks":13,"cultural":0},"council":[{"cd":3,"share":69},{"cd":6,"share":28}],"peoplePerGrocery":6244}}}
+{
+ "note": "Neighbourhood profiles. Each neighbourhood is a union of whole census tracts, so counts are exact sums and nothing is apportioned across a boundary. Medians are ranges because medians cannot be averaged; percentages are weighted by tract population or housing units. Asset counts are what falls inside the boundary, which is not the same as what is within walking distance of it.",
+ "sources": {
+  "acs": "Shelby Co Tract ACS Demo 5Y 2024, data.memphistn.gov",
+  "food": "USDA SNAP retailer locations, Memphis",
+  "civic": "Memphis Public Libraries / Community Centers / MFD Fire Stations / City of Memphis Parks, data.memphistn.gov",
+  "council": "Council Districts 2023, data.memphistn.gov",
+  "flood": "FEMA NFHL S_FLD_HAZ_AR, retrieved 2026-08-03. floodSharePct is the 1% annual chance zone (A, AE). flood500SharePct is the 0.2% annual chance zone, which lies outside the 1% zone, so the two do not overlap and may be read together as total mapped exposure. Computed against full-resolution geometry."
+ },
+ "retrieved": "2026-08-03",
+ "neighborhoods": {
+  "Berclair": {
+   "tracts": 6,
+   "population": 25481,
+   "housingUnits": 11026,
+   "areaKm2": 21.2,
+   "medianIncomeRange": [
+    45282,
+    111652
+   ],
+   "medianIncomeWeighted": 75161,
+   "medianRentRange": [
+    1112,
+    1718
+   ],
+   "medianAgeRange": [
+    28.3,
+    39.2
+   ],
+   "povertyPct": 17.8,
+   "blackPct": 11.8,
+   "renterPct": 34.2,
+   "vacantPct": 4.8,
+   "broadbandPct": 90.5,
+   "transitPct": 0.1,
+   "unemploymentPct": 1.7,
+   "noInsurancePct": 15.0,
+   "over65Pct": 15.0,
+   "disabledPct": 10.7,
+   "commuteMin": 21.4,
+   "floodSharePct": 6.4,
+   "assets": {
+    "snapAll": 28,
+    "snapFull": 10,
+    "libraries": 1,
+    "centers": 1,
+    "fire": 1,
+    "parks": 7,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 5,
+     "share": 68
+    },
+    {
+     "cd": 2,
+     "share": 32
+    }
+   ],
+   "peoplePerGrocery": 2548,
+   "flood500SharePct": 1.3
+  },
+  "Binghampton": {
+   "tracts": 6,
+   "population": 14641,
+   "housingUnits": 7127,
+   "areaKm2": 10.1,
+   "medianIncomeRange": [
+    24922,
+    64122
+   ],
+   "medianIncomeWeighted": 40438,
+   "medianRentRange": [
+    895,
+    1148
+   ],
+   "medianAgeRange": [
+    20.1,
+    50.8
+   ],
+   "povertyPct": 34.7,
+   "blackPct": 53.3,
+   "renterPct": 56.1,
+   "vacantPct": 16.1,
+   "broadbandPct": 74.6,
+   "transitPct": 1.5,
+   "unemploymentPct": 6.4,
+   "noInsurancePct": 20.0,
+   "over65Pct": 15.1,
+   "disabledPct": 15.2,
+   "commuteMin": 21.5,
+   "floodSharePct": 0.0,
+   "assets": {
+    "snapAll": 23,
+    "snapFull": 3,
+    "libraries": 1,
+    "centers": 1,
+    "fire": 1,
+    "parks": 3,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 5,
+     "share": 100
+    }
+   ],
+   "peoplePerGrocery": 4880,
+   "flood500SharePct": 0.0
+  },
+  "Downtown / Clayborn": {
+   "tracts": 8,
+   "population": 16570,
+   "housingUnits": 10933,
+   "areaKm2": 11.0,
+   "medianIncomeRange": [
+    19139,
+    90673
+   ],
+   "medianIncomeWeighted": 53022,
+   "medianRentRange": [
+    616,
+    1585
+   ],
+   "medianAgeRange": [
+    28.6,
+    41.4
+   ],
+   "povertyPct": 22.6,
+   "blackPct": 52.8,
+   "renterPct": 81.2,
+   "vacantPct": 14.8,
+   "broadbandPct": 86.5,
+   "transitPct": 1.1,
+   "unemploymentPct": 2.7,
+   "noInsurancePct": 9.5,
+   "over65Pct": 9.7,
+   "disabledPct": 11.3,
+   "commuteMin": 19.1,
+   "floodSharePct": 14.7,
+   "assets": {
+    "snapAll": 19,
+    "snapFull": 4,
+    "libraries": 2,
+    "centers": 1,
+    "fire": 4,
+    "parks": 28,
+    "cultural": 16
+   },
+   "council": [
+    {
+     "cd": 7,
+     "share": 53
+    },
+    {
+     "cd": 6,
+     "share": 47
+    }
+   ],
+   "peoplePerGrocery": 4142,
+   "flood500SharePct": 0.0
+  },
+  "East Memphis": {
+   "tracts": 11,
+   "population": 39531,
+   "housingUnits": 16445,
+   "areaKm2": 36.4,
+   "medianIncomeRange": [
+    36908,
+    182250
+   ],
+   "medianIncomeWeighted": 90659,
+   "medianRentRange": [
+    955,
+    2165
+   ],
+   "medianAgeRange": [
+    23.3,
+    48.7
+   ],
+   "povertyPct": 17.3,
+   "blackPct": 24.6,
+   "renterPct": 39.4,
+   "vacantPct": 7.7,
+   "broadbandPct": 93.3,
+   "transitPct": 0.5,
+   "unemploymentPct": 3.2,
+   "noInsurancePct": 8.4,
+   "over65Pct": 15.4,
+   "disabledPct": 10.3,
+   "commuteMin": 17.6,
+   "floodSharePct": 6.8,
+   "assets": {
+    "snapAll": 33,
+    "snapFull": 10,
+    "libraries": 1,
+    "centers": 0,
+    "fire": 3,
+    "parks": 4,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 5,
+     "share": 58
+    },
+    {
+     "cd": 2,
+     "share": 32
+    },
+    {
+     "cd": 4,
+     "share": 9
+    }
+   ],
+   "peoplePerGrocery": 3953,
+   "flood500SharePct": 2.6
+  },
+  "Frayser": {
+   "tracts": 13,
+   "population": 42195,
+   "housingUnits": 18809,
+   "areaKm2": 75.3,
+   "medianIncomeRange": [
+    20563,
+    87080
+   ],
+   "medianIncomeWeighted": 37786,
+   "medianRentRange": [
+    967,
+    1371
+   ],
+   "medianAgeRange": [
+    20.9,
+    43
+   ],
+   "povertyPct": 36.1,
+   "blackPct": 88.4,
+   "renterPct": 57.4,
+   "vacantPct": 18.1,
+   "broadbandPct": 84.6,
+   "transitPct": 0.8,
+   "unemploymentPct": 6.6,
+   "noInsurancePct": 13.6,
+   "over65Pct": 12.0,
+   "disabledPct": 18.8,
+   "commuteMin": 21.0,
+   "floodSharePct": 37.1,
+   "assets": {
+    "snapAll": 52,
+    "snapFull": 6,
+    "libraries": 1,
+    "centers": 2,
+    "fire": 4,
+    "parks": 23,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 7,
+     "share": 80
+    },
+    {
+     "cd": 1,
+     "share": 7
+    }
+   ],
+   "peoplePerGrocery": 7032,
+   "flood500SharePct": 2.6
+  },
+  "Harbor Town": {
+   "tracts": 2,
+   "population": 6520,
+   "housingUnits": 4168,
+   "areaKm2": 8.1,
+   "medianIncomeRange": [
+    23231,
+    65236
+   ],
+   "medianIncomeWeighted": 58149,
+   "medianRentRange": [
+    979,
+    1713
+   ],
+   "medianAgeRange": [
+    29.6,
+    32.5
+   ],
+   "povertyPct": 18.8,
+   "blackPct": 29.7,
+   "renterPct": 69.5,
+   "vacantPct": 5.7,
+   "broadbandPct": 97.5,
+   "transitPct": 2.2,
+   "unemploymentPct": 4.3,
+   "noInsurancePct": 3.8,
+   "over65Pct": 10.0,
+   "disabledPct": 9.8,
+   "commuteMin": 18.6,
+   "floodSharePct": 48.4,
+   "assets": {
+    "snapAll": 4,
+    "snapFull": 1,
+    "libraries": 0,
+    "centers": 0,
+    "fire": 1,
+    "parks": 5,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 7,
+     "share": 100
+    }
+   ],
+   "peoplePerGrocery": 6520,
+   "flood500SharePct": 0.0
+  },
+  "Hickory Hill": {
+   "tracts": 21,
+   "population": 78757,
+   "housingUnits": 33842,
+   "areaKm2": 86.8,
+   "medianIncomeRange": [
+    27050,
+    121667
+   ],
+   "medianIncomeWeighted": 60165,
+   "medianRentRange": [
+    1048,
+    1991
+   ],
+   "medianAgeRange": [
+    23.9,
+    59
+   ],
+   "povertyPct": 15.9,
+   "blackPct": 76.3,
+   "renterPct": 61.5,
+   "vacantPct": 10.0,
+   "broadbandPct": 93.7,
+   "transitPct": 0.4,
+   "unemploymentPct": 6.7,
+   "noInsurancePct": 15.1,
+   "over65Pct": 11.1,
+   "disabledPct": 11.4,
+   "commuteMin": 20.4,
+   "floodSharePct": 7.6,
+   "assets": {
+    "snapAll": 87,
+    "snapFull": 13,
+    "libraries": 0,
+    "centers": 1,
+    "fire": 4,
+    "parks": 11,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 3,
+     "share": 69
+    },
+    {
+     "cd": 2,
+     "share": 18
+    },
+    {
+     "cd": 4,
+     "share": 8
+    }
+   ],
+   "peoplePerGrocery": 6058,
+   "flood500SharePct": 5.3
+  },
+  "Midtown": {
+   "tracts": 15,
+   "population": 35177,
+   "housingUnits": 20841,
+   "areaKm2": 21.5,
+   "medianIncomeRange": [
+    17266,
+    121094
+   ],
+   "medianIncomeWeighted": 66918,
+   "medianRentRange": [
+    862,
+    1686
+   ],
+   "medianAgeRange": [
+    22,
+    42.9
+   ],
+   "povertyPct": 15.3,
+   "blackPct": 31.6,
+   "renterPct": 56.9,
+   "vacantPct": 11.5,
+   "broadbandPct": 88.6,
+   "transitPct": 1.1,
+   "unemploymentPct": 3.3,
+   "noInsurancePct": 11.8,
+   "over65Pct": 16.1,
+   "disabledPct": 13.1,
+   "commuteMin": 18.9,
+   "floodSharePct": 0.0,
+   "assets": {
+    "snapAll": 37,
+    "snapFull": 6,
+    "libraries": 0,
+    "centers": 0,
+    "fire": 4,
+    "parks": 7,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 5,
+     "share": 39
+    },
+    {
+     "cd": 6,
+     "share": 28
+    },
+    {
+     "cd": 4,
+     "share": 18
+    },
+    {
+     "cd": 7,
+     "share": 15
+    }
+   ],
+   "peoplePerGrocery": 5863,
+   "flood500SharePct": 0.0
+  },
+  "North Memphis": {
+   "tracts": 8,
+   "population": 14934,
+   "housingUnits": 8652,
+   "areaKm2": 20.9,
+   "medianIncomeRange": [
+    23370,
+    43125
+   ],
+   "medianIncomeWeighted": 32910,
+   "medianRentRange": [
+    722,
+    1045
+   ],
+   "medianAgeRange": [
+    34.6,
+    52.5
+   ],
+   "povertyPct": 37.4,
+   "blackPct": 91.5,
+   "renterPct": 60.5,
+   "vacantPct": 19.1,
+   "broadbandPct": 66.6,
+   "transitPct": 8.7,
+   "unemploymentPct": 8.9,
+   "noInsurancePct": 14.7,
+   "over65Pct": 19.5,
+   "disabledPct": 21.3,
+   "commuteMin": 25.6,
+   "floodSharePct": 25.0,
+   "assets": {
+    "snapAll": 22,
+    "snapFull": 4,
+    "libraries": 2,
+    "centers": 4,
+    "fire": 4,
+    "parks": 13,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 7,
+     "share": 86
+    },
+    {
+     "cd": 5,
+     "share": 14
+    }
+   ],
+   "peoplePerGrocery": 3734,
+   "flood500SharePct": 2.3
+  },
+  "Orange Mound": {
+   "tracts": 13,
+   "population": 35635,
+   "housingUnits": 19909,
+   "areaKm2": 26.6,
+   "medianIncomeRange": [
+    23653,
+    124583
+   ],
+   "medianIncomeWeighted": 49795,
+   "medianRentRange": [
+    744,
+    1694
+   ],
+   "medianAgeRange": [
+    27.4,
+    50.5
+   ],
+   "povertyPct": 27.0,
+   "blackPct": 73.4,
+   "renterPct": 55.0,
+   "vacantPct": 17.1,
+   "broadbandPct": 82.1,
+   "transitPct": 1.5,
+   "unemploymentPct": 8.2,
+   "noInsurancePct": 15.1,
+   "over65Pct": 17.8,
+   "disabledPct": 14.0,
+   "commuteMin": 19.6,
+   "floodSharePct": 0.8,
+   "assets": {
+    "snapAll": 55,
+    "snapFull": 8,
+    "libraries": 2,
+    "centers": 4,
+    "fire": 3,
+    "parks": 15,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 4,
+     "share": 80
+    },
+    {
+     "cd": 5,
+     "share": 19
+    }
+   ],
+   "peoplePerGrocery": 4454,
+   "flood500SharePct": 0.9
+  },
+  "Parkway Village": {
+   "tracts": 8,
+   "population": 31121,
+   "housingUnits": 12777,
+   "areaKm2": 24.7,
+   "medianIncomeRange": [
+    27875,
+    58581
+   ],
+   "medianIncomeWeighted": 44650,
+   "medianRentRange": [
+    1043,
+    1478
+   ],
+   "medianAgeRange": [
+    25.2,
+    33.7
+   ],
+   "povertyPct": 32.6,
+   "blackPct": 69.7,
+   "renterPct": 65.1,
+   "vacantPct": 20.3,
+   "broadbandPct": 86.1,
+   "transitPct": 1.1,
+   "unemploymentPct": 6.1,
+   "noInsurancePct": 20.4,
+   "over65Pct": 8.6,
+   "disabledPct": 10.3,
+   "commuteMin": 19.6,
+   "floodSharePct": 7.2,
+   "assets": {
+    "snapAll": 41,
+    "snapFull": 12,
+    "libraries": 1,
+    "centers": 2,
+    "fire": 3,
+    "parks": 6,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 4,
+     "share": 50
+    },
+    {
+     "cd": 3,
+     "share": 44
+    },
+    {
+     "cd": 5,
+     "share": 6
+    }
+   ],
+   "peoplePerGrocery": 2593,
+   "flood500SharePct": 5.8
+  },
+  "Raleigh": {
+   "tracts": 17,
+   "population": 82883,
+   "housingUnits": 31902,
+   "areaKm2": 93.5,
+   "medianIncomeRange": [
+    25667,
+    73977
+   ],
+   "medianIncomeWeighted": 50960,
+   "medianRentRange": [
+    953,
+    1600
+   ],
+   "medianAgeRange": [
+    23,
+    49.4
+   ],
+   "povertyPct": 17.6,
+   "blackPct": 54.3,
+   "renterPct": 53.3,
+   "vacantPct": 8.6,
+   "broadbandPct": 88.7,
+   "transitPct": 0.4,
+   "unemploymentPct": 4.3,
+   "noInsurancePct": 19.2,
+   "over65Pct": 12.2,
+   "disabledPct": 14.7,
+   "commuteMin": 24.2,
+   "floodSharePct": 17.7,
+   "assets": {
+    "snapAll": 81,
+    "snapFull": 16,
+    "libraries": 1,
+    "centers": 2,
+    "fire": 3,
+    "parks": 11,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 1,
+     "share": 47
+    },
+    {
+     "cd": 7,
+     "share": 14
+    }
+   ],
+   "peoplePerGrocery": 5180,
+   "flood500SharePct": 1.6
+  },
+  "Soulsville": {
+   "tracts": 4,
+   "population": 7190,
+   "housingUnits": 3917,
+   "areaKm2": 6.9,
+   "medianIncomeRange": [
+    18182,
+    53733
+   ],
+   "medianIncomeWeighted": 33150,
+   "medianRentRange": [
+    686,
+    1145
+   ],
+   "medianAgeRange": [
+    21.3,
+    42.5
+   ],
+   "povertyPct": 37.6,
+   "blackPct": 91.1,
+   "renterPct": 61.1,
+   "vacantPct": 28.1,
+   "broadbandPct": 69.8,
+   "transitPct": 2.7,
+   "unemploymentPct": 9.8,
+   "noInsurancePct": 13.3,
+   "over65Pct": 20.5,
+   "disabledPct": 16.3,
+   "commuteMin": 19.8,
+   "floodSharePct": 0.0,
+   "assets": {
+    "snapAll": 15,
+    "snapFull": 1,
+    "libraries": 0,
+    "centers": 1,
+    "fire": 1,
+    "parks": 3,
+    "cultural": 5
+   },
+   "council": [
+    {
+     "cd": 4,
+     "share": 50
+    },
+    {
+     "cd": 6,
+     "share": 50
+    }
+   ],
+   "peoplePerGrocery": 7190,
+   "flood500SharePct": 0.0
+  },
+  "South Memphis": {
+   "tracts": 13,
+   "population": 25228,
+   "housingUnits": 14281,
+   "areaKm2": 37.3,
+   "medianIncomeRange": [
+    12132,
+    44643
+   ],
+   "medianIncomeWeighted": 30865,
+   "medianRentRange": [
+    751,
+    1055
+   ],
+   "medianAgeRange": [
+    28.1,
+    50.9
+   ],
+   "povertyPct": 43.6,
+   "blackPct": 94.3,
+   "renterPct": 59.6,
+   "vacantPct": 22.8,
+   "broadbandPct": 78.7,
+   "transitPct": 2.4,
+   "unemploymentPct": 8.0,
+   "noInsurancePct": 14.4,
+   "over65Pct": 20.4,
+   "disabledPct": 18.2,
+   "commuteMin": 21.1,
+   "floodSharePct": 4.2,
+   "assets": {
+    "snapAll": 46,
+    "snapFull": 5,
+    "libraries": 2,
+    "centers": 2,
+    "fire": 3,
+    "parks": 19,
+    "cultural": 3
+   },
+   "council": [
+    {
+     "cd": 6,
+     "share": 82
+    },
+    {
+     "cd": 4,
+     "share": 17
+    }
+   ],
+   "peoplePerGrocery": 5046,
+   "flood500SharePct": 0.7
+  },
+  "Westwood": {
+   "tracts": 5,
+   "population": 24119,
+   "housingUnits": 10117,
+   "areaKm2": 52.3,
+   "medianIncomeRange": [
+    29016,
+    65264
+   ],
+   "medianIncomeWeighted": 43146,
+   "medianRentRange": [
+    1042,
+    1282
+   ],
+   "medianAgeRange": [
+    31.5,
+    47.1
+   ],
+   "povertyPct": 33.5,
+   "blackPct": 94.7,
+   "renterPct": 39.7,
+   "vacantPct": 9.5,
+   "broadbandPct": 84.7,
+   "transitPct": 0.3,
+   "unemploymentPct": 9.2,
+   "noInsurancePct": 15.2,
+   "over65Pct": 18.0,
+   "disabledPct": 14.2,
+   "commuteMin": 24.0,
+   "floodSharePct": 11.9,
+   "assets": {
+    "snapAll": 27,
+    "snapFull": 2,
+    "libraries": 0,
+    "centers": 2,
+    "fire": 4,
+    "parks": 17,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 6,
+     "share": 100
+    }
+   ],
+   "peoplePerGrocery": 12060,
+   "flood500SharePct": 1.3
+  },
+  "White Station": {
+   "tracts": 5,
+   "population": 18671,
+   "housingUnits": 8728,
+   "areaKm2": 21.0,
+   "medianIncomeRange": [
+    66650,
+    160278
+   ],
+   "medianIncomeWeighted": 117445,
+   "medianRentRange": [
+    1236,
+    2558
+   ],
+   "medianAgeRange": [
+    38.5,
+    55.6
+   ],
+   "povertyPct": 7.6,
+   "blackPct": 10.0,
+   "renterPct": 29.5,
+   "vacantPct": 3.7,
+   "broadbandPct": 96.1,
+   "transitPct": 0.0,
+   "unemploymentPct": 1.7,
+   "noInsurancePct": 3.4,
+   "over65Pct": 26.0,
+   "disabledPct": 14.7,
+   "commuteMin": 18.3,
+   "floodSharePct": 7.4,
+   "assets": {
+    "snapAll": 8,
+    "snapFull": 2,
+    "libraries": 0,
+    "centers": 0,
+    "fire": 1,
+    "parks": 3,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 2,
+     "share": 87
+    }
+   ],
+   "peoplePerGrocery": 9336,
+   "flood500SharePct": 3.2
+  },
+  "Whitehaven": {
+   "tracts": 18,
+   "population": 68689,
+   "housingUnits": 30191,
+   "areaKm2": 101.2,
+   "medianIncomeRange": [
+    28621,
+    66398
+   ],
+   "medianIncomeWeighted": 45655,
+   "medianRentRange": [
+    908,
+    1529
+   ],
+   "medianAgeRange": [
+    21.2,
+    44.7
+   ],
+   "povertyPct": 29.9,
+   "blackPct": 87.2,
+   "renterPct": 55.9,
+   "vacantPct": 13.8,
+   "broadbandPct": 85.2,
+   "transitPct": 0.8,
+   "unemploymentPct": 6.6,
+   "noInsurancePct": 17.8,
+   "over65Pct": 16.3,
+   "disabledPct": 15.2,
+   "commuteMin": 21.3,
+   "floodSharePct": 9.0,
+   "assets": {
+    "snapAll": 92,
+    "snapFull": 11,
+    "libraries": 2,
+    "centers": 1,
+    "fire": 8,
+    "parks": 13,
+    "cultural": 0
+   },
+   "council": [
+    {
+     "cd": 3,
+     "share": 69
+    },
+    {
+     "cd": 6,
+     "share": 28
+    }
+   ],
+   "peoplePerGrocery": 6244,
+   "flood500SharePct": 5.0
+  }
+ }
+}
