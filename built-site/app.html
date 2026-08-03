@@ -174,6 +174,20 @@
   .mtag:hover{border-color:var(--muted);color:var(--text)}
   .mtag.on{background:var(--text);border-color:var(--text);color:#fff}
   .privbox .mtag.on{background:#5B4B8A;border-color:#5B4B8A}
+  /* story form: photo and video drop zones */
+  .dropz{display:flex;flex-direction:column;align-items:center;gap:3px;padding:18px 14px;margin-top:12px;border:1.5px dashed var(--border);border-radius:14px;background:var(--panel);color:var(--muted);cursor:pointer;text-align:center}
+  .dropz:hover,.dropz.over{border-color:var(--primary);color:var(--text);background:var(--primaryLight)}
+  .dropz:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .dropz b{font-size:14px;font-weight:700;color:var(--text)}
+  .dropz span{font-size:12px}
+  .dropz .dzbtns{margin-top:7px}
+  .dropz .dzb{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:12px;font-weight:700;color:var(--primaryDark);background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:6px 11px;cursor:pointer}
+  .dropz .dzb:hover{border-color:var(--primary)}
+  .draftmedia{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .dtile{position:relative;width:84px;height:84px;border-radius:11px;overflow:hidden;border:1px solid var(--border);background:var(--bg)}
+  .dtile img,.dtile video{width:100%;height:100%;object-fit:cover;display:block}
+  .dtile .drm{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(36,28,59,.72);color:#fff;display:grid;place-items:center;cursor:pointer}
+  .dtile .drm:hover{background:var(--primaryDark)}
   .mediazone{display:flex;flex-direction:column;align-items:center;gap:3px;padding:16px;border:1.5px dashed var(--border);border-radius:12px;background:var(--bg);color:var(--muted);cursor:pointer;text-align:center}
   .mediazone:hover,.mediazone.over{border-color:var(--primary);color:var(--text);background:var(--primaryLight)}
   .mediazone:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -706,6 +720,8 @@ var ICON={
   audio:'<path d="M3 12h3l2.5-7 3.5 15 3-11 2 3h4"/>',
   star:'<path d="m12 3 2.5 5.6 6 .5-4.5 4 1.4 6-5.4-3.2L6.1 19l1.4-6-4.5-4 6-.5Z"/>',
   book:'<path d="M4 19.2A2.2 2.2 0 0 1 6.2 17H20"/><path d="M6.2 3H20v18H6.2A2.2 2.2 0 0 1 4 18.8V5.2A2.2 2.2 0 0 1 6.2 3Z"/>',
+  video:'<rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="m15.5 10.5 6-3.2v9.4l-6-3.2Z"/>',
+  doc:'<path d="M6 3h7l5 5v13H6Z"/><path d="M13 3v5h5"/><path d="M9 13h6M9 16.5h6"/>',
   columns:'<path d="M3 21h18"/><path d="m12 3 8.5 4.5H3.5Z"/><path d="M6 10v8M10 10v8M14 10v8M18 10v8"/>',
   sprout:'<path d="M12 22v-9"/><path d="M12 13c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6Z"/><path d="M12 15C12 11 9.5 9 6 9c0 3.5 2.5 6 6 6Z"/>',
   plot:'<path d="M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3"/><path d="M9 12h6"/>',
@@ -949,7 +965,12 @@ async function supaUploadFile(file,kind){
   return {url:SUPA.url+"/storage/v1/object/public/story-media/"+path,kind:kind,name:file.name||null};
 }
 async function supaUpload(dataUrl,kind){var blob=await (await fetch(dataUrl)).blob();var ext=kind==="audio"?"webm":"jpg";var path="memphis-roots/"+Date.now()+"-"+Math.random().toString(36).slice(2,10)+"."+ext;var res=await fetch(SUPA.url+"/storage/v1/object/story-media/"+path,{method:"POST",headers:{apikey:SUPA.key,Authorization:"Bearer "+SUPA.key,"Content-Type":blob.type||"application/octet-stream"},body:blob});if(!res.ok)throw new Error("media "+res.status);return{url:SUPA.url+"/storage/v1/object/public/story-media/"+path,kind:kind};}
-async function supaSubmit(d){var media=[];if(d.photo){try{media.push(await supaUpload(d.photo,"photo"));}catch(e){}}if(d.audio){try{media.push(await supaUpload(d.audio,"audio"));}catch(e){}}var row={id:(window.crypto&&crypto.randomUUID?crypto.randomUUID():uid()),tenant_id:SUPA.tid,status:"pending",consent_level:VIS2CONSENT[d.vis]||"first_name",display_name:(d.vis==="anon"||d.vis==="heritage")?null:(d.name||null),answers:{kind:d.kind,place_type:d.place||null,era:d.era,story:d.story,corner:d.corner||null,inst:!!d.inst,contact:((d.name||d.email||d.phone)?{name:d.name||null,email:d.email||null,phone:d.phone||null}:null)},lat:d.lat,lng:d.lng,location_label:d.hood||null,media:media,source:{campaign:d.campaign,mode:d.mode,locSource:d.locSource||"unset"}};var res=await fetch(SUPA.url+"/rest/v1/stories",{method:"POST",headers:Object.assign(supaHeaders(),{Prefer:"return=minimal"}),body:JSON.stringify(row)});if(!res.ok&&res.status!==409)throw new Error("submit "+res.status+": "+(await res.text()).slice(0,140));return true;}
+async function supaSubmit(d){var media=[];
+  // Photos and video first, in the order they were added, then the recording.
+  var files=d.files||[];
+  for(var i=0;i<files.length;i++){try{media.push(await supaUploadFile(files[i].file,files[i].kind));}catch(e){console.warn("media skipped:",e.message);}}
+  if(d.photo){try{media.push(await supaUpload(d.photo,"photo"));}catch(e){}}
+  if(d.audio){try{media.push(await supaUpload(d.audio,"audio"));}catch(e){}}var row={id:(window.crypto&&crypto.randomUUID?crypto.randomUUID():uid()),tenant_id:SUPA.tid,status:"pending",consent_level:VIS2CONSENT[d.vis]||"first_name",display_name:(d.vis==="anon"||d.vis==="heritage")?null:(d.name||null),answers:{kind:d.kind,place_type:d.place||null,era:d.era,story:d.story,corner:d.corner||null,inst:!!d.inst,contact:((d.name||d.email||d.phone)?{name:d.name||null,email:d.email||null,phone:d.phone||null}:null)},lat:d.lat,lng:d.lng,location_label:d.hood||null,media:media,source:{campaign:d.campaign,mode:d.mode,locSource:d.locSource||"unset"}};var res=await fetch(SUPA.url+"/rest/v1/stories",{method:"POST",headers:Object.assign(supaHeaders(),{Prefer:"return=minimal"}),body:JSON.stringify(row)});if(!res.ok&&res.status!==409)throw new Error("submit "+res.status+": "+(await res.text()).slice(0,140));return true;}
 async function supaLogin(email,password){var res=await fetch(SUPA.url+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:SUPA.key,"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password})});var d=await res.json();if(!res.ok||!d.access_token)throw new Error(d.error_description||d.msg||"sign-in failed");SUPA.session=d;try{sessionStorage.setItem("mr_sess",JSON.stringify(d));}catch(e){}}
 function supaLogout(){SUPA.session=null;try{sessionStorage.removeItem("mr_sess");}catch(e){}}
 async function supaAuthed(path,opts){opts=opts||{};var res=await fetch(SUPA.url+"/rest/v1/"+path,Object.assign({},opts,{headers:Object.assign(supaHeaders(SUPA.session&&SUPA.session.access_token),opts.headers||{})}));if(res.status===401){supaLogout();throw new Error("SESSION");}if(!res.ok)throw new Error((opts.method||"GET")+" "+res.status);var t=await res.text();return t?JSON.parse(t):null;}
@@ -1680,7 +1701,7 @@ function storyMediaHtml(s){
   return '<div class="dmedia">'+m.map(function(x){
     if(x.kind==="photo")return '<a class="dm" href="'+esc(x.url)+'" target="_blank" rel="noopener"><img src="'+esc(x.url)+'" alt="" loading="lazy"></a>';
     if(x.kind==="video")return '<video class="dm dvid" src="'+esc(x.url)+'" controls preload="metadata" playsinline></video>';
-    return '<a class="dm dfile" href="'+esc(x.url)+'" target="_blank" rel="noopener">'+ic("plot",15)+' '+esc(x.name||"Attached file")+'</a>';
+    return '<a class="dm dfile" href="'+esc(x.url)+'" target="_blank" rel="noopener">'+ic("doc",15)+' '+esc(x.name||"Attached file")+'</a>';
   }).join("")+'</div>';
 }
 function openDetail(s){
@@ -1877,7 +1898,7 @@ function startCapture(kind){
   // locSource records where the coordinate actually came from. "unset" means the
   // person never placed it, and a story must not submit that way: an unplaced pin
   // used to silently file the story at Clayborn.
-  draft={id:uid(),kind:kind||null,place:"",hood:"",hoodPicked:false,story:"",corner:"",era:defEra,lat:CLAYBORN[0],lng:CLAYBORN[1],locSource:"unset",photo:null,audio:null,name:"",email:"",phone:"",vis:"first",inst:false,status:"pending",campaign:campaignParam,mode:captureMode};
+  draft={id:uid(),kind:kind||null,place:"",hood:"",hoodPicked:false,story:"",corner:"",era:defEra,lat:CLAYBORN[0],lng:CLAYBORN[1],locSource:"unset",photo:null,audio:null,files:[],name:"",email:"",phone:"",vis:"first",inst:false,status:"pending",campaign:campaignParam,mode:captureMode};
   // What happened, where, and when are the record itself, so they are one screen.
   // Media comes after, because a photo or a voice supports a story that already exists.
   // This also removed a duplicate question: the flow used to ask where the story
@@ -2021,8 +2042,24 @@ function renderStep(){
     }
     refresh();
   } else if(step==="media"){
-    b.innerHTML='<h2 class="q">Add a voice or a photo.</h2><p class="qsub">Optional, but a voice is how a memory really travels. This works beautifully for elders.</p><div class="media-row"><div class="rec"><button class="mic" id="micBtn" type="button" aria-label="Record audio">'+ic("mic",26)+'</button><div class="lbl" id="recLbl">Tap to record</div><div id="audioPrev"></div></div><div class="rec"><button class="mic" id="photoBtn" type="button" aria-label="Add a photo" style="background:var(--accent)">'+ic("camera",26)+'</button><div class="lbl">Add a photo</div><input type="file" id="photoIn" accept="image/*" capture="environment" hidden><div id="photoPrev"></div></div></div>'+navRow(false)+'<div style="text-align:center"><button class="skip" id="skipMedia">Skip, no media</button></div>';
-    wireNav();$("nextBtn").disabled=false;$("skipMedia").addEventListener("click",goNext);wireRecorder();wirePhoto();
+    // Same set the Rainproof form offers: as many photos as they have, a video, a voice.
+    // The recorder is kept first because a voice is how a memory really travels.
+    b.innerHTML='<h2 class="q">Add a voice, photos or a video.</h2>'+
+      '<p class="qsub">All optional. A voice is how a memory really travels, and this works beautifully for elders.</p>'+
+      '<div class="media-row"><div class="rec"><button class="mic" id="micBtn" type="button" aria-label="Record audio">'+ic("mic",26)+'</button>'+
+      '<div class="lbl" id="recLbl">Tap to record</div><div id="audioPrev"></div></div></div>'+
+      '<div class="dropz" id="photoZone" tabindex="0" role="button" aria-label="Add photos">'+ic("camera",22)+
+        '<b>Add photos</b><span>Browse, drag them here, or use the camera</span>'+
+        '<span class="dzbtns"><button type="button" class="dzb" id="camBtn">'+ic("camera",13)+' Camera</button></span></div>'+
+      '<input type="file" id="photoIn" accept="image/*" multiple hidden>'+
+      '<input type="file" id="camIn" accept="image/*" capture="environment" hidden>'+
+      '<div class="dropz" id="videoZone" tabindex="0" role="button" aria-label="Add a video">'+ic("video",22)+
+        '<b>Add a video</b><span>From your phone or computer</span></div>'+
+      '<input type="file" id="videoIn" accept="video/*" multiple hidden>'+
+      '<div class="draftmedia" id="draftMedia"></div>'+
+      navRow(false)+'<div style="text-align:center"><button class="skip" id="skipMedia">Skip, no media</button></div>';
+    wireNav();$("nextBtn").disabled=false;$("skipMedia").addEventListener("click",goNext);
+    wireRecorder();wireDraftMedia();
   } else if(step==="consent"){
     b.innerHTML='<h2 class="q">You &amp; your consent.</h2><p class="qsub">These stories belong to Memphis. You choose how much of your name travels with yours.</p><input type="text" class="ti" id="cname" placeholder="Your name (optional)" value="'+esc(draft.name)+'" style="margin-bottom:14px"><div id="visOpts"></div>'+
       '<div class="contactblock"><div class="cb-h"><span class="lock">'+ic("lock",15)+'</span> Stay in touch <span>private, The Big We only</span></div>'+
@@ -2049,9 +2086,69 @@ function wireRecorder(){var btn=$("micBtn"),lbl=$("recLbl");if(draft.audio)$("au
     }).catch(function(){lbl.textContent="Mic permission needed";});
   });
 }
-function wirePhoto(){var btn=$("photoBtn"),inp=$("photoIn");if(draft.photo)$("photoPrev").innerHTML='<img class="prev" src="'+draft.photo+'">';
-  btn.addEventListener("click",function(){inp.click();});
-  inp.addEventListener("change",function(){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var img=new Image();img.onload=function(){var max=1000,sc=Math.min(1,max/Math.max(img.width,img.height));var cv=document.createElement("canvas");cv.width=img.width*sc;cv.height=img.height*sc;cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);draft.photo=cv.toDataURL("image/jpeg",0.82);$("photoPrev").innerHTML='<img class="prev" src="'+draft.photo+'">';};img.src=r.result;};r.readAsDataURL(f);});
+/* Media on the draft, before it is a story. Files are held as objects with a local
+   preview URL and uploaded on submit, which is the Rainproof order: nothing reaches the
+   bucket until the person actually sends the story. Photos are still resized, because a
+   12MP phone photo over a workshop hotspot is how an upload fails. */
+function draftMediaTiles(){
+  var el=$("draftMedia");if(!el)return;
+  var m=draft.files||[];
+  el.innerHTML=m.length?m.map(function(f,i){
+    var inner=f.kind==="video"?'<video src="'+f.preview+'" muted preload="metadata"></video>':'<img src="'+f.preview+'" alt="">';
+    return '<div class="dtile">'+inner+'<button type="button" class="drm" data-drm="'+i+'" aria-label="Remove">'+ic("x",12)+'</button></div>';
+  }).join(""):"";
+  el.querySelectorAll("[data-drm]").forEach(function(b){b.addEventListener("click",function(){
+    draft.files.splice(+b.dataset.drm,1);draftMediaTiles();});});
+}
+function shrinkImage(file){
+  return new Promise(function(res){
+    var r=new FileReader();
+    r.onload=function(){
+      var img=new Image();
+      img.onload=function(){
+        var max=1600,sc=Math.min(1,max/Math.max(img.width,img.height));
+        if(sc===1){res(file);return;}
+        var cv=document.createElement("canvas");cv.width=img.width*sc;cv.height=img.height*sc;
+        cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+        cv.toBlob(function(bl){res(bl?new File([bl],file.name||"photo.jpg",{type:"image/jpeg"}):file);},"image/jpeg",0.85);
+      };
+      img.onerror=function(){res(file);};
+      img.src=r.result;
+    };
+    r.onerror=function(){res(file);};
+    r.readAsDataURL(file);
+  });
+}
+async function addDraftFiles(files,kind){
+  draft.files=draft.files||[];
+  var list=Array.prototype.slice.call(files||[]);
+  for(var i=0;i<list.length;i++){
+    var f=list[i];
+    if(f.size>MEDIA_MAX){toast((f.name||"That file")+" is over the 50MB limit");continue;}
+    if(kind==="photo")f=await shrinkImage(f);
+    draft.files.push({kind:kind,file:f,preview:URL.createObjectURL(f)});
+    draftMediaTiles();
+  }
+}
+function wireDropzone(zoneId,inputId,kind){
+  var zone=$(zoneId),input=$(inputId);
+  if(!zone||!input)return;
+  zone.addEventListener("click",function(e){if(e.target.id!=="camBtn")input.click();});
+  zone.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();input.click();}});
+  ["dragenter","dragover"].forEach(function(t){zone.addEventListener(t,function(e){e.preventDefault();zone.classList.add("over");});});
+  ["dragleave","drop"].forEach(function(t){zone.addEventListener(t,function(e){e.preventDefault();zone.classList.remove("over");});});
+  zone.addEventListener("drop",function(e){addDraftFiles(e.dataTransfer.files,kind);});
+  input.addEventListener("change",function(){addDraftFiles(input.files,kind);input.value="";});
+}
+function wireDraftMedia(){
+  wireDropzone("photoZone","photoIn","photo");
+  wireDropzone("videoZone","videoIn","video");
+  var cam=$("camBtn"),camIn=$("camIn");
+  if(cam&&camIn){
+    cam.addEventListener("click",function(e){e.stopPropagation();camIn.click();});
+    camIn.addEventListener("change",function(){addDraftFiles(camIn.files,"photo");camIn.value="";});
+  }
+  draftMediaTiles();
 }
 /* Any deliberate placement flows through here so locSource always reflects reality
    and Continue unlocks the moment the person has actually chosen a spot. */
@@ -2161,7 +2258,7 @@ function mediaTiles(s){
   return m.map(function(x,i){
     var inner=x.kind==="photo"?'<img src="'+esc(x.url)+'" alt="" loading="lazy">'
       :x.kind==="video"?'<video src="'+esc(x.url)+'" muted preload="metadata"></video>'
-      :'<span class="mfile">'+ic(x.kind==="audio"?"audio":"plot",20)+'</span>';
+      :'<span class="mfile">'+ic(x.kind==="audio"?"audio":"doc",20)+'</span>';
     return '<div class="mediatile" data-mi="'+i+'">'+inner+
       '<span class="mkind">'+esc(x.kind)+'</span>'+
       '<button type="button" class="mrm" data-mrm="'+i+'" aria-label="Remove this file">'+ic("x",12)+'</button>'+
