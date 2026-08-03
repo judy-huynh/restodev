@@ -207,6 +207,19 @@
   .eacts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
   .eacts .btn.prim{background:var(--primary);color:#fff;border:0;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700}
   .esaved{font-size:12px;font-weight:700;color:var(--ok)}
+  .lightbox{position:fixed;inset:0;z-index:3000;background:rgba(20,15,32,.92);display:none;align-items:center;justify-content:center;padding:28px}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8)}
+  .lb-close{position:absolute;top:14px;right:16px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:24px;line-height:1;cursor:pointer}
+  .lb-close:hover{background:rgba(255,255,255,.26)}
+  .d-sect{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:18px 0 9px}
+  .d-gal{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .d-photo{width:100%;height:110px;object-fit:cover;border-radius:10px;border:1px solid var(--border);cursor:zoom-in;display:block}
+  .d-photo:hover{border-color:var(--primary)}
+  .d-video{width:100%;border-radius:12px;border:1px solid var(--border);background:#000;display:block;margin-bottom:8px}
+  .d-file{display:flex;align-items:center;gap:8px;padding:11px 13px;border-radius:10px;border:1px solid var(--border);background:var(--bg);font-size:13px;font-weight:650;color:var(--primaryDark);text-decoration:none;margin-bottom:7px}
+  .d-file:hover{border-color:var(--primary)}
+  .d-hero img{cursor:zoom-in}
   .card .feattag{display:inline-flex;align-items:center;gap:4px;margin-left:6px;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--gold)}
   .cchips{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0 6px}
   .cchip{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:10.5px;font-weight:650;padding:3px 8px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer}
@@ -249,16 +262,27 @@
   .hp-prompt em{font-style:normal;font-weight:700;color:var(--primaryDark)}
   .hp-foot{margin:0;padding:11px 18px 13px;border-top:1px solid var(--line);background:var(--bg);font-size:10.5px;line-height:1.5;color:var(--faint)}
   .cards{flex:1;overflow:auto;padding:10px 12px 26px;min-height:0}
-  .card{display:flex;gap:12px;padding:11px;border-radius:14px;cursor:pointer;transition:.14s;border:1.5px solid transparent}
-  .card:hover{background:var(--bg)}
-  .card.sel{background:var(--primaryLight);border-color:#F6C9D8}
-  .card .thumb{width:66px;height:66px;border-radius:11px;object-fit:cover;flex:none;box-shadow:var(--shadow-sm)}
-  .card .thumb.ph{display:grid;place-items:center;font-size:26px}
-  .card .cbody{min-width:0;flex:1}
-  .card .ktag{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:#fff;padding:2px 8px;border-radius:999px}
-  .card .snip{font-size:13px;color:var(--text);margin:6px 0 5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4}
-  .card .cfoot{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-  .card .badge{display:inline-flex;align-items:center;gap:3px;background:var(--line);border-radius:6px;padding:1px 6px;font-weight:600;color:var(--muted)}
+  /* The card, laid out the way Rainproof lays one out: the photograph leads, then who
+     and where, then the words, then how it is filed and what else is attached. */
+  .card{position:relative;display:block;background:var(--panel);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px;cursor:pointer;transition:.16s}
+  .card:hover{border-color:var(--primary);box-shadow:var(--shadow-sm);transform:translateY(-1px)}
+  .card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .card.sel{border-color:var(--primary);box-shadow:0 0 0 2px var(--primaryLight)}
+  .card.is-feat{border-color:var(--gold)}
+  .chero{position:relative;display:block;background:var(--bg)}
+  .chero img{display:block;width:100%;height:130px;object-fit:cover}
+  .chero .cmore{position:absolute;right:8px;bottom:8px;font-size:10.5px;font-weight:800;color:#fff;background:rgba(36,28,59,.72);border-radius:999px;padding:3px 8px}
+  .chero .cfeat{position:absolute;left:8px;top:8px;display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text);background:var(--gold);border-radius:999px;padding:3px 8px}
+  .card .cbody{min-width:0;padding:11px 13px 12px}
+  .ctop{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+  .ctop .cdot{width:8px;height:8px;border-radius:50%;flex:none}
+  .ctop .cwho{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ctop .cwhere{font-size:11px;color:var(--faint);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52%}
+  .card .snip{font-size:13px;color:var(--text);margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
+  .card .cfoot{font-size:11px;color:var(--faint);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .card .cfoot .cdate{margin-left:auto;white-space:nowrap}
+  .card .badge{display:inline-flex;align-items:center;gap:3px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-weight:600;color:var(--muted)}
+  .card .thumb{display:none}
   .cards .empty{text-align:center;color:var(--muted);padding:44px 20px;font-size:13.5px}
   .cards .empty .em{font-size:30px;display:block;margin-bottom:8px}
 
@@ -290,12 +314,17 @@
   .lrow.on .sw::after{left:16px}
   .lp-data{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:6px;padding:9px;border-radius:9px;background:var(--text);color:#fff;font-size:11.5px;font-weight:700}
   .lp-data:hover{background:#3a2f57}
-  .spotlight{position:absolute;left:16px;bottom:16px;z-index:500;max-width:300px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:13px 15px;box-shadow:var(--shadow);display:flex;gap:11px;align-items:center;cursor:pointer;transition:.2s}
-  .spotlight:hover{transform:translateY(-2px)}
-  .spotlight .stx{min-width:0}
-  .spotlight .slabel{font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
-  .spotlight .stitle{font-size:13px;font-weight:700;margin:2px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .spotlight img{width:52px;height:52px;border-radius:10px;object-fit:cover;flex:none}
+  .spotlight{position:absolute;left:16px;bottom:16px;z-index:500;max-width:330px;background:var(--panel);border:1px solid var(--gold);border-radius:14px;padding:11px 12px;box-shadow:var(--shadow);display:flex;gap:11px;align-items:center;cursor:pointer;transition:.2s}
+  .spotlight:hover{transform:translateY(-2px);box-shadow:0 22px 46px -22px rgba(36,28,59,.6)}
+  .spotlight img{width:54px;height:54px;border-radius:10px;object-fit:cover;flex:none}
+  .spotlight .sph{width:54px;height:54px;border-radius:10px;display:grid;place-items:center;flex:none}
+  .spotlight .stx{min-width:0;flex:1}
+  .spotlight .slabel{display:flex;align-items:center;gap:4px;font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+  .spotlight .stitle{font-size:12.5px;font-weight:650;line-height:1.35;margin:3px 0 0;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .spotlight .swho{font-size:10.5px;color:var(--faint);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .spotlight .sclose{position:absolute;top:6px;right:6px;width:22px;height:22px;border:0;border-radius:50%;background:none;color:var(--faint);display:grid;place-items:center;cursor:pointer}
+  .spotlight .sclose:hover{background:var(--bg);color:var(--text)}
+  @media(max-width:860px){.spotlight{max-width:calc(100% - 88px)}}
   .fab{position:absolute;right:16px;bottom:16px;z-index:600;width:56px;height:56px;border-radius:50%;background:var(--text);color:#fff;font-size:26px;box-shadow:var(--shadow);display:none;place-items:center}
 
   /* leaflet marker */
@@ -303,6 +332,7 @@
   .mk svg{width:100%;height:100%;display:block}
   .mk-wrap{transition:.16s}
   .mk-wrap.hi .mk,.mk-wrap.sel .mk{transform:scale(1.42);filter:drop-shadow(0 6px 10px rgba(36,28,59,.55))}
+  .mk-wrap.feat .mk{filter:drop-shadow(0 0 0 2.5px var(--gold)) drop-shadow(0 2px 5px rgba(36,28,59,.5))}
   .mk-star{position:relative;width:22px;height:22px;filter:drop-shadow(0 2px 5px rgba(36,28,59,.5));transition:transform .16s}
   .mk-star:hover{transform:scale(1.25)}
   .mk-star.lg{width:34px;height:34px}
@@ -672,6 +702,10 @@
   <!-- IMPACT -->
   <section class="view hidden" id="v-impact"><div class="impact" id="impactBody"></div></section>
 </main>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo">
+  <button class="lb-close" id="lbClose" aria-label="Close">&times;</button>
+  <img id="lbImg" alt="">
+</div>
 <div class="toast" id="toast"></div>
 
 <!-- DATA MODAL -->
@@ -936,7 +970,7 @@ function contactRow(c){
   if(c.phone)parts.push('<span>'+ic("phone",12)+' <a href="tel:'+esc((c.phone+"").replace(/[^0-9+]/g,""))+'">'+esc(c.phone)+'</a></span>');
   return '<div class="contactrow"><span class="cr-lab">'+ic("lock",11)+' Contact</span>'+parts.join("")+'</div>';
 }
-function rowToStory(r){var a=r.answers||{},photo=null,audio=null;var media=(r.media||[]).filter(function(m){return m&&m.url;});media.forEach(function(m){if(m.kind==="photo"&&!photo)photo=m.url;if(m.kind==="audio"&&!audio)audio=m.url;});var src=r.source||{};return{id:r.id,kind:a.kind||"memory",place:a.place_type||"",hood:r.location_label||HOOD_OTHER,corner:a.corner||r.location_label||"",era:a.era||"today",story:a.story||"",lat:r.lat,lng:r.lng,name:r.display_name,vis:CONSENT2VIS[r.consent_level]||"first",inst:!!a.inst,contact:a.contact||null,photo:photo,audio:audio,media:media,campaign:src.campaign||"web",mode:src.mode||"web",featured:!!r.featured,affirms:AFF[r.id]||0,status:r.status||"approved"};}
+function rowToStory(r){var a=r.answers||{},photo=null,audio=null;var media=(r.media||[]).filter(function(m){return m&&m.url;});media.forEach(function(m){if(m.kind==="photo"&&!photo)photo=m.url;if(m.kind==="audio"&&!audio)audio=m.url;});var src=r.source||{};return{id:r.id,kind:a.kind||"memory",place:a.place_type||"",hood:r.location_label||HOOD_OTHER,corner:a.corner||r.location_label||"",era:a.era||"today",story:a.story||"",lat:r.lat,lng:r.lng,name:r.display_name,vis:CONSENT2VIS[r.consent_level]||"first",inst:!!a.inst,contact:a.contact||null,photo:photo,audio:audio,media:media,campaign:src.campaign||"web",mode:src.mode||"web",featured:!!r.featured,affirms:AFF[r.id]||0,at:r.submitted_at||null,status:r.status||"approved"};}
 async function supaFetchApproved(){var res=await fetch(SUPA.url+"/rest/v1/stories?tenant_id=eq."+SUPA.tid+"&status=eq.approved&select=id,status,display_name,consent_level,answers,lat,lng,location_label,media,source,submitted_at,featured&order=submitted_at.desc&limit=500",{headers:supaHeaders()});if(!res.ok)throw new Error("load "+res.status);return (await res.json()).map(rowToStory);}
 /* Same shape as the Rainproof uploader: one file in, {url,kind,name} out, the real
    extension preserved so a .mov stays a .mov and a PDF stays a PDF. Uploads as the
@@ -1004,6 +1038,10 @@ async function refreshStories(){try{STORIES=await supaFetchApproved();}catch(e){
 function $(id){return document.getElementById(id);}
 function esc(s){return(s==null?"":String(s)).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function uid(){return"u"+Math.random().toString(36).slice(2,9)+new Date().getTime().toString(36);}
+function storyDate(s){
+  if(!s.at)return "";
+  try{return new Date(s.at).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});}catch(e){return "";}
+}
 function displayName(s){return(s.vis==="anon"||s.vis==="heritage")?"Anonymous":(s.name||"Anonymous");}
 function photoSrc(p){if(!p)return null;return(p.indexOf("data:")===0||p.indexOf("http")===0||p.indexOf("..")===0)?p:PHOTO+p;}
 var toastT;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("show");},2600);}
@@ -1022,7 +1060,15 @@ function passes(s){
   if(F.q){var q=F.q.toLowerCase();if((s.story+" "+(s.name||"")+" "+s.corner+" "+s.hood).toLowerCase().indexOf(q)<0)return false;}
   return true;
 }
-function filtered(){return publicStories().filter(passes);}
+/* Featured is a decision a moderator made, so it has to show up somewhere other than a
+   database column: pinned to the top of the list, ringed on the map, and the only thing
+   the spotlight will offer. Within each group, newest first. */
+function filtered(){
+  return publicStories().filter(passes).sort(function(a,b){
+    if(!!b.featured!==!!a.featured)return (b.featured?1:0)-(a.featured?1:0);
+    return String(b.at||"").localeCompare(String(a.at||""));
+  });
+}
 
 /* ── map ── */
 var map,anchorLayer,spacesLayer,hoodLayer,markersById={},anchorsOn=true,spacesOn=false,hoodsOn=true,ctxLayers={};
@@ -1420,13 +1466,13 @@ function loadContext(){
   loadCtx("libraries.geojson","lib",function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#3A86FF",6));},onEachFeature:function(f,l){l.bindPopup("<b>"+(f.properties.name||"Library")+"</b>"+(f.properties.street?"<br>"+f.properties.street:""));}});});
 }
 function toggleCtx(key,btn){var on=btn.classList.toggle("on");var l=ctxLayers[key];if(!l){return;}if(on)l.addTo(map);else map.removeLayer(l);}
-function mkIcon(color){return L.divIcon({className:"mk-wrap",html:'<div class="mk"><svg viewBox="0 0 24 24" fill="'+color+'" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>',iconSize:[20,20],iconAnchor:[10,18]});}
+function mkIcon(color,feat){return L.divIcon({className:"mk-wrap"+(feat?" feat":""),html:'<div class="mk"><svg viewBox="0 0 24 24" fill="'+color+'" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>',iconSize:[20,20],iconAnchor:[10,18]});}
 function renderMarkers(){
   if(!map)return;
   Object.keys(markersById).forEach(function(id){map.removeLayer(markersById[id]);});markersById={};
   filtered().forEach(function(s){
     var k=KIND[s.kind]||KIND.memory;
-    var m=L.marker([s.lat,s.lng],{icon:mkIcon(k.color),zIndexOffset:400}).addTo(map);
+    var m=L.marker([s.lat,s.lng],{icon:mkIcon(k.color,s.featured),zIndexOffset:s.featured?520:400}).addTo(map);
     m.on("click",function(){selectStory(s.id,false);});
     m.on("mouseover",function(){hiCard(s.id,true);});
     m.on("mouseout",function(){hiCard(s.id,false);});
@@ -1613,20 +1659,34 @@ function renderCards(){
   var list=filtered(),f=F.site?siteByName(F.site):null;
   // A building is the more specific answer, so it wins over its neighbourhood.
   var head=f?sitePage(f):(F.hood!=="all"?hoodPage(F.hood):"");
-  var body=list.length?list.map(function(s){var k=KIND[s.kind]||KIND.memory;
-    // How a story is filed used to be invisible. The three chips are the filing, made
-    // readable and clickable, so a card is a way into the map rather than a dead end.
-    return '<div class="card" data-id="'+s.id+'">'+cardThumb(s)+
-      '<div class="cbody"><span class="ktag" style="background:'+k.color+'">'+ic(k.icon,12)+' '+esc(k.short)+'</span>'+
-      (s.featured?'<span class="feattag">'+ic("star",11)+' Featured</span>':"")+
-      '<div class="snip">'+esc(s.story)+'</div>'+
-      '<div class="cchips">'+
-        '<button class="cchip" data-chip="hood" data-v="'+esc(s.hood)+'"><span class="csw" style="background:'+hoodColor(s.hood)+'"></span>'+esc(s.hood)+'</button>'+
-        '<button class="cchip" data-chip="era" data-v="'+esc(s.era)+'">'+esc(eraLabel(s.era))+'</button>'+
-        '<button class="cchip" data-chip="kind" data-v="'+esc(s.kind)+'">'+ic(k.icon,11)+' '+esc(k.short)+'</button>'+
-      '</div>'+
-      '<div class="cfoot"><span>'+esc(displayName(s))+'</span>'+
-        (s.photo?'<span class="badge">'+ic("camera",12)+' Photo</span>':"")+(s.audio?'<span class="badge">'+ic("audio",12)+' Voice</span>':"")+'</div></div></div>';
+  var body=list.length?list.map(function(s){
+    var k=KIND[s.kind]||KIND.memory,src=photoSrc(s.photo);
+    var photos=(s.media||[]).filter(function(m){return m.kind==="photo";});
+    var vids=(s.media||[]).filter(function(m){return m.kind==="video";});
+    var extra=Math.max(0,photos.length-1);
+    // The photograph leads, because a face or a building is what stops a scroll.
+    var hero=src?'<div class="chero"><img src="'+src+'" alt="" loading="lazy">'+
+      (extra?'<span class="cmore">+'+extra+'</span>':'')+
+      (s.featured?'<span class="cfeat">'+ic("star",11)+' Featured</span>':'')+'</div>':'';
+    return '<article class="card'+(s.featured?" is-feat":"")+'" data-id="'+s.id+'" tabindex="0">'+hero+
+      '<div class="cbody">'+
+        '<div class="ctop"><span class="cdot" style="background:'+k.color+'"></span>'+
+          '<span class="cwho">'+esc(displayName(s))+'</span>'+
+          '<span class="cwhere">'+esc(s.corner||s.hood)+'</span></div>'+
+        (!src&&s.featured?'<span class="feattag">'+ic("star",11)+' Featured</span>':'')+
+        '<p class="snip">'+esc(s.story)+'</p>'+
+        '<div class="cchips">'+
+          '<button class="cchip" data-chip="hood" data-v="'+esc(s.hood)+'"><span class="csw" style="background:'+hoodColor(s.hood)+'"></span>'+esc(s.hood)+'</button>'+
+          '<button class="cchip" data-chip="era" data-v="'+esc(s.era)+'">'+esc(eraLabel(s.era))+'</button>'+
+          '<button class="cchip" data-chip="kind" data-v="'+esc(s.kind)+'">'+ic(k.icon,11)+' '+esc(k.short)+'</button>'+
+        '</div>'+
+        '<div class="cfoot">'+
+          (photos.length?'<span class="badge">'+ic("camera",11)+' '+photos.length+'</span>':'')+
+          (vids.length?'<span class="badge">'+ic("video",11)+' Video</span>':'')+
+          (s.audio?'<span class="badge">'+ic("audio",11)+' Voice</span>':'')+
+          '<span class="cdate">'+esc(storyDate(s))+'</span>'+
+        '</div>'+
+      '</div></article>';
   }).join("")
   // With a site selected the empty state is about that place, not about the filters.
   :(f?'<div class="empty"><span class="em">'+ic("sprout",26)+'</span>Nobody has told a story about this place yet.<br>The button above starts the first one.</div>'
@@ -1640,6 +1700,8 @@ function renderCards(){
   var hc=$("hoodClear");if(hc)hc.addEventListener("click",function(){
     var sel=$("hoodSel");if(sel){sel.value="all";sel.dispatchEvent(new Event("change"));}
   });
+  $("cards").querySelectorAll(".chero img").forEach(function(img){
+    img.addEventListener("click",function(e){e.stopPropagation();openLightbox(img.src);});});
   $("cards").querySelectorAll("[data-chip]").forEach(function(b){
     b.addEventListener("click",function(e){
       e.stopPropagation();
@@ -1678,7 +1740,7 @@ function copyLink(){
     navigator.clipboard.writeText(url).then(function(){toast("Link copied");}).catch(function(){toast(url);});
   else toast(url);
 }
-function apply(){renderKChips();renderActiveF();renderMeta();renderCards();renderMarkers();syncUrl();}
+function apply(){renderKChips();renderActiveF();renderMeta();renderCards();renderMarkers();renderSpotlight();syncUrl();}
 
 /* ── detail ── */
 function selectStory(id,fly){
@@ -1692,17 +1754,33 @@ function selectStory(id,fly){
    document. The hero already shows the first photo and the player already handles the
    voice recording, so this is what used to be invisible on the public side. */
 function storyMediaHtml(s){
-  var m=(s.media||[]).filter(function(x,i){
-    if(x.kind==="audio")return false;                       // already has a player
-    if(x.kind==="photo"&&x.url===s.photo)return false;      // already the hero
-    return true;
-  });
-  if(!m.length)return "";
-  return '<div class="dmedia">'+m.map(function(x){
-    if(x.kind==="photo")return '<a class="dm" href="'+esc(x.url)+'" target="_blank" rel="noopener"><img src="'+esc(x.url)+'" alt="" loading="lazy"></a>';
-    if(x.kind==="video")return '<video class="dm dvid" src="'+esc(x.url)+'" controls preload="metadata" playsinline></video>';
-    return '<a class="dm dfile" href="'+esc(x.url)+'" target="_blank" rel="noopener">'+ic("doc",15)+' '+esc(x.name||"Attached file")+'</a>';
-  }).join("")+'</div>';
+  var m=s.media||[];
+  var imgs=m.filter(function(x){return x.kind==="photo"&&x.url!==s.photo;});
+  var vids=m.filter(function(x){return x.kind==="video";});
+  var docs=m.filter(function(x){return x.kind==="file";});
+  var out="";
+  if(imgs.length)
+    out+='<div class="d-sect">'+ic("camera",13)+' Photos ('+(imgs.length+(s.photo?1:0))+')</div>'+
+      '<div class="d-gal">'+imgs.map(function(x){
+        return '<img class="d-photo" src="'+esc(x.url)+'" data-lb="'+esc(x.url)+'" loading="lazy" alt="">';
+      }).join("")+'</div>';
+  if(vids.length)
+    out+='<div class="d-sect">'+ic("video",13)+' Video</div>'+
+      vids.map(function(x){return '<video class="d-video" controls playsinline preload="metadata"><source src="'+esc(x.url)+'"></video>';}).join("");
+  if(docs.length)
+    out+='<div class="d-sect">'+ic("doc",13)+' Files</div>'+
+      docs.map(function(x){return '<a class="d-file" href="'+esc(x.url)+'" target="_blank" rel="noopener">'+ic("doc",14)+' '+esc(x.name||"Attached file")+'</a>';}).join("");
+  return out;
+}
+/* One lightbox for the whole app: the card hero and every gallery photo open it. */
+function openLightbox(src){
+  var lb=$("lightbox");if(!lb)return;
+  $("lbImg").src=src;lb.classList.add("open");
+  document.body.style.overflow="hidden";
+}
+function closeLightbox(){
+  var lb=$("lightbox");if(!lb)return;
+  lb.classList.remove("open");$("lbImg").src="";document.body.style.overflow="";
 }
 function openDetail(s){
   var k=KIND[s.kind]||KIND.memory,src=photoSrc(s.photo);
@@ -1712,7 +1790,7 @@ function openDetail(s){
     '<button class="d-close" id="dClose">←</button>'+
     '<span class="d-ktag" style="background:'+k.color+'">'+ic(k.icon,13)+' '+esc(k.label)+'</span></div>'+
     '<div class="d-body"><p class="quote">"'+esc(s.story)+'"</p>'+
-    (s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+
+    (s.audio?'<div class="d-sect">'+ic("mic",13)+' Voice recording</div><audio controls src="'+s.audio+'"></audio>':"")+
     storyMediaHtml(s)+
     (s.kind==="future"?dreamBox(s):"")+
     '<div class="d-tags">'+tags.map(function(t){return '<span class="t" data-tag="'+t[0]+'">'+t[1]+'</span>';}).join("")+'</div>'+
@@ -1728,6 +1806,10 @@ function openDetail(s){
   $("dClose").addEventListener("click",closeDetail);
   var ab=$("affirmBtn");if(ab)ab.addEventListener("click",function(){AFF[s.id]=(AFF[s.id]||0)+1;saveAff();s.affirms=AFF[s.id];renderMarkers();openDetail(s);toast("You share this dream: "+s.affirms+" now");});
   $("dLocate").addEventListener("click",function(){if(map)map.flyTo([s.lat,s.lng],16,{duration:1.1});});
+  $("detail").querySelectorAll("[data-lb]").forEach(function(el){
+    el.addEventListener("click",function(){openLightbox(el.dataset.lb);});});
+  var dh=$("detail").querySelector(".d-hero img");
+  if(dh&&s.photo)dh.addEventListener("click",function(){openLightbox(photoSrc(s.photo));});
   $("detail").querySelectorAll("[data-tag]").forEach(function(el){el.addEventListener("click",function(){
     var t=el.dataset.tag;if(t==="hood")F.hood=s.hood;else if(t==="era")F.era=s.era;else if(t==="place")F.place=s.place;else if(t==="kind"){F.kinds=new Set([s.kind]);}
     renderSelects();closeDetail();apply();
@@ -2479,10 +2561,30 @@ function renderImpact(){
 }
 
 /* ── spotlight ── */
-function renderSpotlight(){var pub=publicStories().filter(function(s){return s.photo;});if(!pub.length){$("spotlight").classList.add("hidden");return;}var s=pub[0];
-  $("spotlight").innerHTML='<img src="'+photoSrc(s.photo)+'" alt=""><div class="stx"><div class="slabel">Featured memory</div><div class="stitle">'+esc(s.story.slice(0,70))+'…</div></div>';
-  $("spotlight").classList.remove("hidden");$("spotlight").onclick=function(){selectStory(s.id,true);};
+/* The spotlight used to say "Featured memory" over whichever approved story happened to
+   have a photograph, which was not a claim anyone had made. It now shows a story a
+   moderator actually featured, rotates when there is more than one, and hides itself
+   entirely when there are none rather than inventing one. */
+var spotIdx=0,spotTimer=null;
+function featuredStories(){return publicStories().filter(function(s){return s.featured;});}
+function renderSpotlight(){
+  var el=$("spotlight");if(!el)return;
+  var feat=featuredStories();
+  if(!feat.length||spotDismissed){el.classList.add("hidden");el.innerHTML="";if(spotTimer){clearInterval(spotTimer);spotTimer=null;}return;}
+  var s=feat[spotIdx%feat.length],src=photoSrc(s.photo),k=KIND[s.kind]||KIND.memory;
+  el.innerHTML=(src?'<img src="'+src+'" alt="">':'<span class="sph" style="background:'+k.color+'22;color:'+k.color+'">'+ic(k.icon,20)+'</span>')+
+    '<div class="stx"><div class="slabel">'+ic("star",11)+' Featured'+(feat.length>1?' &middot; '+((spotIdx%feat.length)+1)+' of '+feat.length:'')+'</div>'+
+    '<div class="stitle">'+esc(s.story.slice(0,72))+(s.story.length>72?'\u2026':'')+'</div>'+
+    '<div class="swho">'+esc(displayName(s))+' &middot; '+esc(s.hood)+'</div></div>'+
+    '<button class="sclose" id="spotClose" aria-label="Hide featured story">'+ic("x",13)+'</button>';
+  el.classList.remove("hidden");
+  el.onclick=function(){selectStory(s.id,true);};
+  var cb=$("spotClose");
+  if(cb)cb.addEventListener("click",function(e){e.stopPropagation();spotDismissed=true;renderSpotlight();});
+  if(spotTimer)clearInterval(spotTimer);
+  if(feat.length>1)spotTimer=setInterval(function(){spotIdx++;renderSpotlight();},9000);
 }
+var spotDismissed=false;
 
 /* ── boot ── */
 var params=new URLSearchParams(location.search),mode=params.get("mode"),kindParam=params.get("kind");
@@ -2496,6 +2598,12 @@ campaignParam=params.get("campaign")||"web";eventParam=params.get("event")||"";c
   if(type&&KIND[type])F.kinds=new Set([type]);
   if(era&&ERAS.some(function(e){return e[0]===era;}))F.era=era;
   if(q){F.q=q;var si=$("searchIn");if(si)si.value=q;}
+})();
+(function(){
+  var lb=$("lightbox");if(!lb)return;
+  lb.addEventListener("click",closeLightbox);
+  $("lbClose").addEventListener("click",function(e){e.stopPropagation();closeLightbox();});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&lb.classList.contains("open"))closeLightbox();});
 })();
 hydrateIcons(document);
 renderKChips();renderSelects();renderActiveF();renderMeta();renderCards();
