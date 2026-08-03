@@ -313,10 +313,6 @@
   .hp-cdn{font-size:12.5px;font-weight:600;min-width:72px}
   .hp-cdv{font-size:11.5px;color:var(--muted);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
   .hp-note{font-size:11px;color:var(--muted);line-height:1.45;margin:9px 0 0}
-  .hp-prompt{background:var(--primaryLight);border-radius:10px;padding:11px 12px}
-  .hp-prompt p{margin:0;font-size:12.5px;line-height:1.5;color:var(--text)}
-  .hp-prompt p+p{margin-top:7px}
-  .hp-prompt em{font-style:normal;font-weight:700;color:var(--primaryDark)}
   .hp-foot{margin:0;padding:11px 18px 13px;border-top:1px solid var(--line);background:var(--bg);font-size:10.5px;line-height:1.5;color:var(--faint)}
   .cards{flex:1;overflow:auto;padding:10px 12px 26px;min-height:0}
   /* The card, laid out the way Rainproof lays one out: the photograph leads, then who
@@ -1980,21 +1976,6 @@ function twoUpTile(icon,a,aLabel,aSub,b,bLabel){
       (aSub?'<span class="hp-sub">'+esc(aSub)+'</span>':'')+'</div>'+
     '<div class="hp-alt"><b>'+(b||0)+'</b><span>'+esc(bLabel)+'</span></div></div>';
 }
-function hoodPrompts(d){
-  var out=[];
-  if(d.peoplePerGrocery&&d.peoplePerGrocery>5000)
-    out.push('One full-service grocery for <b>'+num(d.peoplePerGrocery)+'</b> people. <em>Where did people shop before, and how did they get there?</em>');
-  if(d.vacantPct>=20)
-    out.push('Nearly <b>'+Math.round(d.vacantPct)+'%</b> of the homes here sit empty. <em>Whose house was that, and what happened to it?</em>');
-  if(d.floodSharePct>=10)
-    out.push('<b>'+d.floodSharePct+'%</b> of this ground is mapped as high flood risk. <em>Where does the water go when it rains hard?</em>');
-  if(!d.assets.libraries)
-    out.push('No public library inside this boundary. <em>Where did you go to study, or to be somewhere cool and quiet?</em>');
-  if(d.over65Pct>=18)
-    out.push('<b>'+d.over65Pct+'%</b> are over 65, the elders who hold the oldest account. <em>Who should we be recording first?</em>');
-  if(!out.length)out.push('<em>What does this neighborhood have that the numbers cannot see?</em>');
-  return out.slice(0,3);
-}
 function hoodPage(name){
   var d=HOOD_PROFILES&&HOOD_PROFILES[name];
   if(!d)return "";
@@ -2023,8 +2004,8 @@ function hoodPage(name){
     '</div>'+
 
     '<div class="hp-block"><div class="hp-label"><h3>'+ic("chart",12)+' What it costs to stay</h3><span>ACS 2024</span></div>'+
-      '<div class="hp-stat"><span>Median household income</span><b>'+money(d.medianIncomeRange[0])+' – '+money(d.medianIncomeRange[1])+'</b></div>'+
-      '<div class="hp-stat"><span>Median rent</span><b>'+money(d.medianRentRange[0])+' – '+money(d.medianRentRange[1])+'</b></div>'+
+      '<div class="hp-stat"><span>Median household income, by tract</span><b>'+money(d.medianIncomeRange[0])+' – '+money(d.medianIncomeRange[1])+'</b></div>'+
+      '<div class="hp-stat"><span>Median rent, by tract</span><b>'+money(d.medianRentRange[0])+' – '+money(d.medianRentRange[1])+'</b></div>'+
       meterRow("Living in poverty",d.povertyPct,50,d.povertyPct>=33?"strain":d.povertyPct>=20?"watch":"ok","City-wide about 22%")+
       meterRow("Households renting",d.renterPct,100,d.renterPct>=70?"strain":d.renterPct>=55?"watch":"ok","City-wide about 55%")+
       meterRow("Homes sitting empty",d.vacantPct,35,d.vacantPct>=20?"strain":d.vacantPct>=13?"watch":"ok","City-wide about 12%")+
@@ -2059,14 +2040,15 @@ function hoodPage(name){
         : 'One district covers this neighborhood, so there is one person to take a claim to.')+'</p>'+
     '</div>'+
 
+    /* Count only. The block used to carry up to three generated prompts underneath it
+       ("No public library inside this boundary. Where did you go to study?"). They were
+       written to start a conversation, and on a page whose job is to hand someone the
+       numbers they read as the map telling people what to feel about their own
+       neighbourhood. The stories below are the answer to that question and they were
+       being introduced by a machine-written version of themselves. */
     '<div class="hp-block"><div class="hp-label"><h3>'+ic("sprout",12)+' Memories rooted here</h3><span>The Big We</span></div>'+
       '<div class="hp-head"><b>'+n+'</b><span>'+(n===1?"story":"stories")+' so far</span></div>'+
-      '<div class="hp-prompt">'+hoodPrompts(d).map(function(p){return '<p>'+p+'</p>';}).join("")+'</div>'+
     '</div>'+
-
-    '<p class="hp-foot">People and homes are exact sums over '+d.tracts+' whole tracts. Percentages are weighted by tract. '+
-      'Medians are ranges because medians cannot be averaged. Asset counts are what falls inside this boundary, which is not '+
-      'the same as what is within walking distance of it.</p>'+
   '</div>';
 }
 /* The data centre profile. Same column as the neighbourhood one, different questions:
