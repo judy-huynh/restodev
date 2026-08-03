@@ -262,6 +262,7 @@
   .acrow:last-child{border-bottom:0}
   .acrow:hover,.acrow:focus{background:var(--bg);outline:none}
   .acrow b{display:block;font-size:13.5px}
+  .acrow .actag{display:inline-flex;align-items:center;gap:3px;margin-left:6px;font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--anchor);vertical-align:1px}
   .acrow span{display:block;font-size:11.5px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .achint{font-size:12px;color:var(--muted);margin:7px 2px 0;min-height:16px}
   .acrow.on{background:var(--primaryLight)}
@@ -842,11 +843,40 @@ var LOCAL_PLACES=[
   {short:"Clayborn Temple",  name:"Clayborn Temple, 294 Hernando St",         lat:35.1365,lng:-90.0511},
   {short:"The Curve",        name:"The Curve, Mississippi Blvd & Walker Ave", lat:35.1195,lng:-90.0388}
 ];
+/* The Cultural District is an index as well as a layer. Mapbox has never heard of the
+   Universal Life Building and answers "Royal Studios" with a street, so the 24 sites
+   answer for themselves, ahead of any commercial result. Matching is on the name and
+   the street only: matching the category would answer "music" with eight stars and
+   leave no room for anything else. Capped at four for the same reason. */
+function culturalPlaces(q){
+  var s=q.toLowerCase();
+  return CULTURAL.filter(function(f){
+    var p=f.properties||{};
+    return (p.name||"").toLowerCase().indexOf(s)>-1||(p.street||"").toLowerCase().indexOf(s)>-1;
+  }).slice(0,4).map(function(f){
+    var p=f.properties,c=f.geometry.coordinates;
+    return {short:p.name,name:p.street||"Cultural District site",lat:c[1],lng:c[0],site:p.name};
+  });
+}
 function localPlaces(q){
   var s=q.toLowerCase();
-  return LOCAL_PLACES.filter(function(p){
+  var hand=LOCAL_PLACES.filter(function(p){
     return p.short.toLowerCase().indexOf(s)>-1||p.name.toLowerCase().indexOf(s)>-1;
   });
+  // Same door under two names, "Clayborn Temple" and "Historic Clayborn Temple", is a
+  // duplicate and the geojson wins: it carries the address, the history and the photo.
+  // Same corner under two DIFFERENT names is not. "Soulsville" is a neighbourhood and
+  // Stax stands in it, so matching on distance alone would answer a search for the
+  // neighbourhood with a museum. Names have to agree too.
+  var norm=function(x){return x.toLowerCase().replace(/^historic\s+/,"").replace(/[^a-z0-9]/g,"");};
+  var cult=culturalPlaces(q);
+  hand=hand.filter(function(p){
+    return !cult.some(function(c){return norm(p.short)===norm(c.short)&&metresApart(p.lat,p.lng,c.lat,c.lng)<150;});
+  });
+  // The hand-written list still leads. It exists precisely for the names a geocoder gets
+  // wrong, and those are neighbourhood-scale answers that a single building should not
+  // outrank. Both sit ahead of anything commercial.
+  return hand.concat(cult);
 }
 
 /* Mapbox puts the house number in `address` and the street in `text`, so using `text`
@@ -930,6 +960,12 @@ function metresBetween(a,b){
    attributing it to the person who told the story is how a memory map gets a
    neighbourhood wrong in someone else's name. */
 function nameForPoint(lat,lng){
+  // A Cultural District site is checked first and close in, 120m rather than 700m,
+  // because a building is a point and a neighbourhood name is a region. A pin on the
+  // steps of Mason Temple should read "Mason Temple", not "Soulsville".
+  var site=CULTURAL.map(function(f){var c=f.geometry.coordinates;return {n:f.properties.name,d:metresApart(lat,lng,c[1],c[0])};})
+    .filter(function(x){return x.d<120;}).sort(function(a,b){return a.d-b.d;})[0];
+  if(site)return Promise.resolve(site.n);
   var near=LOCAL_PLACES.map(function(p){return {p:p,d:metresBetween([lat,lng],[p.lat,p.lng])};})
     .filter(function(x){return x.d<700;}).sort(function(a,b){return a.d-b.d;})[0];
   if(near)return Promise.resolve(near.p.short);
@@ -966,7 +1002,7 @@ function wireAutocomplete(input,list,onPick){
   }
   function open(res){
     results=res;
-    list.innerHTML=res.map(function(f,i){return '<button type="button" role="option" aria-selected="false" class="acrow" data-i="'+i+'"><b>'+esc(f.short)+'</b><span>'+esc(f.name)+'</span></button>';}).join("");
+    list.innerHTML=res.map(function(f,i){return '<button type="button" role="option" aria-selected="false" class="acrow" data-i="'+i+'"><b>'+esc(f.short)+(f.site?' <span class="actag">'+ic("star",10)+' Cultural District</span>':'')+'</b><span>'+esc(f.name)+'</span></button>';}).join("");
     list.classList.remove("hidden");input.setAttribute("aria-expanded","true");active=-1;
     Array.prototype.forEach.call(list.querySelectorAll(".acrow"),function(btn){
       btn.addEventListener("click",function(){var f=results[+btn.dataset.i];close();onPick(f);});
@@ -1415,7 +1451,11 @@ $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMe
     pi.value=f.short;pclr.classList.remove("hidden");
     if(!map)return;
     map.setView([f.lat,f.lng],16);
-    if(foundMarker)map.removeLayer(foundMarker);
+    if(foundMarker){map.removeLayer(foundMarker);foundMarker=null;}
+    // Searching a Cultural District site is the same act as clicking its star: read the
+    // place. Dropping a generic found-pin on top of a star that already answers for that
+    // corner would say the map does not know its own anchors.
+    if(f.site&&siteByName(f.site)){selectSite(f.site);return;}
     foundMarker=L.marker([f.lat,f.lng],{icon:L.divIcon({className:"",html:'<div class="mk-found"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(map);
     foundMarker.bindPopup('<div class="pop"><p class="pname">'+esc(f.short)+'</p><p class="paddr">'+esc(f.name)+'</p><button type="button" class="addhere" id="addFoundBtn">Add a memory here</button></div>',{className:"addpop",closeButton:false}).openPopup();
     var btn=document.getElementById("addFoundBtn");
