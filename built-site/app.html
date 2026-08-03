@@ -983,7 +983,7 @@ function contactRow(c){
   if(c.phone)parts.push('<span>'+ic("phone",12)+' <a href="tel:'+esc((c.phone+"").replace(/[^0-9+]/g,""))+'">'+esc(c.phone)+'</a></span>');
   return '<div class="contactrow"><span class="cr-lab">'+ic("lock",11)+' Contact</span>'+parts.join("")+'</div>';
 }
-function rowToStory(r){var a=r.answers||{},photo=null,audio=null;var media=(r.media||[]).filter(function(m){return m&&m.url;});media.forEach(function(m){if(m.kind==="photo"&&!photo)photo=m.url;if(m.kind==="audio"&&!audio)audio=m.url;});var src=r.source||{};return{id:r.id,kind:a.kind||"memory",place:a.place_type||"",hood:r.location_label||HOOD_OTHER,corner:a.corner||r.location_label||"",era:a.era||"today",story:a.story||"",lat:r.lat,lng:r.lng,name:r.display_name,vis:CONSENT2VIS[r.consent_level]||"first",inst:!!a.inst,contact:a.contact||null,photo:photo,audio:audio,media:media,campaign:src.campaign||"web",mode:src.mode||"web",featured:!!r.featured,affirms:AFF[r.id]||0,at:r.submitted_at||null,status:r.status||"approved"};}
+function rowToStory(r){var a=r.answers||{},photo=null,audio=null;var media=(r.media||[]).filter(function(m){return m&&m.url;});media.forEach(function(m){if(m.kind==="photo"&&!photo)photo=m.url;if(m.kind==="audio"&&!audio)audio=m.url;});var src=r.source||{};return{id:r.id,kind:a.kind||"memory",place:a.place_type||"",hood:r.location_label||HOOD_OTHER,corner:a.corner||r.location_label||"",era:a.era||"today",story:a.story||"",lat:r.lat,lng:r.lng,name:r.display_name,vis:CONSENT2VIS[r.consent_level]||"first",inst:!!a.inst,contact:null,photo:photo,audio:audio,media:media,campaign:src.campaign||"web",mode:src.mode||"web",featured:!!r.featured,affirms:AFF[r.id]||0,at:r.submitted_at||null,status:r.status||"approved"};}
 async function supaFetchApproved(){var res=await fetch(SUPA.url+"/rest/v1/stories?tenant_id=eq."+SUPA.tid+"&status=eq.approved&select=id,status,display_name,consent_level,answers,lat,lng,location_label,media,source,submitted_at,featured&order=submitted_at.desc&limit=500",{headers:supaHeaders()});if(!res.ok)throw new Error("load "+res.status);return (await res.json()).map(rowToStory);}
 /* Same shape as the Rainproof uploader: one file in, {url,kind,name} out, the real
    extension preserved so a .mov stays a .mov and a PDF stays a PDF. Uploads as the
@@ -1012,12 +1012,37 @@ async function supaUploadFile(file,kind){
   return {url:SUPA.url+"/storage/v1/object/public/story-media/"+path,kind:kind,name:file.name||null};
 }
 async function supaUpload(dataUrl,kind){var blob=await (await fetch(dataUrl)).blob();var ext=kind==="audio"?"webm":"jpg";var path="memphis-roots/"+Date.now()+"-"+Math.random().toString(36).slice(2,10)+"."+ext;var res=await fetch(SUPA.url+"/storage/v1/object/story-media/"+path,{method:"POST",headers:{apikey:SUPA.key,Authorization:"Bearer "+SUPA.key,"Content-Type":blob.type||"application/octet-stream"},body:blob});if(!res.ok)throw new Error("media "+res.status);return{url:SUPA.url+"/storage/v1/object/public/story-media/"+path,kind:kind};}
+/* Contact details go to story_contacts, which only a signed-in moderator can read, and
+   never into stories.answers, which anyone with the publishable key can. The form promises
+   "private, The Big We only"; this is the line that keeps the promise. */
+async function supaSaveContact(id,c){
+  var has=c&&(c.name||c.email||c.phone);
+  var tok=(SUPA.session&&SUPA.session.access_token)||SUPA.key;
+  if(!has){
+    if(!(SUPA.session&&SUPA.session.access_token))return;         // only a moderator can clear one
+    await supaAuthed("story_contacts?story_id=eq."+id,{method:"DELETE",headers:{Prefer:"return=minimal"}});
+    return;
+  }
+  var row={story_id:id,tenant_id:SUPA.tid,full_name:c.name||null,email:c.email||null,phone:c.phone||null};
+  var res=await fetch(SUPA.url+"/rest/v1/story_contacts?on_conflict=story_id",{method:"POST",
+    headers:Object.assign(supaHeaders(tok),{"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=minimal"}),
+    body:JSON.stringify(row)});
+  if(!res.ok&&res.status!==409)throw new Error("contact "+res.status);
+}
+async function supaGetContacts(ids){
+  if(!ids.length)return {};
+  var rows=await supaAuthed("story_contacts?select=story_id,full_name,email,phone&story_id=in.("+ids.join(",")+")")||[];
+  var out={};rows.forEach(function(r){out[r.story_id]={name:r.full_name,email:r.email,phone:r.phone};});
+  return out;
+}
 async function supaSubmit(d){var media=[];
   // Photos and video first, in the order they were added, then the recording.
   var files=d.files||[];
   for(var i=0;i<files.length;i++){try{media.push(await supaUploadFile(files[i].file,files[i].kind));}catch(e){console.warn("media skipped:",e.message);}}
   if(d.photo){try{media.push(await supaUpload(d.photo,"photo"));}catch(e){}}
-  if(d.audio){try{media.push(await supaUpload(d.audio,"audio"));}catch(e){}}var row={id:(window.crypto&&crypto.randomUUID?crypto.randomUUID():uid()),tenant_id:SUPA.tid,status:"pending",consent_level:VIS2CONSENT[d.vis]||"first_name",display_name:(d.vis==="anon"||d.vis==="heritage")?null:(d.name||null),answers:{kind:d.kind,place_type:d.place||null,era:d.era,story:d.story,corner:d.corner||null,inst:!!d.inst,contact:((d.name||d.email||d.phone)?{name:d.name||null,email:d.email||null,phone:d.phone||null}:null)},lat:d.lat,lng:d.lng,location_label:d.hood||null,media:media,source:{campaign:d.campaign,mode:d.mode,locSource:d.locSource||"unset"}};var res=await fetch(SUPA.url+"/rest/v1/stories",{method:"POST",headers:Object.assign(supaHeaders(),{Prefer:"return=minimal"}),body:JSON.stringify(row)});if(!res.ok&&res.status!==409)throw new Error("submit "+res.status+": "+(await res.text()).slice(0,140));return true;}
+  if(d.audio){try{media.push(await supaUpload(d.audio,"audio"));}catch(e){}}var row={id:(window.crypto&&crypto.randomUUID?crypto.randomUUID():uid()),tenant_id:SUPA.tid,status:"pending",consent_level:VIS2CONSENT[d.vis]||"first_name",display_name:(d.vis==="anon"||d.vis==="heritage")?null:(d.name||null),answers:{kind:d.kind,place_type:d.place||null,era:d.era,story:d.story,corner:d.corner||null,inst:!!d.inst,},lat:d.lat,lng:d.lng,location_label:d.hood||null,media:media,source:{campaign:d.campaign,mode:d.mode,locSource:d.locSource||"unset"}};var res=await fetch(SUPA.url+"/rest/v1/stories",{method:"POST",headers:Object.assign(supaHeaders(),{Prefer:"return=minimal"}),body:JSON.stringify(row)});if(!res.ok&&res.status!==409)throw new Error("submit "+res.status+": "+(await res.text()).slice(0,140));
+  try{await supaSaveContact(row.id,{name:d.name,email:d.email,phone:d.phone});}catch(e){console.warn("contact not saved:",e.message);}
+  return true;}
 async function supaLogin(email,password){var res=await fetch(SUPA.url+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:SUPA.key,"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password})});var d=await res.json();if(!res.ok||!d.access_token)throw new Error(d.error_description||d.msg||"sign-in failed");SUPA.session=d;try{sessionStorage.setItem("mr_sess",JSON.stringify(d));}catch(e){}}
 function supaLogout(){SUPA.session=null;try{sessionStorage.removeItem("mr_sess");}catch(e){}}
 async function supaAuthed(path,opts){opts=opts||{};var res=await fetch(SUPA.url+"/rest/v1/"+path,Object.assign({},opts,{headers:Object.assign(supaHeaders(SUPA.session&&SUPA.session.access_token),opts.headers||{})}));if(res.status===401){supaLogout();throw new Error("SESSION");}if(!res.ok)throw new Error((opts.method||"GET")+" "+res.status);var t=await res.text();return t?JSON.parse(t):null;}
@@ -2603,11 +2628,11 @@ function renderEditor(){
 /* One save writes both halves: the public row, and the moderator layer beside it. */
 async function saveStoryEdits(s,v,btn){
   btn.disabled=true;btn.textContent="Saving…";
-  var answers={kind:s.kind,place_type:s.place||null,era:s.era,story:s.story,corner:s.corner||null,
-               inst:!!s.inst,contact:s.contact||null};
+  var answers={kind:s.kind,place_type:s.place||null,era:s.era,story:s.story,corner:s.corner||null,inst:!!s.inst};
   try{
     await supaSaveStory(s,answers);
     await supaSaveInternal(s.id,v);
+    await supaSaveContact(s.id,s.contact);
   }catch(e){
     if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;}
     btn.disabled=false;btn.innerHTML=ic("check",13)+" Save changes";toast("Couldn't save: "+e.message);return;
@@ -2635,6 +2660,10 @@ async function renderAdmin(){
   modRows=rows.map(rowToStory);
   try{ modInternal=await supaGetInternal(modRows.map(function(s){return s.id;})); }
   catch(e){ modInternal={}; console.warn("internal layer unavailable",e); }
+  try{
+    var cs=await supaGetContacts(modRows.map(function(s){return s.id;}));
+    modRows.forEach(function(s){s.contact=cs[s.id]||null;});
+  }catch(e){ console.warn("contacts unavailable",e); }
   if(adminTab==="pending")$("nPend").textContent=modRows.length?"("+modRows.length+")":"";
   if(adminTab==="approved")$("nAppr").textContent=modRows.length?"("+modRows.length+")":"";
   if(!modRows.some(function(s){return s.id===modSel;}))modSel=modRows.length?modRows[0].id:null;
