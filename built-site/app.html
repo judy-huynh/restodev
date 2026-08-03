@@ -233,6 +233,11 @@
   .cchip .csw{width:7px;height:7px;border-radius:2px;transform:rotate(45deg);flex:none}
   /* neighborhood profile, at the top of the story column */
   .hoodpage{margin:-10px -12px 14px;border-bottom:1px solid var(--line)}
+  .dc-badge{display:grid;place-items:center;width:46px;height:22px;border-radius:6px;color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.02em;border:2px solid #fff;box-shadow:0 2px 6px rgba(36,28,59,.45)}
+  .dctabs{display:flex;gap:6px;margin:4px 0 2px}
+  .dctab{font:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:var(--muted);cursor:pointer}
+  .dctab:hover{border-color:var(--hood);color:var(--text)}
+  .dctab.on{background:var(--hood);border-color:var(--hood);color:#fff}
   .hoodpage .hp-dot{display:inline-block;width:8px;height:8px;border-radius:3px;transform:rotate(45deg);vertical-align:0}
   .hoodpage .hp-asset .ic{color:var(--hood)}
   .hoodpage .hp-body{padding:14px 18px 4px}
@@ -653,6 +658,7 @@
                 <div class="lp-gh">Community</div>
                 <button class="lrow on" id="anchorToggle"><span class="lname"><b>Cultural District</b><em>24 Sites, Clayborn at the Center</em></span><span class="sw"></span></button>
                 <button class="lrow on" id="hoodToggle"><span class="lname"><b>Neighborhoods</b><em>City Tract Lines, Community Names</em></span><span class="sw"></span></button>
+                <button class="lrow" id="dcToggle"><span class="lname"><b>Data Centers</b><em>xAI Colossus &middot; 1 and 5 Mile Rings</em></span><span class="sw"></span></button>
               </div>
               <div class="lp-group">
                 <div class="lp-gh">City Data · Context</div>
@@ -1056,7 +1062,7 @@ var toastT;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("s
 /* filter state */
 /* `place` is the kind of place a story is about (a church, a school). `site` is one
    named building in the Cultural District, set by clicking its star. */
-var F={kinds:new Set(),hood:"all",era:"all",campaign:"all",place:null,site:null,q:""};
+var F={kinds:new Set(),hood:"all",era:"all",campaign:"all",place:null,site:null,dc:null,q:""};
 function passes(s){
   if(F.kinds.size&&!F.kinds.has(s.kind))return false;
   if(F.hood!=="all"&&s.hood!==F.hood)return false;
@@ -1296,6 +1302,7 @@ function initMap(){
   map.createPane("hoods");map.getPane("hoods").style.zIndex=340; // neighborhoods sit under everything
   loadHoodShapes();
   loadProfiles();
+  loadDataCenters();
   anchorLayer=L.layerGroup();
   if(anchorsOn)anchorLayer.addTo(map);
   loadCultural();
@@ -1339,6 +1346,44 @@ function loadHoodShapes(){
     if(F.hood!=="all")highlightHood(F.hood);   // a shared /?hood= link
     if(window.__refreshHood)window.__refreshHood();   // a form already open gets its suggestion
   }).catch(function(e){console.warn("neighborhood shapes failed:",e);});
+}
+/* Data centres, and the ground inside a mile and five miles of them. The rings are the
+   point: a site is a dot, but its draw on power, water and air is a radius, and who lives
+   in that radius is the question this map exists to ask. Off by default, like the other
+   context layers. Fails soft.
+   The icon is a lettered badge, not the company mark. Fetching and redistributing a
+   trademarked logo is not something a community map should do casually, and a wordmark
+   reads at 30px anyway. Swap in a licensed asset per site with `logo` if that changes. */
+var DATACENTERS=[],dcLayer=null,dcOn=false;
+function dcColor(op){var m={"xAI":"#C81E5B","Anthropic":"#C96442","Google":"#3A86FF","Meta":"#0E9384"};return m[op]||"#5B4B8A";}
+function loadDataCenters(){
+  fetch("data/datacenters.geojson",{cache:"no-cache"}).then(function(r){return r.json();}).then(function(d){
+    DATACENTERS=(d.features||[]).filter(function(f){return f.geometry&&f.geometry.type==="Point";});
+    dcLayer=L.layerGroup();
+    var radii=d.radiiMiles||[1,5];
+    DATACENTERS.forEach(function(f){
+      var p=f.properties,c=f.geometry.coordinates,col=dcColor(p.operator);
+      radii.forEach(function(mi){
+        L.circle([c[1],c[0]],{radius:mi*1609.344,pane:"ctx",color:col,weight:1.6,opacity:.75,
+          fillColor:col,fillOpacity:mi===1?.10:.045,dashArray:"3 6",interactive:false}).addTo(dcLayer);
+      });
+      var m=L.marker([c[1],c[0]],{
+        icon:L.divIcon({className:"",html:'<div class="dc-badge" style="background:'+col+'">'+esc(p.short||p.operator||"DC")+'</div>',
+                        iconSize:[46,22],iconAnchor:[23,11]}),
+        title:p.operator+" "+p.name,zIndexOffset:700}).addTo(dcLayer);
+      m.bindTooltip(esc(p.operator+" "+p.name),{direction:"top",offset:[0,-12],className:"startip"});
+      m.on("click",function(){selectDataCenter(p.id);});
+    });
+    if(dcOn)dcLayer.addTo(map);
+    if(F.dc)renderCards();
+  }).catch(function(e){console.warn("data centers failed:",e);});
+}
+function dcById(id){for(var i=0;i<DATACENTERS.length;i++)if(DATACENTERS[i].properties.id===id)return DATACENTERS[i];return null;}
+function selectDataCenter(id){
+  if(F.dc===id)return;
+  F.dc=id;F.site=null;closeDetail();apply();
+  var f=dcById(id);
+  if(f&&map)map.setView([f.geometry.coordinates[1],f.geometry.coordinates[0]],12);
 }
 /* The Cultural District: 24 sites from data/cultural.geojson, each a star.
    Clayborn carries a name on the map because it is the anchor everything else is
@@ -1524,7 +1569,7 @@ function renderActiveF(){
   // F.site gets no pill: the place header below says it louder, with the address.
   var any=F.kinds.size||F.hood!=="all"||F.era!=="all"||F.place||F.site||F.q;
   $("activeF").innerHTML=chips.join("")+(any?'<button class="clearf" id="clearAll">Clear all filters</button>':"");
-  var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){F={kinds:new Set(),hood:"all",era:"all",campaign:"all",place:null,site:null,q:""};$("searchIn").value="";apply();});
+  var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){F={kinds:new Set(),hood:"all",era:"all",campaign:"all",place:null,site:null,dc:null,q:""};$("searchIn").value="";apply();});
   $("activeF").querySelectorAll("[data-clr]").forEach(function(b){b.addEventListener("click",function(){F[b.dataset.clr]=b.dataset.clr==="place"?null:"all";apply();});});
 }
 function cardThumb(s){var src=photoSrc(s.photo);var k=KIND[s.kind]||KIND.memory;
@@ -1658,10 +1703,63 @@ function hoodPage(name){
       'the same as what is within walking distance of it.</p>'+
   '</div>';
 }
+/* The data centre profile. Same column as the neighbourhood one, different questions:
+   not "who lives here and what do they have" but "who is inside the ring, what is already
+   scarce there, and who signed for it". Each radius is a tab. */
+var dcRadius="5";
+function dcRing(f,mi){
+  var d=(f.properties.profile||{})[mi]||{},a=d.assets||{};
+  var rows=[
+    ["People in the ring",d.population?num(d.population):"\u2014"],
+    ["Homes",d.housingUnits?num(d.housingUnits):"\u2014"],
+    ["Black residents",d.blackPct!=null?d.blackPct+"%":"\u2014"],
+    ["Living in poverty",d.povertyPct!=null?d.povertyPct+"%":"\u2014"],
+    ["Median household income",d.medianIncomeRange&&d.medianIncomeRange[0]?money(d.medianIncomeRange[0])+" \u2013 "+money(d.medianIncomeRange[1]):"\u2014"]
+  ];
+  return '<div class="hp-block"><div class="hp-label"><h3>'+ic("join",12)+' Who Is Inside '+mi+' Mile'+(mi==="1"?"":"s")+'</h3><span>ACS 2024</span></div>'+
+      rows.map(function(r){return '<div class="hp-stat"><span>'+esc(r[0])+'</span><b>'+r[1]+'</b></div>';}).join("")+
+      '<p class="hp-note">Counted from '+esc(d.basis||"census tracts")+'. '+
+        (d.tractsMostlyInside?d.tractsMostlyInside+' of '+d.tractsTouched+' tracts sit mostly inside this ring.'
+          :'A '+mi+'-mile ring is smaller than a census tract, so these are whole tracts the ring touches, not people counted inside it.')+'</p>'+
+    '</div>'+
+    '<div class="hp-block"><div class="hp-label"><h3>'+ic("layers",12)+' What Is Already There</h3><span>City of Memphis</span></div>'+
+      '<div class="hp-assets">'+
+        assetTile("sprout",a.parks||0,(a.parks===1?"park":"parks"))+
+        assetTile("book",a.libraries||0,(a.libraries===1?"public library":"public libraries"))+
+        assetTile("building",a.centers||0,(a.centers===1?"community center":"community centers"))+
+        assetTile("cart",a.foodFull||0,"full-service groceries")+
+      '</div>'+
+      '<div class="hp-stat" style="padding-top:9px"><span>Ring inside the FEMA flood plain</span><b>'+(d.floodSharePct!=null?d.floodSharePct+"%":"\u2014")+'</b></div>'+
+      '<div class="hp-stat"><span>Ground covered</span><b>'+(d.areaKm2||"\u2014")+' km\u00b2</b></div>'+
+    '</div>'+
+    '<div class="hp-block"><div class="hp-label"><h3>'+ic("columns",12)+' Who Answers for This Ground</h3><span>Council 2023</span></div>'+
+      '<div class="tagrow">'+(d.council||[]).map(function(c){return '<span class="mtag">District '+c+'</span>';}).join("")+'</div>'+
+      '<p class="hp-note">Neighbourhoods the ring reaches: '+((d.neighborhoods||[]).map(esc).join(", ")||"none named in this map")+'.</p>'+
+    '</div>';
+}
+function dcPage(id){
+  var f=dcById(id);if(!f)return "";
+  var p=f.properties,col=dcColor(p.operator);
+  return '<div class="hoodpage" style="--hood:'+col+';background:linear-gradient(180deg,'+col+'22,transparent 62%)">'+
+    '<div class="hp-body">'+
+      '<div class="sp-bar"><button class="sp-back" id="dcClear">'+ic("x",12)+' Back to All of Memphis</button>'+
+      '<button class="sp-link" id="dcLink">'+ic("join",12)+' Copy Link</button></div>'+
+      '<p class="shk" style="color:'+col+'"><span class="hp-dot" style="background:'+col+'"></span> Data Center</p>'+
+      '<h2>'+esc(p.operator)+' '+esc(p.name)+'</h2>'+
+      '<p class="hp-sub">'+esc(p.street)+' &middot; '+esc(p.status)+'</p>'+
+      (p.note?'<p class="sp-desc" style="margin-bottom:12px">'+esc(p.note)+'</p>':'')+
+      '<div class="dctabs" role="group" aria-label="Radius">'+
+        ["1","5"].map(function(m){return '<button type="button" class="dctab'+(m===dcRadius?" on":"")+'" data-dcr="'+m+'">'+m+' Mile'+(m==="1"?"":"s")+'</button>';}).join("")+
+      '</div>'+
+    '</div>'+
+    dcRing(f,dcRadius)+
+    '<p class="hp-foot">Rings are drawn from the site itself. Demographics come from whole census tracts, which are larger than a one-mile ring, so the basis is stated on each figure rather than smoothed over. Power and water figures are the declared ones from the announcement, not measured.</p>'+
+  '</div>';
+}
 function renderCards(){
   var list=filtered(),f=F.site?siteByName(F.site):null;
   // A building is the more specific answer, so it wins over its neighbourhood.
-  var head=f?sitePage(f):(F.hood!=="all"?hoodPage(F.hood):"");
+  var head=F.dc?dcPage(F.dc):(f?sitePage(f):(F.hood!=="all"?hoodPage(F.hood):""));
   var body=list.length?list.map(function(s){
     var k=KIND[s.kind]||KIND.memory,src=photoSrc(s.photo);
     var photos=(s.media||[]).filter(function(m){return m.kind==="photo";});
@@ -1698,6 +1796,10 @@ function renderCards(){
   $("cards").scrollTop=0;
   var sc=$("siteClear");if(sc)sc.addEventListener("click",function(){F.site=null;apply();});
   var sa=$("siteAdd");if(sa)sa.addEventListener("click",function(){addMemoryAtSite(f);});
+  var dcc=$("dcClear");if(dcc)dcc.addEventListener("click",function(){F.dc=null;apply();});
+  var dcl=$("dcLink");if(dcl)dcl.addEventListener("click",copyLink);
+  $("cards").querySelectorAll("[data-dcr]").forEach(function(b){b.addEventListener("click",function(){
+    dcRadius=b.dataset.dcr;renderCards();});});
   var sl=$("siteLink");if(sl)sl.addEventListener("click",copyLink);
   var hl=$("hoodLink");if(hl)hl.addEventListener("click",copyLink);
   var hc=$("hoodClear");if(hc)hc.addEventListener("click",function(){
@@ -1731,9 +1833,10 @@ function hiCard(id,on){var c=$("cards").querySelector('.card[data-id="'+id+'"]')
    to open the form on a particular kind of story. */
 function syncUrl(){
   var p=new URLSearchParams(location.search);
-  ["hood","site","type","era","q"].forEach(function(k){p.delete(k);});
+  ["hood","site","dc","type","era","q"].forEach(function(k){p.delete(k);});
   if(F.hood&&F.hood!=="all")p.set("hood",F.hood);
   if(F.site)p.set("site",F.site);
+  if(F.dc)p.set("dc",F.dc);
   if(F.kinds.size===1)p.set("type",Array.from(F.kinds)[0]);
   if(F.era&&F.era!=="all")p.set("era",F.era);
   if(F.q)p.set("q",F.q);
@@ -1921,6 +2024,11 @@ $("foodToggle").addEventListener("click",function(){toggleCtx("food",this);});
 $("parksToggle").addEventListener("click",function(){toggleCtx("parks",this);});
 $("commToggle").addEventListener("click",function(){toggleCtx("comm",this);});
 $("libToggle").addEventListener("click",function(){toggleCtx("lib",this);});
+$("dcToggle").addEventListener("click",function(){
+  dcOn=!dcOn;this.classList.toggle("on",dcOn);
+  if(!dcLayer)return;
+  if(dcOn)dcLayer.addTo(map); else {map.removeLayer(dcLayer); if(F.dc){F.dc=null;apply();}}
+});
 $("lpHead").addEventListener("click",function(){var c=$("layerPanel").classList.toggle("collapsed");this.setAttribute("aria-expanded",c?"false":"true");});
 $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMeta();renderCards();renderMarkers();renderActiveF();});
 
@@ -2604,6 +2712,7 @@ campaignParam=params.get("campaign")||"web";eventParam=params.get("event")||"";c
   var hood=params.get("hood"),site=params.get("site"),type=params.get("type"),era=params.get("era"),q=params.get("q");
   if(hood)F.hood=hood;
   if(site)F.site=site;
+  if(params.get("dc"))F.dc=params.get("dc");
   if(type&&KIND[type])F.kinds=new Set([type]);
   if(era&&ERAS.some(function(e){return e[0]===era;}))F.era=era;
   if(q){F.q=q;var si=$("searchIn");if(si)si.value=q;}
