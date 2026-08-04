@@ -445,7 +445,7 @@
   .hp-block{padding:13px 18px;border-top:1px solid var(--line)}
   .hp-label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}
   /* The section headings used to be 10px faint grey, quieter than the numbers under them,
-     so the column read as one long list. They wear the neighbourhood's own colour now, at
+     so the column read as one long list. They wear the neighborhood's own colour now, at
      a real heading weight, which also ties each block back to the shape on the map. */
   .hp-label h3{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:750;
     letter-spacing:-.01em;color:var(--hood,var(--text));margin:0}
@@ -719,7 +719,7 @@
           box-shadow:0 0 0 1px rgba(0,0,0,.18),0 1px 4px rgba(0,0,0,.3)}
   @media(max-width:900px){.locbtn{bottom:92px}}
   /* Clicking a shape used to leave the browser's focus rectangle around it, a blue box
-     the size of the whole neighbourhood. Keyboard focus still gets a visible ring. */
+     the size of the whole neighborhood. Keyboard focus still gets a visible ring. */
 
   /* === CSS SECTION: MAP TOOLTIPS AND NEIGHBORHOOD PICKER ==============================
      Hover labels on shapes and stars. */
@@ -1191,7 +1191,7 @@ function hoodByName(n){for(var i=0;i<NEIGHBORHOODS.length;i++)if(NEIGHBORHOODS[i
 /* The neighborhood shapes in data/neighborhoods.geojson. These used to be drawn from the
    centres above, which meant the lines were invented. They are now built from the City of
    Memphis Neighborhoods layer (Common_Services_PROD/35), which is census tracts, each one
-   labelled by the city with a neighbourhood name. Those tracts are grouped into the names
+   labelled by the city with a neighborhood name. Those tracts are grouped into the names
    this map uses, by nearest centre within each name's stated reach, then made contiguous.
    So the lines are real tract lines and the names are the community's. 17 polygons, no
    overlaps, no gaps, no islands.
@@ -1203,7 +1203,7 @@ function hoodByName(n){for(var i=0;i<NEIGHBORHOODS.length;i++)if(NEIGHBORHOODS[i
    They are the SAME shapes the form uses, so what you see on the map is what the form
    decides. One rule, drawn. Loaded async; until it lands we fall back to centres. */
 var HOOD_SHAPES=null;
-/* Neighbourhood profiles, from data/neighborhood-profiles.json. The panel can say what a
+/* Neighborhood profiles, from data/neighborhood-profiles.json. The panel can say what a
    place already is before it asks anyone to remember it, which is the point: a stranger
    should be able to read the conditions a story sits inside, and a neighbour should be
    asked a question that knows something. Loaded async and fails soft, like the shapes. */
@@ -1211,9 +1211,9 @@ var HOOD_PROFILES=null,HOOD_BASE=null;
 function loadProfiles(){
   fetch("data/neighborhood-profiles.json",{cache:"no-cache"}).then(function(r){return r.json();}).then(function(d){
     HOOD_PROFILES=d.neighborhoods||null;
-    HOOD_BASE=d.baseline||null;      // the 17-neighbourhood average every stat is read against
-    if(HOOD_PROFILES&&F.hood!=="all")renderCards();   // a neighbourhood already chosen gets its profile
-  }).catch(function(e){console.warn("neighbourhood profiles failed:",e);});
+    HOOD_BASE=d.baseline||null;      // the 17-neighborhood average every stat is read against
+    if(HOOD_PROFILES&&F.hood!=="all")renderCards();   // a neighborhood already chosen gets its profile
+  }).catch(function(e){console.warn("neighborhood profiles failed:",e);});
 }
 function pointInRing(lat,lng,ring){
   var inside=false;
@@ -1360,7 +1360,7 @@ var DESK_FIELDS=[
    read:function(r,a){return a.story||"";}},
   {id:"mCorner",prop:"corner",  to:"answers",key:"corner",
    write:function(s){return s.corner||null;},
-   /* Falls back to the neighbourhood, because half the live rows hold a corner the
+   /* Falls back to the neighborhood, because half the live rows hold a corner the
       person typed and half hold nothing at all. STORY-57. */
    read:function(r,a){return a.corner||r.location_label||"";}},
   {id:null,     prop:"inst",    to:"answers",key:"inst",
@@ -1448,7 +1448,17 @@ function rowToStory(r){
   out.affirms=AFF[r.id]||0; out.at=r.submitted_at||null; out.status=r.status||"approved";
   return out;
 }
-async function supaFetchApproved(){var res=await fetch(SUPA.url+"/rest/v1/stories?tenant_id=eq."+SUPA.tid+"&status=eq.approved&select=id,status,display_name,consent_level,answers,lat,lng,location_label,media,source,submitted_at,featured&order=submitted_at.desc&limit=500",{headers:supaHeaders()});if(!res.ok)throw new Error("load "+res.status);return (await res.json()).map(rowToStory);}
+/* The public read. `select=` is explicit rather than `*`, which is what keeps columns
+   the public must never see out of the response by construction. */
+var APPROVED_COLS="id,status,display_name,consent_level,answers,lat,lng,"+
+                  "location_label,media,source,submitted_at,featured";
+async function supaFetchApproved(){
+  var url=SUPA.url+"/rest/v1/stories?tenant_id=eq."+SUPA.tid+"&status=eq.approved"+
+          "&select="+APPROVED_COLS+"&order=submitted_at.desc&limit=500";
+  var res=await fetch(url,{headers:supaHeaders()});
+  if(!res.ok)throw new Error("load "+res.status);
+  return (await res.json()).map(rowToStory);
+}
 /* Same shape as the Rainproof uploader: one file in, {url,kind,name} out, the real
    extension preserved so a .mov stays a .mov and a PDF stays a PDF. Uploads as the
    signed-in moderator when there is a session, and as the site otherwise, which is what
@@ -1475,7 +1485,18 @@ async function supaUploadFile(file,kind){
   if(!res.ok)throw new Error("upload failed "+res.status+": "+(await res.text()).slice(0,120));
   return {url:SUPA.url+"/storage/v1/object/public/story-media/"+path,kind:kind,name:file.name||null};
 }
-async function supaUpload(dataUrl,kind){var blob=await (await fetch(dataUrl)).blob();var ext=kind==="audio"?"webm":"jpg";var path="memphis-roots/"+Date.now()+"-"+Math.random().toString(36).slice(2,10)+"."+ext;var res=await fetch(SUPA.url+"/storage/v1/object/story-media/"+path,{method:"POST",headers:{apikey:SUPA.key,Authorization:"Bearer "+SUPA.key,"Content-Type":blob.type||"application/octet-stream"},body:blob});if(!res.ok)throw new Error("media "+res.status);return{url:SUPA.url+"/storage/v1/object/public/story-media/"+path,kind:kind};}
+async function supaUpload(dataUrl,kind){
+  var blob=await (await fetch(dataUrl)).blob();
+  var ext=kind==="audio"?"webm":"jpg";
+  var path="memphis-roots/"+Date.now()+"-"+Math.random().toString(36).slice(2,10)+"."+ext;
+  var res=await fetch(SUPA.url+"/storage/v1/object/story-media/"+path,{
+    method:"POST",
+    headers:{apikey:SUPA.key,Authorization:"Bearer "+SUPA.key,
+             "Content-Type":blob.type||"application/octet-stream"},
+    body:blob});
+  if(!res.ok)throw new Error("media "+res.status);
+  return{url:SUPA.url+"/storage/v1/object/public/story-media/"+path,kind:kind};
+}
 /* Contact details go to story_contacts, which only a signed-in moderator can read, and
    never into stories.answers, which anyone with the publishable key can. The form promises
    "private, The Big We only"; this is the line that keeps the promise. */
@@ -1504,12 +1525,54 @@ async function supaSubmit(d){var media=[];
   var files=d.files||[];
   for(var i=0;i<files.length;i++){try{media.push(await supaUploadFile(files[i].file,files[i].kind));}catch(e){console.warn("media skipped:",e.message);}}
   if(d.photo){try{media.push(await supaUpload(d.photo,"photo"));}catch(e){}}
-  if(d.audio){try{media.push(await supaUpload(d.audio,"audio"));}catch(e){}}var row={id:(window.crypto&&crypto.randomUUID?crypto.randomUUID():uid()),tenant_id:SUPA.tid,status:"pending",consent_level:VIS2CONSENT[d.vis]||"first_name",display_name:(d.vis==="anon"||d.vis==="heritage")?null:(d.name||null),answers:{kind:d.kind,place_type:d.place||null,era:d.era,story:d.story,corner:d.corner||null,inst:!!d.inst,},lat:d.lat,lng:d.lng,location_label:d.hood||null,media:media,source:{campaign:d.campaign,mode:d.mode,locSource:d.locSource||"unset"}};var res=await fetch(SUPA.url+"/rest/v1/stories",{method:"POST",headers:Object.assign(supaHeaders(),{Prefer:"return=minimal"}),body:JSON.stringify(row)});if(!res.ok&&res.status!==409)throw new Error("submit "+res.status+": "+(await res.text()).slice(0,140));
+  if(d.audio){try{media.push(await supaUpload(d.audio,"audio"));}catch(e){}}
+  var row={
+    id:(window.crypto&&crypto.randomUUID?crypto.randomUUID():uid()),
+    tenant_id:SUPA.tid,
+    status:"pending",
+    consent_level:VIS2CONSENT[d.vis]||"first_name",
+    /* nameHidden() decides this everywhere else. It is written out here because the
+       draft is not a story row yet; it is the same rule and it must stay the same rule.
+       If a consent level is ever added that hides a name, BOTH have to change or this
+       line writes a real person's name into a public column. See D19 and D27. */
+    display_name:nameHidden(d)?null:(d.name||null),
+    answers:{kind:d.kind,place_type:d.place||null,era:d.era,
+             story:d.story,corner:d.corner||null,inst:!!d.inst},
+    lat:d.lat,lng:d.lng,
+    location_label:d.hood||null,
+    media:media,
+    source:{campaign:d.campaign,mode:d.mode,locSource:d.locSource||"unset"}
+  };
+  var res=await fetch(SUPA.url+"/rest/v1/stories",{
+    method:"POST",
+    headers:Object.assign(supaHeaders(),{Prefer:"return=minimal"}),
+    body:JSON.stringify(row)});
+  if(!res.ok&&res.status!==409)
+    throw new Error("submit "+res.status+": "+(await res.text()).slice(0,140));
   try{await supaSaveContact(row.id,{name:d.name,email:d.email,phone:d.phone});}catch(e){console.warn("contact not saved:",e.message);}
   return true;}
-async function supaLogin(email,password){var res=await fetch(SUPA.url+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:SUPA.key,"Content-Type":"application/json"},body:JSON.stringify({email:email,password:password})});var d=await res.json();if(!res.ok||!d.access_token)throw new Error(d.error_description||d.msg||"sign-in failed");SUPA.session=d;try{sessionStorage.setItem("mr_sess",JSON.stringify(d));}catch(e){}}
+async function supaLogin(email,password){
+  var res=await fetch(SUPA.url+"/auth/v1/token?grant_type=password",{
+    method:"POST",
+    headers:{apikey:SUPA.key,"Content-Type":"application/json"},
+    body:JSON.stringify({email:email,password:password})});
+  var d=await res.json();
+  if(!res.ok||!d.access_token)throw new Error(d.error_description||d.msg||"sign-in failed");
+  SUPA.session=d;
+  try{sessionStorage.setItem("mr_sess",JSON.stringify(d));}catch(e){}
+}
 function supaLogout(){SUPA.session=null;try{sessionStorage.removeItem("mr_sess");}catch(e){}}
-async function supaAuthed(path,opts){opts=opts||{};var res=await fetch(SUPA.url+"/rest/v1/"+path,Object.assign({},opts,{headers:Object.assign(supaHeaders(SUPA.session&&SUPA.session.access_token),opts.headers||{})}));if(res.status===401){supaLogout();throw new Error("SESSION");}if(!res.ok)throw new Error((opts.method||"GET")+" "+res.status);var t=await res.text();return t?JSON.parse(t):null;}
+async function supaAuthed(path,opts){
+  opts=opts||{};
+  var res=await fetch(SUPA.url+"/rest/v1/"+path,Object.assign({},opts,{
+    headers:Object.assign(supaHeaders(SUPA.session&&SUPA.session.access_token),opts.headers||{})}));
+  /* 401 means the token died. Signing out here is what turns a silent stream of
+     failures into one clear "please sign in again" on the desk. */
+  if(res.status===401){supaLogout();throw new Error("SESSION");}
+  if(!res.ok)throw new Error((opts.method||"GET")+" "+res.status);
+  var t=await res.text();
+  return t?JSON.parse(t):null;
+}
 /* Editing a story from the moderator desk. Only the fields the desk owns are sent, so a
    save can never clobber media, consent or the submitted timestamp. */
 async function supaSaveStory(s){
@@ -1650,16 +1713,16 @@ function localPlaces(q){
   });
   // Same door under two names, "Clayborn Temple" and "Historic Clayborn Temple", is a
   // duplicate and the geojson wins: it carries the address, the history and the photo.
-  // Same corner under two DIFFERENT names is not. "Soulsville" is a neighbourhood and
+  // Same corner under two DIFFERENT names is not. "Soulsville" is a neighborhood and
   // Stax stands in it, so matching on distance alone would answer a search for the
-  // neighbourhood with a museum. Names have to agree too.
+  // neighborhood with a museum. Names have to agree too.
   var norm=function(x){return x.toLowerCase().replace(/^historic\s+/,"").replace(/[^a-z0-9]/g,"");};
   var cult=culturalPlaces(q);
   hand=hand.filter(function(p){
     return !cult.some(function(c){return norm(p.short)===norm(c.short)&&metresApart(p.lat,p.lng,c.lat,c.lng)<150;});
   });
   // The hand-written list still leads. It exists precisely for the names a geocoder gets
-  // wrong, and those are neighbourhood-scale answers that a single building should not
+  // wrong, and those are neighborhood-scale answers that a single building should not
   // outrank. Both sit ahead of anything commercial.
   return hand.concat(cult);
 }
@@ -1743,10 +1806,10 @@ function metresBetween(a,b){
    use that, because Mapbox calls Soulsville "South Memphis" and calls the middle of
    Orange Mound "Rozelle". This only ever SUGGESTS. Auto-filling a commercial name and
    attributing it to the person who told the story is how a memory map gets a
-   neighbourhood wrong in someone else's name. */
+   neighborhood wrong in someone else's name. */
 function nameForPoint(lat,lng){
   // A Cultural District site is checked first and close in, 120m rather than 700m,
-  // because a building is a point and a neighbourhood name is a region. A pin on the
+  // because a building is a point and a neighborhood name is a region. A pin on the
   // steps of Mason Temple should read "Mason Temple", not "Soulsville".
   var site=CULTURAL.map(function(f){var c=f.geometry.coordinates;return {n:f.properties.name,d:metresApart(lat,lng,c[1],c[0])};})
     .filter(function(x){return x.d<120;}).sort(function(a,b){return a.d-b.d;})[0];
@@ -2061,9 +2124,9 @@ function openAddHere(latlng,src,label,corner){
   var btn=document.getElementById("addHereBtn");
   if(btn)btn.addEventListener("click",function(){beginMemory(ll.lat,ll.lng,src||"map-click",corner);});
 }
-/* Colour distinguishes, it does not encode. No neighbourhood's colour says anything
+/* Colour distinguishes, it does not encode. No neighborhood's colour says anything
    about the place; it only says "not the one next to me". The assignment is in the
-   geojson: adjacent neighbourhoods never share a colour, and the pair a colour-blind
+   geojson: adjacent neighborhoods never share a colour, and the pair a colour-blind
    reader is most likely to confuse is never adjacent. The app's pink is deliberately
    not in the set, so a boundary can never be mistaken for a memory pin. */
 var HOOD_COLORS=["#3A86FF","#FB5607","#0E9384","#8338EC","#D81E5B"];
@@ -2308,7 +2371,17 @@ function toggleCtx(key,btn){
 
 /* === JS SECTION: STORY MARKERS =======================================================
    The pins for stories. Card hover highlights these via hiMarker(). */
-function mkIcon(color,feat){return L.divIcon({className:"mk-wrap"+(feat?" feat":""),html:'<div class="mk"><svg viewBox="0 0 24 24" fill="'+color+'" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>',iconSize:[20,20],iconAnchor:[10,18]});}
+/* The heart pin every story wears, filled with its story type's colour. */
+var PIN_PATH="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 "+
+             "3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 "+
+             "6.86-8.55 11.54L12 21.35z";
+function mkIcon(color,feat){
+  return L.divIcon({
+    className:"mk-wrap"+(feat?" feat":""),
+    html:'<div class="mk"><svg viewBox="0 0 24 24" fill="'+color+
+         '" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"><path d="'+PIN_PATH+'"/></svg></div>',
+    iconSize:[20,20],iconAnchor:[10,18]});
+}
 function renderMarkers(){
   if(!map)return;
   Object.keys(markersById).forEach(function(id){map.removeLayer(markersById[id]);});markersById={};
@@ -2432,7 +2505,7 @@ function sitePage(f){
     '<p class="sp-count">'+(n?ic("star",12)+' '+n+' '+(n===1?"memory":"memories")+' rooted here':ic("star",12)+' No memories here yet. Yours would be the first.')+'</p>'+
   '</div>';
 }
-/* The neighbourhood profile. Same column as the story cards, above them, so a place can be
+/* The neighborhood profile. Same column as the story cards, above them, so a place can be
    read before it is asked about. Every number here is either an exact sum over whole tracts
    or a weighted rate, and the ones that cannot honestly be summarised are shown as ranges. */
 function money(n){return "$"+Number(n).toLocaleString("en-US");}
@@ -2445,7 +2518,7 @@ function meterRow(name,val,max,tone,cmp){
 }
 /* The two flood bands, side by side, in odds rather than in return periods.
    "100-year flood" is the single most misleading phrase in this whole field: people hear
-   it as "once a century", and a neighbourhood that flooded last year concludes it is now
+   it as "once a century", and a neighborhood that flooded last year concludes it is now
    safe. Odds per year say the true thing in fewer words.
    The two are added because they genuinely do not overlap: FEMA's 0.2% zone is the ground
    outside the 1% zone. That was checked against the geometry, not assumed. */
@@ -2464,7 +2537,7 @@ function floodRows(d){
 /* A number on its own cannot be judged. 37.6% poverty means nothing until you know the
    figure across the rest of the map is 24.4%, and it means something else again once you
    know it is the 2nd highest of 17. A reader new to city data needs the baseline; someone
-   choosing between neighbourhoods needs the rank. Both come from the same file.
+   choosing between neighborhoods needs the rank. Both come from the same file.
    The comparison is a labelled tick, never a second coloured bar, so identity never rests
    on colour and the reader's own value stays the only thing being measured. */
 function base(k){
@@ -2600,7 +2673,7 @@ function hoodPage(name){
     '</div>'+
 
     /* Flood and broadband used to sit inside Civic assets. A library is something the
-       neighbourhood HAS; a floodplain is something it IS IN. Filing them together asked a
+       neighborhood HAS; a floodplain is something it IS IN. Filing them together asked a
        reader to hold two opposite ideas in one box. */
     '<div class="hp-block"><div class="hp-label"><h3>'+ic("layers",12)+' What this ground carries</h3><span>FEMA · ACS 2024</span></div>'+
       floodRows(d)+
@@ -2615,14 +2688,14 @@ function hoodPage(name){
        ("No public library inside this boundary. Where did you go to study?"). They were
        written to start a conversation, and on a page whose job is to hand someone the
        numbers they read as the map telling people what to feel about their own
-       neighbourhood. The stories below are the answer to that question and they were
+       neighborhood. The stories below are the answer to that question and they were
        being introduced by a machine-written version of themselves. */
     '<div class="hp-block"><div class="hp-label"><h3>'+ic("sprout",12)+' Memories rooted here</h3><span>The Big We</span></div>'+
       '<div class="hp-head"><b>'+n+'</b><span>'+(n===1?"story":"stories")+' so far</span></div>'+
     '</div>'+
   '</div>';
 }
-/* The data centre profile. Same column as the neighbourhood one, different questions:
+/* The data centre profile. Same column as the neighborhood one, different questions:
    not "who lives here and what do they have" but "who is inside the ring, what is already
    scarce there, and who signed for it". Each radius is a tab. */
 var dcRadius="5";
@@ -2633,7 +2706,7 @@ function dcRing(f,mi){
     ["Homes",d.housingUnits?num(d.housingUnits):"\u2014"],
     ["Black residents",d.blackPct!=null?d.blackPct+"%":"\u2014"],
     ["Living in poverty",d.povertyPct!=null?d.povertyPct+"%":"\u2014"],
-    // Pooled median, same method as the neighbourhood profiles. A one-mile ring holds no
+    // Pooled median, same method as the neighborhood profiles. A one-mile ring holds no
     // whole tract, so it correctly has none rather than a number borrowed from a bigger area.
     ["Median household income",d.medianIncome?money(d.medianIncome):"\u2014"]
   ];
@@ -2655,7 +2728,7 @@ function dcRing(f,mi){
     '</div>'+
     '<div class="hp-block"><div class="hp-label"><h3>'+ic("columns",12)+' Who Answers for This Ground</h3><span>Council 2023</span></div>'+
       '<div class="tagrow">'+(d.council||[]).map(function(c){return '<span class="mtag">District '+c+'</span>';}).join("")+'</div>'+
-      '<p class="hp-note">Neighbourhoods the ring reaches: '+((d.neighborhoods||[]).map(esc).join(", ")||"none named in this map")+'.</p>'+
+      '<p class="hp-note">Neighborhoods the ring reaches: '+((d.neighborhoods||[]).map(esc).join(", ")||"none named in this map")+'.</p>'+
     '</div>';
 }
 function dcPage(id){
@@ -2755,7 +2828,7 @@ function storyText(s,max){
    Styles are split across CSS SECTION: STORY CARD. */
 function renderCards(){
   var list=filtered(),f=F.site?siteByName(F.site):null;
-  // A building is the more specific answer, so it wins over its neighbourhood.
+  // A building is the more specific answer, so it wins over its neighborhood.
   var head=F.dc?dcPage(F.dc):(f?sitePage(f):(F.hood!=="all"?hoodPage(F.hood):""));
   var body=list.length?list.map(function(s){
     var k=storyKind(s),src=photoSrc(s.photo),md=storyMedia(s);
@@ -2826,7 +2899,7 @@ function renderCards(){
   });
 }
 function hiCard(id,on){var c=$("cards").querySelector('.card[data-id="'+id+'"]');if(c){c.classList.toggle("sel",on);if(on)c.scrollIntoView({block:"nearest",behavior:"smooth"});}}
-/* A filtered map should be sendable. The address bar carries the neighbourhood, the
+/* A filtered map should be sendable. The address bar carries the neighborhood, the
    Cultural District site, the type, the era and the search, so "look at Soulsville" is a
    link rather than a set of instructions. `kind` is left alone: the kiosk already uses it
    to open the form on a particular kind of story. */
@@ -3009,7 +3082,15 @@ function openSpace(sp){
 }
 function cosign(sp,pid){var p=sp.proposals.find(function(x){return x.id===pid;});if(p){p.cosigns++;saveSpaces();openSpace(sp);toast("Constituency growing, "+p.cosigns+" now behind this");}}
 function showProposeForm(sp){
-  $("proposeForm").innerHTML='<div class="propform"><textarea id="propText" rows="3" placeholder="What would you do with this space?"></textarea><input type="text" class="ti" id="propName" placeholder="Your name (optional)" style="margin-top:8px"><div class="row"><button class="btn ghost" id="propCancel">Cancel</button><button class="btn gold" id="propSubmit">Propose it</button></div></div>';
+  $("proposeForm").innerHTML=
+    '<div class="propform">'+
+      '<textarea id="propText" rows="3" placeholder="What would you do with this space?"></textarea>'+
+      '<input type="text" class="ti" id="propName" placeholder="Your name (optional)" style="margin-top:8px">'+
+      '<div class="row">'+
+        '<button class="btn ghost" id="propCancel">Cancel</button>'+
+        '<button class="btn gold" id="propSubmit">Propose it</button>'+
+      '</div>'+
+    '</div>';
   $("propText").focus();
   $("propCancel").addEventListener("click",function(){$("proposeForm").innerHTML="";});
   $("propSubmit").addEventListener("click",function(){var t=$("propText").value.trim();if(!t)return;sp.proposals.push({id:uid(),text:t,name:$("propName").value.trim()||null,cosigns:1,status:"pending"});saveSpaces();openSpace(sp);toast("Sent to The Big We for review, it appears once approved");});
@@ -3322,7 +3403,20 @@ function startCapture(kind){
   STEPS=draft.kind?["story","media","consent"]:["kind","story","media","consent"];
   stepIdx=0;showView("capture");renderBanner();renderStep();
 }
-function renderBanner(){var el=$("capBanner");if(!el)return;var m=CAMPAIGNS[draft.campaign];if(draft.campaign&&draft.campaign!=="web"&&m){el.className="capbanner";el.innerHTML='Collecting for <b style="margin:0 5px">'+esc(m.label)+'</b>'+(eventParam?'<span style="opacity:.75">· '+esc(eventParam)+'</span>':'')+'<span style="opacity:.55;font-weight:500;margin-left:8px">· '+(MODES[draft.mode]||draft.mode)+'</span>';}else{el.className="capbanner hidden";el.innerHTML="";}}
+/* The bar across the top of the form at an event: which campaign this is being
+   collected for, and how. Hidden entirely for an ordinary web submission. */
+function renderBanner(){
+  var el=$("capBanner"); if(!el)return;
+  var m=CAMPAIGNS[draft.campaign];
+  if(!(draft.campaign&&draft.campaign!=="web"&&m)){
+    el.className="capbanner hidden"; el.innerHTML=""; return;
+  }
+  el.className="capbanner";
+  el.innerHTML=
+    'Collecting for <b style="margin:0 5px">'+esc(m.label)+'</b>'+
+    (eventParam?'<span style="opacity:.75">· '+esc(eventParam)+'</span>':'')+
+    '<span style="opacity:.55;font-weight:500;margin-left:8px">· '+(MODES[draft.mode]||draft.mode)+'</span>';
+}
 function renderProg(){$("prog").innerHTML=STEPS.map(function(_,i){return '<i class="'+(i<stepIdx?"done":i===stepIdx?"now":"")+'"></i>';}).join("");}
 function goNext(){stepIdx++;if(stepIdx>=STEPS.length)submitDraft();else renderStep();}
 function goBack(){if(stepIdx>0){stepIdx--;renderStep();}else showView("explore");}
@@ -3338,7 +3432,13 @@ function renderStep(){
   } else if(step==="story"){
     var isV=draft.kind==="future",is65=isV&&draft.campaign==="reimagine2065";
     var q=is65?"It's 2068. What does Memphis feel like?":isV?"What should grow here?":"Tell the story.";
-    var sub=is65?"Clayborn's grandchildren are grown. Dream out loud: what did we build, what finally healed, what changed for good? (No dream is too big. You may not know it yet, but others share it.)":isV?"In five years, when you walk past this place, what do you want to see, hear, or feel?":"What happened here? Who was there? What did this place mean, and what should it mean next?";
+    var sub=is65
+      ? "Clayborn's grandchildren are grown. Dream out loud: what did we build, what "+
+        "finally healed, what changed for good? (No dream is too big. You may not know "+
+        "it yet, but others share it.)"
+      : isV
+      ? "In five years, when you walk past this place, what do you want to see, hear, or feel?"
+      : "What happened here? Who was there? What did this place mean, and what should it mean next?";
     b.innerHTML='<h2 class="q">'+q+'</h2><p class="qsub">'+sub+'</p>'
       +'<textarea id="story" rows="6" placeholder="'+(isV?"I want to see…":"Take your time…")+'">'+esc(draft.story)+'</textarea>'
       +'<div class="fsec place">'
@@ -3482,7 +3582,17 @@ function renderStep(){
       '<p class="cb-note">So we can let you know when your story is published, or reach out if we need to. This never shows on the map.</p>'+
       '<input type="email" class="ti" id="cemail" placeholder="Email (optional)" value="'+esc(draft.email)+'" autocomplete="email">'+
       '<input type="tel" class="ti" id="cphone" placeholder="Phone, for a text (optional)" value="'+esc(draft.phone)+'" autocomplete="tel"></div>'+
-      '<label class="inst"><input type="checkbox" id="instChk" '+(draft.inst?"checked":"")+' style="margin-top:3px"><span><b>Data for freedom.</b> OK for The Big We to share this, anonymized, with city partners when advocating for restoration. You can say no and it still lives on the community map.</span></label><div class="row"><button class="btn ghost" id="backBtn">Back</button><button class="btn gold" id="submitBtn">Root this '+(draft.kind==="future"?"vision":"memory")+'</button></div>';
+      '<label class="inst">'+
+        '<input type="checkbox" id="instChk" '+(draft.inst?"checked":"")+' style="margin-top:3px">'+
+        '<span><b>Data for freedom.</b> OK for The Big We to share this, anonymized, with '+
+        'city partners when advocating for restoration. You can say no and it still lives '+
+        'on the community map.</span>'+
+      '</label>'+
+      '<div class="row">'+
+        '<button class="btn ghost" id="backBtn">Back</button>'+
+        '<button class="btn gold" id="submitBtn">Root this '+
+          (draft.kind==="future"?"vision":"memory")+'</button>'+
+      '</div>';
     var VIS=[["full","Full name","Shown with your full name on the public map"],["first","First name only","Shown with just your first name"],["anon","Anonymous","On the public map, but no name attached"],["heritage","Heritage record only, not public","Never shown publicly; joins the community's private heritage record"]];
     $("visOpts").innerHTML=VIS.map(function(v){return '<label class="consent-opt'+(draft.vis===v[0]?" on":"")+'" data-v="'+v[0]+'"><input type="radio" name="vis" '+(draft.vis===v[0]?"checked":"")+' style="margin-top:3px"><span><b>'+esc(v[1])+'</b><small>'+esc(v[2])+'</small></span></label>';}).join("");
     $("visOpts").querySelectorAll("[data-v]").forEach(function(el){el.addEventListener("click",function(){draft.vis=el.dataset.v;$("visOpts").querySelectorAll(".consent-opt").forEach(function(c){c.classList.remove("on");});el.classList.add("on");el.querySelector("input").checked=true;});});
@@ -3497,7 +3607,20 @@ function wireRecorder(){var btn=$("micBtn"),lbl=$("recLbl");if(draft.audio)$("au
     if(!navigator.mediaDevices||!window.MediaRecorder){lbl.textContent="Recording not supported here";return;}
     navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
       chunks=[];mediaRec=new MediaRecorder(stream);mediaRec.ondataavailable=function(e){chunks.push(e.data);};
-      mediaRec.onstop=function(){var blob=new Blob(chunks,{type:"audio/webm"});var r=new FileReader();r.onload=function(){draft.audio=r.result;$("audioPrev").innerHTML='<audio controls src="'+draft.audio+'"></audio>';};r.readAsDataURL(blob);stream.getTracks().forEach(function(t){t.stop();});btn.classList.remove("rec-on");lbl.textContent="Tap to record again";};
+      mediaRec.onstop=function(){
+        var blob=new Blob(chunks,{type:"audio/webm"});
+        var r=new FileReader();
+        r.onload=function(){
+          draft.audio=r.result;
+          $("audioPrev").innerHTML='<audio controls src="'+draft.audio+'"></audio>';
+        };
+        r.readAsDataURL(blob);
+        /* Release the microphone, or the browser keeps showing the recording
+           indicator after the person has finished. */
+        stream.getTracks().forEach(function(t){t.stop();});
+        btn.classList.remove("rec-on");
+        lbl.textContent="Tap to record again";
+      };
       mediaRec.start();btn.classList.add("rec-on");lbl.textContent="Recording… tap to stop";
     }).catch(function(){lbl.textContent="Mic permission needed";});
   });
@@ -3597,7 +3720,25 @@ function initPinMap(){
   pinMap.on("click",function(e){moved(e.latlng.lat,e.latlng.lng);pinMarker.setLatLng(e.latlng);});
   setTimeout(function(){pinMap.invalidateSize();},80);
 }
-async function submitDraft(){if(!draft)return;if(!draft.hood)draft.hood=HOOD_OTHER;var d=draft;var btn=$("submitBtn");if(btn){btn.disabled=true;btn.textContent="Sending…";}try{await supaSubmit(d);}catch(e){toast("Couldn't send, "+((e&&e.message)||"try again"));if(btn){btn.disabled=false;btn.textContent="Root this "+(d.kind==="future"?"vision":"memory");}console.warn(e);return;}draft=null;renderThanks(d);showView("thanks");}
+async function submitDraft(){
+  if(!draft)return;
+  if(!draft.hood)draft.hood=HOOD_OTHER;
+  var d=draft,btn=$("submitBtn");
+  if(btn){btn.disabled=true;btn.textContent="Sending…";}
+  try{
+    await supaSubmit(d);
+  }catch(e){
+    /* Put the button back before returning. A failed send used to leave the only way
+       to submit disabled, and the story with it. */
+    toast("Couldn't send, "+((e&&e.message)||"try again"));
+    if(btn){btn.disabled=false;btn.textContent="Root this "+(d.kind==="future"?"vision":"memory");}
+    console.warn(e);
+    return;
+  }
+  draft=null;
+  renderThanks(d);
+  showView("thanks");
+}
 function renderThanks(s){var isV=s.kind==="future";
   var na=isV?publicStories().filter(function(x){return x.kind==="future"&&x.hood===s.hood&&x.id!==s.id;}).length:0;
   $("thanksInner").innerHTML=
@@ -4011,11 +4152,23 @@ function renderImpact(){
   var propCount=SPACES.reduce(function(a,sp){return a+(sp.proposals?sp.proposals.length:0);},0);
   var cosignCount=SPACES.reduce(function(a,sp){return a+(sp.proposals?sp.proposals.reduce(function(b,p){return b+p.cosigns;},0):0);},0);
   var dreamsAffirmed=pub.filter(function(s){return s.kind==="future";}).reduce(function(a,s){return a+(s.affirms||0);},0);
-  function bars(rows,color){var max=Math.max.apply(null,rows.map(function(r){return r.value;}).concat([1]));return rows.map(function(r){return '<div class="bar"><span class="bl">'+esc(r.label)+'</span><div class="bt"><div class="bf" style="width:'+(r.value/max*100)+'%;background:'+color+'"></div></div><span class="bv">'+r.value+'</span></div>';}).join("");}
+  function bars(rows,color){
+    /* concat([1]) keeps the divisor off zero when every row is empty. */
+    var max=Math.max.apply(null,rows.map(function(r){return r.value;}).concat([1]));
+    return rows.map(function(r){
+      return '<div class="bar"><span class="bl">'+esc(r.label)+'</span>'+
+        '<div class="bt"><div class="bf" style="width:'+(r.value/max*100)+'%;background:'+color+'"></div></div>'+
+        '<span class="bv">'+r.value+'</span></div>';
+    }).join("");
+  }
   function kpi(n,l,s){return '<div class="kpi"><div class="n">'+n+'</div><div class="l">'+l+'</div>'+(s?'<div class="s">'+s+'</div>':"")+'</div>';}
   $("impactBody").innerHTML=
     '<h2>Impact &amp; Transparency</h2>'+
-    '<p class="sub">A living account of what this collection holds: for The Big We, for funders, and for the community itself. Memphis is tired of being studied while the streets stay the same. This page exists so the people who give their stories can see what those stories are building. These are the <b>warm data</b>, the lived and cultural record, that the hard numbers cannot hold on their own.</p>'+
+    '<p class="sub">A living account of what this collection holds: for The Big We, for '+
+      'funders, and for the community itself. Memphis is tired of being studied while the '+
+      'streets stay the same. This page exists so the people who give their stories can see '+
+      'what those stories are building. These are the <b>warm data</b>, the lived and '+
+      'cultural record, that the hard numbers cannot hold on their own.</p>'+
     '<div class="ethos-note"><b>Every number here is a person who trusted us with a memory or a dream.</b> The Big We stewards each one. Nothing reaches a funder or a city agency except what a contributor said it could. That is what "data for freedom" means, and it is measured below.</div>'+
     '<div class="kpis">'+
       kpi(pub.length,"Stories rooted","live on the public map")+
@@ -4029,9 +4182,42 @@ function renderImpact(){
     '</div>'+
     '<div class="ipanel"><h3>Stories by event &amp; campaign <span>where they were collected</span></h3>'+bars(campRows,"#17C3B2")+'</div>'+
     '<div class="ipanel"><h3>Neighborhood coverage <span>where more listening is needed</span></h3>'+bars(hoodRows,"#8338EC")+'</div>'+
-    '<div class="ipanel"><h3>Honoring the past · imagining 2068 <span>memories vs. visions</span></h3><div class="split"><div class="seg" style="background:'+KIND.memory.color+';flex:'+Math.max(memories,0.001)+'">'+memories+' past</div><div class="seg" style="background:'+KIND.future.color+';flex:'+Math.max(visions,0.001)+'">'+visions+' future</div></div></div>'+
-    '<div class="ipanel"><h3>Data for freedom <span>consent, in the open</span></h3><div class="bar"><span class="bl">OK to cite to city partners</span><div class="bt"><div class="bf" style="width:'+pct+'%;background:var(--ok)"></div></div><span class="bv">'+pct+'%</span></div><p style="font-size:12px;color:var(--muted);margin:9px 0 0">'+freedom+' of '+approved.length+' contributors opted in to let The Big We cite their story (anonymized) when advocating with the city. '+heritage+' chose heritage-record-only, held privately, never public.</p></div>'+
-    '<div class="ipanel"><h3>Commons: space being re-permissioned <span>after Jayne Engle · Permissioning the City</span></h3>'+SPACES.map(function(sp){var pc=sp.proposals?sp.proposals.length:0;var cc=sp.proposals?sp.proposals.reduce(function(b,p){return b+p.cosigns;},0):0;return '<div class="bar"><span class="bl">'+esc(sp.name)+'</span><div class="bt"><div class="bf" style="width:'+Math.min(100,cc*6+pc*4)+'%;background:var(--gold)"></div></div><span class="bv">'+pc+'</span></div>';}).join("")+'<p style="font-size:12px;color:var(--muted);margin:9px 0 0">'+propCount+' proposed uses · '+cosignCount+' co-signs · '+dreamsAffirmed+' dreams affirmed. Underused space claimed back as a commons.</p></div>';
+    '<div class="ipanel">'+
+      '<h3>Honoring the past · imagining 2068 <span>memories vs. visions</span></h3>'+
+      '<div class="split">'+
+        /* flex never reaches 0, or a side with no stories collapses to a sliver that
+           reads as a rendering fault rather than as a count of zero. */
+        '<div class="seg" style="background:'+KIND.memory.color+';flex:'+Math.max(memories,0.001)+'">'+
+          memories+' past</div>'+
+        '<div class="seg" style="background:'+KIND.future.color+';flex:'+Math.max(visions,0.001)+'">'+
+          visions+' future</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="ipanel">'+
+      '<h3>Data for freedom <span>consent, in the open</span></h3>'+
+      '<div class="bar"><span class="bl">OK to cite to city partners</span>'+
+        '<div class="bt"><div class="bf" style="width:'+pct+'%;background:var(--ok)"></div></div>'+
+        '<span class="bv">'+pct+'%</span></div>'+
+      '<p style="font-size:12px;color:var(--muted);margin:9px 0 0">'+
+        freedom+' of '+approved.length+' contributors opted in to let The Big We cite their '+
+        'story (anonymized) when advocating with the city. '+heritage+' chose '+
+        'heritage-record-only, held privately, never public.</p>'+
+    '</div>'+
+    '<div class="ipanel">'+
+      '<h3>Commons: space being re-permissioned '+
+        '<span>after Jayne Engle · Permissioning the City</span></h3>'+
+      SPACES.map(function(sp){
+        var pc=sp.proposals?sp.proposals.length:0;
+        var cc=sp.proposals?sp.proposals.reduce(function(b,p){return b+p.cosigns;},0):0;
+        return '<div class="bar"><span class="bl">'+esc(sp.name)+'</span>'+
+          '<div class="bt"><div class="bf" style="width:'+Math.min(100,cc*6+pc*4)+
+            '%;background:var(--gold)"></div></div>'+
+          '<span class="bv">'+pc+'</span></div>';
+      }).join("")+
+      '<p style="font-size:12px;color:var(--muted);margin:9px 0 0">'+
+        propCount+' proposed uses · '+cosignCount+' co-signs · '+dreamsAffirmed+
+        ' dreams affirmed. Underused space claimed back as a commons.</p>'+
+    '</div>';
 }
 
 /* === JS SECTION: SPOTLIGHT ===========================================================
