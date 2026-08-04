@@ -14,6 +14,7 @@ CHANGELOG.md
 DECISIONS.md
 EVENT-RUNBOOK.md
 LAYERS.md
+RESTORE.md
 
 # Working data drops at the repo root (xlsx, scratch exports). NOT built-site/data/,
 # which is the live map data and IS tracked. Leading slash anchors this to the root.
