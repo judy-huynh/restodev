@@ -987,21 +987,8 @@
               <span class="chev" data-ic="chevDown"></span>
             </button>
             <div class="lp-body" id="lpBody">
-              <div class="lp-group">
-                <div class="lp-gh">Community</div>
-                <button class="lrow on" id="anchorToggle"><span class="lname"><b>Cultural District</b><em>24 Sites, Clayborn at the Center</em></span><span class="sw"></span></button>
-                <button class="lrow on" id="hoodToggle"><span class="lname"><b>Neighborhoods</b><em>City Tract Lines, Community Names</em></span><span class="sw"></span></button>
-                <button class="lrow" id="dcToggle"><span class="lname"><b>Data Centers</b><em>xAI Colossus &middot; 1 and 5 Mile Rings</em></span><span class="sw"></span></button>
-              </div>
-              <div class="lp-group">
-                <div class="lp-gh">City Data · Context</div>
-                <button class="lrow" id="floodToggle"><span class="lname"><b>Flood Risk</b><em>FEMA &middot; 1 in 100 and 1 in 500 Odds</em></span><span class="sw"></span></button>
-                <button class="lrow" id="faithToggle"><span class="lname"><b>Churches and Faith</b><em>1,117 Named &middot; OpenStreetMap</em></span><span class="sw"></span></button>
-                <button class="lrow" id="foodToggle"><span class="lname"><b>Food Access</b><em>USDA SNAP · city-wide</em></span><span class="sw"></span></button>
-                <button class="lrow" id="parksToggle"><span class="lname"><b>Parks</b><em>City of Memphis</em></span><span class="sw"></span></button>
-                <button class="lrow" id="commToggle"><span class="lname"><b>Community Centers</b><em>City of Memphis</em></span><span class="sw"></span></button>
-                <button class="lrow" id="libToggle"><span class="lname"><b>Libraries</b><em>Memphis Public Libraries</em></span><span class="sw"></span></button>
-              </div>
+              <!-- Rows are generated from LAYERS by renderLayerPanel(). Do not add
+                   a <button class="lrow"> here; add a LAYERS entry instead. -->
             </div>
           </div>
         </div>
@@ -2011,37 +1998,155 @@ function pop(title,meta,src){
     (src?'<span class="pq">'+esc(src)+'</span>':'');
 }
 function ctxCircle(color,r){return {radius:r||5,fillColor:color,color:"#fff",weight:1,fillOpacity:.9,pane:"ctx",renderer:ctxRenderer()};}
-var CTX={
+/* THE LAYER REGISTRY. One entry per layer, and it is the only place a layer is
+   declared. Adding a layer used to mean four edits in three sections: a CTX entry,
+   a <button class="lrow"> in the markup, a click handler in the boot block, and a
+   CITY_LAYERS row. The name and the source were written twice and could drift apart.
+
+   Now: add one object here. The Layers panel builds itself from this, the click
+   handlers wire themselves from this, and the City Data table counts the files
+   listed here.
+
+   Each entry:
+     key    unique id, used for the pane layer and the toggle
+     group  which panel heading it sits under
+     name   what the panel calls it
+     note   the small grey line under the name
+     on     drawn on first load
+     files  one row per file in the City Data table. `f` is the filename under
+            data/, the rest is what that table prints. A layer with two files
+            (flood) gets two rows there and one switch here.
+     build  (context layers) receives the parsed files in `files` order, returns a
+            Leaflet layer. Loaded on first toggle, then kept.
+     toggle (the three layers that own their own Leaflet object and load eagerly)
+            handles its own on/off. If `toggle` is present, `build` is not used. */
+var LAYERS=[
+  {key:"cultural",group:"Community",name:"Cultural District",
+   note:"24 Sites, Clayborn at the Center",on:true,
+   files:[{f:"cultural.geojson",name:"Cultural District",
+           what:"Sites in the district anchored on Clayborn Temple",src:"RestoDev Framework"}],
+   toggle:function(btn){
+     anchorsOn=!anchorsOn; btn.classList.toggle("on",anchorsOn);
+     if(anchorsOn)anchorLayer.addTo(map); else map.removeLayer(anchorLayer);
+   }},
+
+  {key:"hood",group:"Community",name:"Neighborhoods",
+   note:"City Tract Lines, Community Names",on:true,
+   files:[{f:"neighborhoods.geojson",name:"Neighborhoods",
+           what:"City tract lines grouped into the names this map uses",src:"City of Memphis"}],
+   toggle:function(btn){
+     hoodsOn=!hoodsOn; btn.classList.toggle("on",hoodsOn);
+     if(!hoodLayer)return;
+     if(hoodsOn){hoodLayer.addTo(map);highlightHood(F.hood!=="all"?F.hood:null);}
+     else map.removeLayer(hoodLayer);
+   }},
+
+  {key:"dc",group:"Community",name:"Data Centers",
+   note:"xAI Colossus &middot; 1 and 5 Mile Rings",on:false,
+   files:[{f:"datacenters.geojson",name:"Data Centers",
+           what:"xAI Colossus sites, with 1 and 5 mile rings",src:"Reporting and permits"}],
+   toggle:function(btn){
+     dcOn=!dcOn; btn.classList.toggle("on",dcOn);
+     if(!dcLayer)return;
+     /* Turning the layer off has to clear a data centre filter too, or the story
+        list stays filtered by something the map no longer shows. */
+     if(dcOn)dcLayer.addTo(map);
+     else {map.removeLayer(dcLayer); if(F.dc){F.dc=null;apply();}}
+   }},
+
   /* Two bands, drawn as one layer because they answer one question. The 500-year goes on
      first so the 100-year sits above it, and it is paler: darker means likelier, which is
      the only thing the colour is allowed to say.
      They do not overlap. FEMA's 0.2% zone is the ground OUTSIDE the 1% zone, checked
      rather than assumed (0.01 km2 of intersection across the whole city), which is what
      lets the profile add the two together. */
-  flood:{files:["flood500.geojson","flood.geojson"],build:function(d500,d100){
-    var g=L.layerGroup();
-    L.geoJSON(d500,{pane:"ctx",style:function(){return{color:"#7FA9E0",weight:.8,dashArray:"3 3",fillColor:"#7FA9E0",fillOpacity:.13,pane:"ctx"};},
-      onEachFeature:function(f,l){l.bindPopup(pop("Floods less often","About a 1 in 500 chance in any year.","FEMA zone X, 0.2% annual chance"));}}).addTo(g);
-    L.geoJSON(d100,{pane:"ctx",style:function(){return{color:"#2b6cb0",weight:1,fillColor:"#3A86FF",fillOpacity:.22,pane:"ctx"};},
-      onEachFeature:function(f,l){l.bindPopup(pop("High flood risk","About a 1 in 100 chance in any year.","FEMA zone "+(f.properties.zone||"A")+", Special Flood Hazard Area"));}}).addTo(g);
-    return g;}},
-  food:{files:["food.geojson"],build:function(d){var FULL={"Grocery Store":1,"Supermarket":1,"Super Store":1,"Farmers and Markets":1};return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle(FULL[f.properties.type]?"#1B7A3D":"#E0A100",5));},onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Food retailer",f.properties.type||"",FULL[f.properties.type]?"Full-service · USDA SNAP":"USDA SNAP"));}});}},
-  parks:{files:["parks.geojson"],build:function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#17C3B2",4));},onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Park","","City of Memphis park"));}});}},
-  comm:{files:["community.geojson"],build:function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#8338EC",6));},onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Community center",f.properties.street||"","City of Memphis"));}});}},
-  lib:{files:["libraries.geojson"],build:function(d){return L.geoJSON(d,{pane:"ctx",pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#3A86FF",6));},onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Library",f.properties.street||"","Memphis Public Libraries"));}});}},
+  {key:"flood",group:"City Data · Context",name:"Flood Risk",
+   note:"FEMA &middot; 1 in 100 and 1 in 500 Odds",on:false,
+   files:[{f:"flood500.geojson",name:"Land that floods less often",
+           what:"About a 1 in 500 chance in any year",src:"FEMA"},
+          {f:"flood.geojson",name:"Land that can flood",
+           what:"Ground with about a 1 in 100 chance of flooding in any year",src:"FEMA"}],
+   build:function(d500,d100){
+     var g=L.layerGroup();
+     L.geoJSON(d500,{pane:"ctx",style:function(){return{color:"#7FA9E0",weight:.8,dashArray:"3 3",fillColor:"#7FA9E0",fillOpacity:.13,pane:"ctx"};},
+       onEachFeature:function(f,l){l.bindPopup(pop("Floods less often","About a 1 in 500 chance in any year.","FEMA zone X, 0.2% annual chance"));}}).addTo(g);
+     L.geoJSON(d100,{pane:"ctx",style:function(){return{color:"#2b6cb0",weight:1,fillColor:"#3A86FF",fillOpacity:.22,pane:"ctx"};},
+       onEachFeature:function(f,l){l.bindPopup(pop("High flood risk","About a 1 in 100 chance in any year.","FEMA zone "+(f.properties.zone||"A")+", Special Flood Hazard Area"));}}).addTo(g);
+     return g;}},
+
   /* Churches, and the rest. Small and semi-transparent on purpose: there are 1,117 of
      them and the density IS the finding, so they should read as a texture over the city
      rather than as 1,117 things to click one at a time.
      A place this project holds itself is drawn larger and ringed, because those are the
      ones the crowd-sourced map does not know about and the difference is worth seeing. */
-  faith:{files:["faith.geojson"],build:function(d){return L.geoJSON(d,{pane:"ctx",
-    pointToLayer:function(f,ll){
-      var loc=f.properties.src==="local";
-      return L.circleMarker(ll,{radius:loc?6:3,fillColor:loc?"#7A1F3D":"#A4262C",
-        color:loc?"#fff":"#fff",weight:loc?1.6:.7,fillOpacity:loc?1:.72,pane:"ctx",renderer:ctxRenderer()});},
-    onEachFeature:function(f,l){var p=f.properties;
-      l.bindPopup(pop(p.name,p.street||"",p.note||(p.src==="local"?"Held by this project":"OpenStreetMap")));}});}}
-};
+  {key:"faith",group:"City Data · Context",name:"Churches and Faith",
+   note:"1,117 Named &middot; OpenStreetMap",on:false,
+   files:[{f:"faith.geojson",name:"Churches and Faith",
+           what:"Named places of worship",src:"OpenStreetMap"}],
+   build:function(d){return L.geoJSON(d,{pane:"ctx",
+     pointToLayer:function(f,ll){
+       var loc=f.properties.src==="local";
+       return L.circleMarker(ll,{radius:loc?6:3,fillColor:loc?"#7A1F3D":"#A4262C",
+         color:loc?"#fff":"#fff",weight:loc?1.6:.7,fillOpacity:loc?1:.72,pane:"ctx",renderer:ctxRenderer()});},
+     onEachFeature:function(f,l){var p=f.properties;
+       l.bindPopup(pop(p.name,p.street||"",p.note||(p.src==="local"?"Held by this project":"OpenStreetMap")));}});}},
+
+  {key:"food",group:"City Data · Context",name:"Food Access",
+   note:"USDA SNAP · city-wide",on:false,
+   files:[{f:"food.geojson",name:"Food Access",
+           what:"Shops that take SNAP, city-wide",src:"USDA SNAP"}],
+   build:function(d){return L.geoJSON(d,{pane:"ctx",
+     pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle(FULL_FOOD[f.properties.type]?"#1B7A3D":"#E0A100",5));},
+     onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Food retailer",f.properties.type||"",
+       FULL_FOOD[f.properties.type]?"Full-service · USDA SNAP":"USDA SNAP"));}});}},
+
+  {key:"parks",group:"City Data · Context",name:"Parks",note:"City of Memphis",on:false,
+   files:[{f:"parks.geojson",name:"Parks",what:"City parks",src:"City of Memphis"}],
+   build:function(d){return L.geoJSON(d,{pane:"ctx",
+     pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#17C3B2",4));},
+     onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Park","","City of Memphis park"));}});}},
+
+  {key:"comm",group:"City Data · Context",name:"Community Centers",note:"City of Memphis",on:false,
+   files:[{f:"community.geojson",name:"Community Centers",what:"City-run centers",src:"City of Memphis"}],
+   build:function(d){return L.geoJSON(d,{pane:"ctx",
+     pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#8338EC",6));},
+     onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Community center",f.properties.street||"","City of Memphis"));}});}},
+
+  {key:"lib",group:"City Data · Context",name:"Libraries",note:"Memphis Public Libraries",on:false,
+   files:[{f:"libraries.geojson",name:"Libraries",what:"Public library branches",src:"Memphis Public Libraries"}],
+   build:function(d){return L.geoJSON(d,{pane:"ctx",
+     pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#3A86FF",6));},
+     onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Library",f.properties.street||"","Memphis Public Libraries"));}});}}
+];
+/* Which retailer types count as a full basket of groceries rather than a corner shop.
+   Used by the Food layer above AND by the City Data modal, so it lives once. */
+var FULL_FOOD={"Grocery Store":1,"Supermarket":1,"Super Store":1,"Farmers and Markets":1};
+/* Builds the Layers panel from LAYERS and wires every switch. Called once, on boot.
+   A layer with `toggle` runs its own; everything else goes through toggleCtx(). */
+function renderLayerPanel(){
+  var body=$("lpBody"); if(!body)return;
+  var groups=[];
+  LAYERS.forEach(function(L){ if(groups.indexOf(L.group)<0)groups.push(L.group); });
+  body.innerHTML=groups.map(function(g){
+    return '<div class="lp-group"><div class="lp-gh">'+esc(g)+'</div>'+
+      LAYERS.filter(function(L){return L.group===g;}).map(function(L){
+        return '<button class="lrow'+(L.on?" on":"")+'" id="'+L.key+'Toggle" data-layer="'+L.key+'" '+
+          'aria-pressed="'+(L.on?"true":"false")+'">'+
+          '<span class="lname"><b>'+esc(L.name)+'</b><em>'+L.note+'</em></span><span class="sw"></span></button>';
+      }).join("")+'</div>';
+  }).join("");
+  body.querySelectorAll("[data-layer]").forEach(function(btn){
+    var L=layerByKey(btn.dataset.layer);
+    btn.addEventListener("click",function(){
+      if(L.toggle)L.toggle(btn); else toggleCtx(L.key,btn);
+      btn.setAttribute("aria-pressed",btn.classList.contains("on")?"true":"false");
+    });
+  });
+}
+function layerByKey(k){for(var i=0;i<LAYERS.length;i++)if(LAYERS[i].key===k)return LAYERS[i];return null;}
+/* The context layers, the ones that fetch on demand. Derived, never written twice. */
+var CTX={};
+LAYERS.forEach(function(L){if(L.build)CTX[L.key]={files:L.files.map(function(x){return x.f;}),build:L.build};});
 /* Fetched once, kept. `pending` holds the in-flight promise so a double tap does not
    start a second download of the same megabyte. */
 var ctxPending={};
@@ -2754,25 +2859,16 @@ function showView(v){["explore","capture","thanks","admin","impact"].forEach(fun
    replaced with the full 753, and its Clayborn flood claim was computed against the flood
    layer that stopped short of half the city. Numbers typed into a page cannot be corrected
    by fixing the data. These are counted at open, so they cannot drift again. */
-var CITY_LAYERS=[
-  {key:"neighborhoods",file:"neighborhoods.geojson",name:"Neighborhoods",
-   what:"City tract lines grouped into the names this map uses",src:"City of Memphis"},
-  {key:"cultural",file:"cultural.geojson",name:"Cultural District",
-   what:"Sites in the district anchored on Clayborn Temple",src:"RestoDev Framework"},
-  {key:"food",file:"food.geojson",name:"Food Access",
-   what:"Shops that take SNAP, city-wide",src:"USDA SNAP"},
-  {key:"parks",file:"parks.geojson",name:"Parks",what:"City parks",src:"City of Memphis"},
-  {key:"comm",file:"community.geojson",name:"Community Centers",what:"City-run centers",src:"City of Memphis"},
-  {key:"lib",file:"libraries.geojson",name:"Libraries",what:"Public library branches",src:"Memphis Public Libraries"},
-  {key:"faith",file:"faith.geojson",name:"Churches and Faith",
-   what:"Named places of worship",src:"OpenStreetMap"},
-  {key:"flood",file:"flood.geojson",name:"Land that can flood",
-   what:"Ground with about a 1 in 100 chance of flooding in any year",src:"FEMA"},
-  {key:"flood500",file:"flood500.geojson",name:"Land that floods less often",
-   what:"About a 1 in 500 chance in any year",src:"FEMA"},
-  {key:"datacenters",file:"datacenters.geojson",name:"Data Centers",
-   what:"xAI Colossus sites, with 1 and 5 mile rings",src:"Reporting and permits"}
-];
+/* Derived from LAYERS, so a layer cannot appear on the map and be missing from this
+   table, and its name and source cannot say two different things in two places. One
+   row per FILE: the flood switch is one layer and two bands, and the table shows both
+   because they are counted separately. */
+function cityLayerRows(){
+  return LAYERS.reduce(function(out,L){
+    L.files.forEach(function(x){out.push({key:x.f,file:x.f,name:x.name,what:x.what,src:x.src});});
+    return out;
+  },[]);
+}
 var CITY_COUNTS=null;
 
 /* === SECTION: CITY DATA MODAL =====================================================
@@ -2780,7 +2876,7 @@ var CITY_COUNTS=null;
    stale number means a stale data file, not stale copy. */
 function cityCounts(){
   if(CITY_COUNTS)return Promise.resolve(CITY_COUNTS);
-  return Promise.all(CITY_LAYERS.map(function(L){
+  return Promise.all(cityLayerRows().map(function(L){
     return fetch("data/"+L.file,{cache:"no-cache"}).then(function(r){return r.ok?r.json():null;})
       .then(function(d){return {key:L.key,n:d&&d.features?d.features.length:null,doc:d};})
       .catch(function(){return {key:L.key,n:null,doc:null};});
@@ -2788,13 +2884,12 @@ function cityCounts(){
     CITY_COUNTS={};rows.forEach(function(r){CITY_COUNTS[r.key]=r;});return CITY_COUNTS;
   });
 }
-var FULL_FOOD={"Grocery Store":1,"Supermarket":1,"Super Store":1,"Farmers and Markets":1};
 function renderCityData(){
   var el=$("cityDataBody");if(!el)return;
   el.innerHTML='<p class="mnote">Counting the layers…</p>';
   cityCounts().then(function(c){
     // Food, split the way the map splits it, straight from the file.
-    var food=c.food&&c.food.doc?c.food.doc.features:[];
+    var fd=c["food.geojson"]; var food=fd&&fd.doc?fd.doc.features:[];
     var full=food.filter(function(f){return FULL_FOOD[f.properties.type];}).length;
     var conv=food.filter(function(f){return /convenience/i.test(f.properties.type||"");}).length;
     var other=food.length-full-conv;
@@ -2811,7 +2906,7 @@ function renderCityData(){
       'Corner stores outnumber grocery stores <b>'+Math.round(conv/(full||1))+' to 1</b>.</p></div>':"";
 
     // What every layer holds, and where it came from.
-    var rows=CITY_LAYERS.map(function(L){
+    var rows=cityLayerRows().map(function(L){
       var n=c[L.key]?c[L.key].n:null;
       return '<tr><td><b>'+esc(L.name)+'</b><span class="cdw">'+esc(L.what)+'</span></td>'+
         '<td class="n">'+(n==null?"—":num(n))+'</td><td class="cds">'+esc(L.src)+'</td></tr>';
@@ -2911,7 +3006,6 @@ $("navMod").addEventListener("click",function(){showView("admin");});
 $("navAdd").addEventListener("click",function(){startCapture();});
 $("backExplore").addEventListener("click",function(){showView("explore");});
 $("capX").addEventListener("click",function(){showView("explore");});
-$("anchorToggle").addEventListener("click",function(){anchorsOn=!anchorsOn;this.classList.toggle("on",anchorsOn);if(anchorsOn)anchorLayer.addTo(map);else map.removeLayer(anchorLayer);});
 /* Where am I. A blue dot plus an accuracy ring, because at an event the useful question
    is "which of these pins is near me", and that is unanswerable without yourself on the
    map. Watches position so it keeps up as someone walks. Never auto-starts: it must be
@@ -2946,18 +3040,7 @@ function onMeFailed(){
   meWatching=false;map.stopLocate();
   toast("Couldn't get your location. Check location permission for this site.");
 }
-$("hoodToggle").addEventListener("click",function(){hoodsOn=!hoodsOn;this.classList.toggle("on",hoodsOn);if(!hoodLayer)return;if(hoodsOn){hoodLayer.addTo(map);highlightHood(F.hood!=="all"?F.hood:null);}else map.removeLayer(hoodLayer);});
-$("floodToggle").addEventListener("click",function(){toggleCtx("flood",this);});
-$("faithToggle").addEventListener("click",function(){toggleCtx("faith",this);});
-$("foodToggle").addEventListener("click",function(){toggleCtx("food",this);});
-$("parksToggle").addEventListener("click",function(){toggleCtx("parks",this);});
-$("commToggle").addEventListener("click",function(){toggleCtx("comm",this);});
-$("libToggle").addEventListener("click",function(){toggleCtx("lib",this);});
-$("dcToggle").addEventListener("click",function(){
-  dcOn=!dcOn;this.classList.toggle("on",dcOn);
-  if(!dcLayer)return;
-  if(dcOn)dcLayer.addTo(map); else {map.removeLayer(dcLayer); if(F.dc){F.dc=null;apply();}}
-});
+renderLayerPanel();
 $("lpHead").addEventListener("click",function(){var c=$("layerPanel").classList.toggle("collapsed");this.setAttribute("aria-expanded",c?"false":"true");});
 $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMeta();renderCards();renderMarkers();renderActiveF();});
 
