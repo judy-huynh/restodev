@@ -378,6 +378,15 @@
   .dtile img,.dtile video{width:100%;height:100%;object-fit:cover;display:block}
   .dtile .drm{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(36,28,59,.72);color:#fff;display:grid;place-items:center;cursor:pointer}
   .dtile .drm:hover{background:var(--primaryDark)}
+  /* The voice note sits in the same row as the photos. It has no thumbnail, so it says
+     what it is and how long it runs instead. */
+  .dtile.audio{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--primaryLight);color:var(--primaryDark)}
+  .dtile .dlen{font-size:11px;font-weight:700}
+  /* Counters. Quiet by default: this is a hint, not a warning, until it is over. */
+  .qcount{margin:5px 2px 0;font-size:11.5px;color:var(--muted);min-height:14px}
+  .qcount.tally{width:100%;margin-top:9px}
+  .qcount.over{color:var(--anchor);font-weight:700}
+  .rec .lbl.warn{color:var(--anchor);font-weight:700}
   .mediazone{display:flex;flex-direction:column;align-items:center;gap:3px;padding:16px;border:1.5px dashed var(--border);border-radius:12px;background:var(--bg);color:var(--muted);cursor:pointer;text-align:center}
   .mediazone:hover,.mediazone.over{border-color:var(--primary);color:var(--text);background:var(--primaryLight)}
   .mediazone:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -1512,6 +1521,33 @@ async function supaFetchApproved(){
    signed-in moderator when there is a session, and as the site otherwise, which is what
    the public intake form already does. */
 var MEDIA_MAX=52428800;   // 50MB; past this the browser upload is the wrong tool
+/* What the form will accept, agreed with Judy 2026-08-04. One place, because every one of
+   these is SHOWN to the person in one wording and ENFORCED somewhere else, and those two
+   drifting apart is how a form starts lying about what it will take.
+
+   storyMax is DERIVED, not picked because it is a round number: five minutes of speech is
+   roughly 700 words, so a person who types and a person who speaks can give the same
+   story. Change audioSec and this should move with it.
+
+   storyMin exists so "test" does not reach the moderation queue.
+   videoSec is 60 because above that the upload fails on venue wifi before it fails on
+   any policy, and a limit the room hits by accident is worse than one it is told about. */
+var LIMITS={
+  storyMin:20, storyMax:4000,
+  audioSec:300, audioWarnSec:270,
+  photos:6, videos:1, videoSec:60,
+  fileBytes:MEDIA_MAX
+};
+/* m:ss. Used by the recorder, the voice tile and the over-length message, so the three
+   never disagree about what 90 seconds looks like. */
+function fmtSecs(s){
+  s=Math.max(0,Math.round(s||0));
+  return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+}
+/* "1 more characters" is the kind of thing a person notices and a developer does not.
+   These counters are read by somebody mid-sentence at an event, so they get to be
+   sentences. */
+function chars(n){return n+" character"+(n===1?"":"s");}
 function mediaKindOf(file){
   var t=(file.type||"").toLowerCase();
   if(t.indexOf("image/")===0)return "photo";
@@ -3695,6 +3731,9 @@ var CAPTURE_STEPS=[
       : "What happened here? Who was there? What did this place mean, and what should it mean next?";
     b.innerHTML='<h2 class="q">'+q+'</h2><p class="qsub">'+sub+'</p>'
       +'<textarea id="story" rows="6" placeholder="'+(isV?"I want to see…":"Take your time…")+'">'+esc(draft.story)+'</textarea>'
+      /* A count that turns up as you get near the limit, not a rejection after four
+         minutes of typing. Silent for most of the box, which is most people. */
+      +'<p class="qcount" id="storyCount"></p>'
       +'<div class="fsec place">'
       +  '<h3 class="q2"><label for="corner">Where is this place?</label></h3>'
       +  '<p class="qsub">A neighborhood, a street, or a building. However you would say it to a neighbor.</p>'
@@ -3737,10 +3776,24 @@ var CAPTURE_STEPS=[
     refreshHood();
 
     function refresh(){
-      var hasStory=!!draft.story.trim(),hasPlace=draft.locSource!=="unset",hasWhen=!!draft.era;
-      $("nextBtn").disabled=!(hasStory&&hasPlace&&hasWhen);
+      var n=draft.story.trim().length;
+      var hasStory=n>=LIMITS.storyMin,tooLong=n>LIMITS.storyMax;
+      var hasPlace=draft.locSource!=="unset",hasWhen=!!draft.era;
+      $("nextBtn").disabled=!(hasStory&&!tooLong&&hasPlace&&hasWhen);
+      // The count is silent until it is useful: near the ceiling, or under the floor
+      // once somebody has actually started typing.
+      var c=$("storyCount");
+      if(c){
+        c.textContent=
+          n===0?"":
+          n<LIMITS.storyMin?(LIMITS.storyMin-n)+" more character"+(LIMITS.storyMin-n===1?"":"s")+" and you can continue.":
+          tooLong?chars(n-LIMITS.storyMax)+" over. Trim it a little and it will send.":
+          (LIMITS.storyMax-n)<=400?chars(LIMITS.storyMax-n)+" left.":"";
+        c.classList.toggle("over",tooLong);
+      }
       // Never leave a disabled button unexplained. Name the one thing still missing.
-      why.textContent=hasStory&&hasPlace&&hasWhen?""
+      why.textContent=hasStory&&!tooLong&&hasPlace&&hasWhen?""
+        :tooLong?"Your story is a little long. Trim it and you can continue."
         :!hasStory?"Write your story above to continue."
         :!hasPlace?"Now tell us where it is: type a name, point to it on the map, or use where you are."
         :"Last thing: pick roughly when this was.";
@@ -3914,27 +3967,50 @@ function renderStep(){
   if(!step){console.warn("[capture] no CAPTURE_STEPS entry for step \""+STEPS[stepIdx]+"\"");return;}
   step.render(b);
 }
+var recTimer=null,recStart=0;
 function wireRecorder(){var btn=$("micBtn"),lbl=$("recLbl");if(draft.audio)$("audioPrev").innerHTML='<audio controls src="'+draft.audio+'"></audio>';
+  /* The clock while recording. Someone talking has no other way to know how long they
+     have been going, and a recording that stops dead at five minutes with no warning
+     loses the ending, which is usually the part that matters. So: elapsed time
+     throughout, a countdown for the last thirty seconds, and only then the hard stop. */
+  function tick(){
+    var s=Math.floor((Date.now()-recStart)/1000),left=LIMITS.audioSec-s;
+    if(s>=LIMITS.audioSec){if(mediaRec&&mediaRec.state==="recording")mediaRec.stop();return;}
+    var warn=s>=LIMITS.audioWarnSec;
+    lbl.textContent=warn?fmtSecs(s)+" · "+left+" seconds left, start wrapping up"
+                        :fmtSecs(s)+" · tap to stop";
+    lbl.classList.toggle("warn",warn);
+    recTimer=setTimeout(tick,250);
+  }
+  function stopTick(){if(recTimer){clearTimeout(recTimer);recTimer=null;}lbl.classList.remove("warn");}
   btn.addEventListener("click",function(){
     if(mediaRec&&mediaRec.state==="recording"){mediaRec.stop();return;}
     if(!navigator.mediaDevices||!window.MediaRecorder){lbl.textContent="Recording not supported here";return;}
     navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
       chunks=[];mediaRec=new MediaRecorder(stream);mediaRec.ondataavailable=function(e){chunks.push(e.data);};
       mediaRec.onstop=function(){
+        var secs=Math.round((Date.now()-recStart)/1000);
+        stopTick();
         var blob=new Blob(chunks,{type:"audio/webm"});
         var r=new FileReader();
         r.onload=function(){
-          draft.audio=r.result;
+          draft.audio=r.result;draft.audioSec=secs;
           $("audioPrev").innerHTML='<audio controls src="'+draft.audio+'"></audio>';
+          /* The whole point of STORY-74: the recording joins the list of things you are
+             attaching, the moment it stops. It used to appear only in its own box beside
+             the microphone, so nothing in "what you have added" changed and people
+             recorded again or assumed it was broken. */
+          draftMediaTiles();
         };
         r.readAsDataURL(blob);
         /* Release the microphone, or the browser keeps showing the recording
            indicator after the person has finished. */
         stream.getTracks().forEach(function(t){t.stop();});
         btn.classList.remove("rec-on");
-        lbl.textContent="Tap to record again";
+        lbl.textContent=secs>=LIMITS.audioSec?"Five minutes, that is the limit. Tap to record again."
+                                             :"Tap to record again";
       };
-      mediaRec.start();btn.classList.add("rec-on");lbl.textContent="Recording… tap to stop";
+      mediaRec.start();recStart=Date.now();btn.classList.add("rec-on");tick();
     }).catch(function(){lbl.textContent="Mic permission needed";});
   });
 }
@@ -3942,15 +4018,45 @@ function wireRecorder(){var btn=$("micBtn"),lbl=$("recLbl");if(draft.audio)$("au
    preview URL and uploaded on submit, which is the Rainproof order: nothing reaches the
    bucket until the person actually sends the story. Photos are still resized, because a
    12MP phone photo over a workshop hotspot is how an upload fails. */
+/* ONE list of what you are attaching. The voice note is drawn here with the photos and
+   the video even though it is stored on draft.audio rather than in draft.files, because
+   two mechanisms were the bug: recording one changed nothing in this list. Keeping it off
+   draft.files is deliberate, it would mean touching the submit path for a display fix. */
 function draftMediaTiles(){
   var el=$("draftMedia");if(!el)return;
-  var m=draft.files||[];
-  el.innerHTML=m.length?m.map(function(f,i){
+  var m=draft.files||[],tiles=[];
+  if(draft.audio){
+    tiles.push('<div class="dtile audio">'+ic("audio",22)+
+      '<span class="dlen">'+fmtSecs(draft.audioSec)+'</span>'+
+      '<button type="button" class="drm" data-drm="audio" aria-label="Remove the voice note">'+ic("x",12)+'</button></div>');
+  }
+  m.forEach(function(f,i){
     var inner=f.kind==="video"?'<video src="'+f.preview+'" muted preload="metadata"></video>':'<img src="'+f.preview+'" alt="">';
-    return '<div class="dtile">'+inner+'<button type="button" class="drm" data-drm="'+i+'" aria-label="Remove">'+ic("x",12)+'</button></div>';
-  }).join(""):"";
+    tiles.push('<div class="dtile">'+inner+'<button type="button" class="drm" data-drm="'+i+'" aria-label="Remove">'+ic("x",12)+'</button></div>');
+  });
+  el.innerHTML=tiles.join("")+mediaTally();
   el.querySelectorAll("[data-drm]").forEach(function(b){b.addEventListener("click",function(){
-    draft.files.splice(+b.dataset.drm,1);draftMediaTiles();});});
+    if(b.dataset.drm==="audio"){
+      draft.audio=null;draft.audioSec=0;
+      var p=$("audioPrev");if(p)p.innerHTML="";
+      var l=$("recLbl");if(l)l.textContent="Tap to record";
+    }
+    else draft.files.splice(+b.dataset.drm,1);
+    draftMediaTiles();});});
+}
+/* What is attached and what is left, in words rather than as a rule people find by
+   hitting it. Silent when nothing is attached, because an empty step should not open
+   by listing everything you are not allowed to do. */
+function mediaTally(){
+  var m=draft.files||[];
+  var ph=m.filter(function(f){return f.kind==="photo";}).length;
+  var vi=m.filter(function(f){return f.kind==="video";}).length;
+  if(!ph&&!vi&&!draft.audio)return "";
+  var bits=[];
+  if(draft.audio)bits.push("a voice note");
+  if(ph)bits.push(ph+" of "+LIMITS.photos+" photos");
+  if(vi)bits.push(vi+" of "+LIMITS.videos+" video"+(LIMITS.videos===1?"":"s"));
+  return '<p class="qcount tally">Attached: '+bits.join(" · ")+'.</p>';
 }
 function shrinkImage(file){
   return new Promise(function(res){
@@ -3971,12 +4077,41 @@ function shrinkImage(file){
     r.readAsDataURL(file);
   });
 }
+/* How long a video runs, before it is accepted. Anything unreadable comes back as 0 and
+   is let through: a metadata read that fails is not a reason to refuse somebody's story. */
+function videoSeconds(file){
+  return new Promise(function(res){
+    var v=document.createElement("video"),url=URL.createObjectURL(file),done=false;
+    var finish=function(s){if(done)return;done=true;URL.revokeObjectURL(url);res(s);};
+    v.preload="metadata";
+    v.onloadedmetadata=function(){finish(isFinite(v.duration)?v.duration:0);};
+    v.onerror=function(){finish(0);};
+    setTimeout(function(){finish(0);},4000);   // a file the browser will not parse
+    v.src=url;
+  });
+}
 async function addDraftFiles(files,kind){
   draft.files=draft.files||[];
   var list=Array.prototype.slice.call(files||[]);
+  var cap=kind==="video"?LIMITS.videos:LIMITS.photos;
   for(var i=0;i<list.length;i++){
     var f=list[i];
-    if(f.size>MEDIA_MAX){toast((f.name||"That file")+" is over the 50MB limit");continue;}
+    /* Counted fresh each time round, not once before the loop, so selecting eight photos
+       at once stops at the sixth instead of accepting all eight. */
+    var have=draft.files.filter(function(x){return x.kind===kind;}).length;
+    if(have>=cap){
+      toast(kind==="video"?"One video per story. Remove the one you have to swap it."
+                          :"Six photos is the limit. Remove one to add another.");
+      break;
+    }
+    if(f.size>LIMITS.fileBytes){toast((f.name||"That file")+" is over the 50MB limit");continue;}
+    if(kind==="video"){
+      var secs=await videoSeconds(f);
+      if(secs>LIMITS.videoSec){
+        toast("That video is "+fmtSecs(secs)+". Videos need to be under "+LIMITS.videoSec+" seconds.");
+        continue;
+      }
+    }
     if(kind==="photo")f=await shrinkImage(f);
     draft.files.push({kind:kind,file:f,preview:URL.createObjectURL(f)});
     draftMediaTiles();
