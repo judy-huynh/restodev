@@ -119,7 +119,7 @@
     --primary:#FF477E;--primaryDark:#D81E5B;--primaryLight:#FFE4EC;--accent:#17C3B2;
     --purple:#8338EC;--future:#3A86FF;--gold:#FFC300;--anchor:#FB5607;
     --text:#241C3B;--muted:#6E6A80;--faint:#9A96A8;--bg:#FFFDF4;--panel:#FFFFFF;
-    --border:#EEE3E9;--line:#F4ECF0;--ok:#0E9384;--watch:#B07800;--strain:#D81E5B;
+    --border:#EEE3E9;--line:#F4ECF0;--ok:#0E9384;--watch:#B07800;--strain:#D81E5B;--bad:#B42318;
     --font:'Plus Jakarta Sans',system-ui,sans-serif;--display:'Unbounded',system-ui,sans-serif;
     --shadow:0 18px 50px -28px rgba(36,28,59,.55);--shadow-sm:0 6px 18px -12px rgba(36,28,59,.5);
   }
@@ -273,6 +273,7 @@
   .kchips{display:flex;flex-wrap:wrap;gap:6px}
   .kchip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:999px;padding:6px 11px;font-size:12px;font-weight:600;color:var(--muted);transition:.14s}
   .kchip .kd{width:9px;height:9px;border-radius:50%}
+  .kchip.on .kn{background:rgba(255,255,255,.3);color:#fff}
   .kchip .kn{background:var(--line);color:var(--faint);border-radius:999px;padding:0 5px;font-size:10.5px;font-weight:700}
   .kchip.on{color:#fff;border-color:transparent}
   .kchip:hover{transform:translateY(-1px)}
@@ -302,6 +303,7 @@
   .sitepage .shk{font-size:9.5px;font-weight:800;letter-spacing:.02em;color:var(--anchor);margin:0 0 3px}
   .sitepage h2{font-family:var(--display);font-size:20px;font-weight:700;line-height:1.2;margin:0;color:var(--text)}
   .sitepage .shaddr{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);line-height:1.45;margin:5px 0 0}
+  .sp-desc.gap{margin-bottom:10px}
   .sitepage .sp-desc{font-size:13px;color:var(--text);line-height:1.6;margin:11px 0 0}
   .sitepage .sp-link{display:inline-block;font-size:12px;font-weight:700;color:var(--primaryDark);text-decoration:underline;margin-top:10px}
   .sitepage .shadd{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:14px;padding:11px;border-radius:10px;background:var(--primary);color:#fff;font-size:13px;font-weight:700}
@@ -388,6 +390,17 @@
   .eacts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
   .eacts .btn.prim{background:var(--primary);color:#fff;border:0;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700}
   .esaved{font-size:12px;font-weight:700;color:var(--ok)}
+  .editaudio{width:100%;margin-top:12px}
+  /* The moderator sign-in card. Deliberately plain: someone who cannot get in has no
+     other route to the queue, so this depends on as little as possible. */
+  .signin{max-width:360px;margin:8px auto 0;background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px}
+  .signin h3{margin:0 0 4px;font-family:var(--display)}
+  .signin p{font-size:13px;color:var(--muted);margin:0 0 16px}
+  .signin input{margin-bottom:10px}
+  .signin input+input{margin-bottom:6px}
+  /* min-height holds the row open so the card does not jump when a message arrives. */
+  .signin .err{color:var(--bad);font-size:12.5px;min-height:17px}
+  .signin .btn{width:100%;margin-top:8px}
 
   /* === CSS SECTION: LIGHTBOX ==========================================================
      One lightbox for the whole app. Opened by openLightbox() from card, detail and desk. */
@@ -456,6 +469,8 @@
   .hp-head span{font-size:11px;color:var(--muted);padding-bottom:2px;line-height:1.3}
   .hp-stat{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:4px 0;font-size:12.5px;color:var(--muted)}
   .hp-stat b{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .hp-stat.tight{padding-top:9px}
+  .hp-stat.ruled{border-top:1px solid var(--line);margin-top:10px;padding-top:9px}
   .hp-meter{margin:8px 0 0}
   .hp-mrow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px;font-size:12.5px;color:var(--muted)}
   .hp-mrow b{font-variant-numeric:tabular-nums}
@@ -671,11 +686,23 @@
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .chip{border:1.5px solid var(--border);background:#fff;border-radius:999px;padding:9px 15px;font-weight:600;font-size:13.5px;color:var(--muted)}
   .chip.on{background:var(--primaryLight);border-color:var(--primary);color:var(--primaryDark)}
+  /* Spacing modifiers. These exist ONLY because they were inline style="" attributes
+     in the script; every value here is one that was already in use. Reach for the
+     component's own rule first. Do not add new numbers to this list. */
+  .mt3{margin-top:3px}.mt8{margin-top:8px}.mt9{margin-top:9px}
+  .mt10{margin-top:10px}.mt12{margin-top:12px}.mt20{margin-top:20px}
+  .mb14{margin-bottom:14px}
+  .center{text-align:center}
+
   .row{display:flex;gap:10px;margin-top:22px}
+  .row.center{justify-content:center}
   .btn{border-radius:12px;padding:14px 22px;font-weight:700;font-size:14.5px}
   .btn.prim{background:var(--primary);color:#fff;flex:1}.btn.prim:disabled{opacity:.4}
   .btn.ghost{background:#fff;border:1.5px solid var(--border);color:var(--muted)}
   .btn.gold{background:var(--gold);color:var(--text);flex:1}
+  /* Must sit after .btn.prim and .btn.gold: same specificity, so source order decides,
+     and both of those set flex:1. */
+  .btn.wide{flex:none;padding:14px 22px}
   .skip{color:var(--muted);text-decoration:underline;font-size:13px;margin-top:14px}
   .media-row{display:flex;gap:12px;flex-wrap:wrap}
   .rec{display:flex;flex-direction:column;align-items:center;gap:8px;border:1.5px solid var(--border);border-radius:16px;padding:18px;flex:1;min-width:150px;background:#fff}
@@ -795,6 +822,10 @@
   .consent-opt{display:flex;gap:11px;align-items:flex-start;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:13.5px;background:#fff;cursor:pointer}
   .consent-opt.on{border-color:var(--primary);background:var(--primaryLight)}
   .consent-opt b{display:block}.consent-opt small{color:var(--muted)}
+  /* The banner across the top of the form at an event. Built by renderBanner(). */
+  .capbanner b{margin:0 5px}
+  .capbanner .ev{opacity:.75}
+  .capbanner .mode{opacity:.55;font-weight:500;margin-left:8px}
   .inst{display:flex;gap:10px;align-items:flex-start;background:#EAFBF7;border:1px solid #BEEEE6;border-radius:12px;padding:12px 14px;font-size:13px;margin-top:8px}
   /* private contact block in capture */
   .contactblock{border:1.5px dashed var(--border);border-radius:14px;padding:14px 15px;margin:16px 0 8px;background:var(--bg)}
@@ -813,10 +844,13 @@
   /* === CSS SECTION: THANKS SCREEN =====================================================
      After a story is submitted. Built by renderThanks(). */
   .thanks{max-width:540px;margin:0 auto;padding:44px 20px;text-align:center}
-  .thanks .big{font-size:46px}.thanks h2{font-family:var(--display);font-size:1.6rem;margin:8px 0 6px}
+  .thanks .big{font-size:46px;color:var(--accent)}
+  .thanks .foot{margin-top:20px;font-size:12px}.thanks h2{font-family:var(--display);font-size:1.6rem;margin:8px 0 6px}
   .thanks p{color:var(--muted);margin:0 auto 20px;max-width:42ch}
   .thanksmap{height:220px;border-radius:16px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:16px}
   .cardmini{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;text-align:left;margin-bottom:18px}
+  .cardmini .txt{font-size:14px;margin:6px 0}
+  .cardmini .meta{font-size:12px;color:var(--muted)}
 
 
   /* === CSS SECTION: LEGACY ADMIN, TOAST ===============================================
@@ -840,7 +874,7 @@
   .reject{background:#fff;border:1.5px solid var(--border);color:var(--muted);border-radius:9px;padding:9px 16px;font-weight:700;font-size:13px}
   .pill-status{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
   .pill-status.pending{background:#FFF4D6;color:#8A6D00}.pill-status.approved{background:#DFF6EF;color:var(--ok)}
-  .pill-status.rejected{background:#FBE4E5;color:#B42318}.pill-status.heritage{background:#EDE4FE;color:#5B21B6}
+  .pill-status.rejected{background:#FBE4E5;color:var(--bad)}.pill-status.heritage{background:#EDE4FE;color:#5B21B6}
   .empty{color:var(--muted);text-align:center;padding:40px;font-size:14px}
   .adminbar{display:flex;gap:10px;align-items:center;margin-top:24px;padding-top:16px;border-top:1px dashed var(--border)}
   .adminbar button{background:none;border:1px solid var(--border);border-radius:8px;padding:7px 13px;font-size:12px;color:var(--muted)}
@@ -864,6 +898,7 @@
   .ipanel{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:16px}
   .ipanel h3{font-size:13px;font-weight:700;margin:0 0 15px;display:flex;justify-content:space-between;align-items:baseline}
   .ipanel h3 span{color:var(--faint);font-weight:600;font-size:11.5px}
+  .ipanel .note{font-size:12px;color:var(--muted);margin:9px 0 0}
   .bar{display:grid;grid-template-columns:168px 1fr 40px;align-items:center;gap:12px;margin-bottom:10px;font-size:12.5px}
   .bar .bl{color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .bar .bt{height:13px;border-radius:7px;background:var(--line);overflow:hidden}
@@ -881,6 +916,12 @@
   .mk-space{width:15px;height:15px;background:var(--gold);border:2px dashed #A9791B;border-radius:3px;opacity:.96;box-shadow:0 2px 6px rgba(0,0,0,.35)}
   .mk-wrap.shared .mk{filter:drop-shadow(0 0 2px rgba(58,134,255,.95)) drop-shadow(0 0 5px rgba(58,134,255,.7)) drop-shadow(0 3px 5px rgba(36,28,59,.5))}
   .prophead{font-size:11px;font-weight:700;color:var(--faint);letter-spacing:.02em;margin:6px 0 12px}
+  .prop-none{color:var(--muted);font-size:13.5px;margin:0 0 6px}
+  .d-hero.space{background:linear-gradient(135deg,rgba(255,195,0,.24),rgba(251,86,7,.16));color:var(--anchor)}
+  .d-ktag.space{background:var(--anchor)}
+  .space-title{font-family:var(--display);font-size:1.25rem;margin:0 0 6px}
+  .space-sub{color:var(--muted);font-size:14px;margin:0 0 18px}
+  .d-locate.gold{background:var(--gold);color:var(--text)}
   .prop{border:1px solid var(--border);border-radius:12px;padding:12px 13px;margin-bottom:9px}
   .prop .pt{font-size:13.5px;font-weight:600;margin:0 0 4px;line-height:1.4}
   .prop .pby{font-size:11.5px;color:var(--muted)}
@@ -2408,7 +2449,7 @@ function renderKChips(){
   var counts={};publicStories().forEach(function(s){counts[s.kind]=(counts[s.kind]||0)+1;});
   $("kchips").innerHTML=Object.keys(KIND).map(function(k){
     var on=F.kinds.has(k);
-    return '<button class="kchip'+(on?" on":"")+'" data-k="'+k+'" style="'+(on?"background:"+KIND[k].color:"")+'"><span class="kd" style="background:'+(on?"#fff":KIND[k].color)+'"></span> '+esc(KIND[k].short)+' <span class="kn" '+(on?'style="background:rgba(255,255,255,.3);color:#fff"':'')+'>'+(counts[k]||0)+'</span></button>';
+    return '<button class="kchip'+(on?" on":"")+'" data-k="'+k+'" style="'+(on?"background:"+KIND[k].color:"")+'"><span class="kd" style="background:'+(on?"#fff":KIND[k].color)+'"></span> '+esc(KIND[k].short)+' <span class="kn">'+(counts[k]||0)+'</span></button>';
   }).join("");
   $("kchips").querySelectorAll("[data-k]").forEach(function(b){b.addEventListener("click",function(){var k=b.dataset.k;if(F.kinds.has(k))F.kinds.delete(k);else F.kinds.add(k);apply();});});
 }
@@ -2528,7 +2569,7 @@ function floodRows(d){
   // One decimal on both, always. Raw concatenation drops the tenth on whole numbers, so
   // one ring read "50.5%" next to "13%" and the pair looked like different measurements.
   var pc=function(v){return v.toFixed(1)+"%";};
-  var out='<div class="hp-stat" style="padding-top:9px"><span>Land that can flood</span><b>'+
+  var out='<div class="hp-stat tight"><span>Land that can flood</span><b>'+
           (a!=null?pc(a):"—")+'</b></div>';
   if(b!=null)out+='<div class="hp-stat"><span>Land that floods less often</span><b>'+pc(b)+'</b></div>';
   var tot=(a||0)+(b||0);
@@ -2649,7 +2690,7 @@ function hoodPage(name){
       '<div class="hp-head"><b>'+(d.medianIncome?money(d.medianIncome):"—")+'</b><span>a typical family<br>makes in a year</span></div>'+
       cmpRow(d,"medianIncome","",true)+
       incomeBands(d)+
-      '<div class="hp-stat" style="border-top:1px solid var(--line);margin-top:10px;padding-top:9px">'+
+      '<div class="hp-stat ruled">'+
         '<span>Rent for a home, each month</span><b>'+(d.medianRent?money(d.medianRent):"—")+'</b></div>'+
       meterRow("Living in poverty",d.povertyPct,50,d.povertyPct>=33?"strain":d.povertyPct>=20?"watch":"ok",base("povertyPct"))+
       meterRow("Households renting",d.renterPct,100,d.renterPct>=70?"strain":d.renterPct>=55?"watch":"ok",base("renterPct"))+
@@ -2746,7 +2787,7 @@ function dcPage(id){
         (p.owner&&p.owner!==p.operator?'<span><b>Owns it</b>'+esc(p.owner)+'</span>':'')+
         '<span><b>Status</b>'+esc(p.status)+'</span>'+
       '</div>'+
-      (p.note?'<p class="sp-desc" style="margin-bottom:10px">'+esc(p.note)+'</p>':'')+
+      (p.note?'<p class="sp-desc gap">'+esc(p.note)+'</p>':'')+
       (p.declared?'<div class="dcdecl">'+
         (p.declared.power?'<p><b>Power</b> '+esc(p.declared.power)+'</p>':'')+
         (p.declared.water?'<p><b>Water</b> '+esc(p.declared.water)+'</p>':'')+
@@ -3062,17 +3103,17 @@ function openSpace(sp){
   var appr=(sp.proposals||[]).filter(function(p){return p.status==="approved";});
   var props=appr.length?appr.map(function(p){
     return '<div class="prop"><div class="pt">"'+esc(p.text)+'"</div><div class="pby">proposed by '+esc(p.name||"a neighbor")+'</div><button class="cosign" data-cosign="'+p.id+'">'+ic("join",13)+' I\'d join this · '+p.cosigns+'</button></div>';
-  }).join(""):'<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">No ideas yet. Be the first to say what could grow here.</p>';
+  }).join(""):'<p class="prop-none">No ideas yet. Be the first to say what could grow here.</p>';
   var n=appr.length;
   $("detail").innerHTML=
-    '<div class="d-hero noimg" style="background:linear-gradient(135deg,rgba(255,195,0,.24),rgba(251,86,7,.16));color:var(--anchor)">'+ic("plot",44)+'<div class="dscrim"></div></div>'+
+    '<div class="d-hero noimg space">'+ic("plot",44)+'<div class="dscrim"></div></div>'+
     '<button class="d-close" id="dClose">←</button>'+
-    '<span class="d-ktag" style="background:var(--anchor)">'+ic("plot",13)+' Open space · '+esc(sp.status)+'</span>'+
+    '<span class="d-ktag space">'+ic("plot",13)+' Open space · '+esc(sp.status)+'</span>'+
     '<div class="d-body">'+
-      '<h3 style="font-family:var(--display);font-size:1.25rem;margin:0 0 6px">'+esc(sp.name)+'</h3>'+
-      '<p style="color:var(--muted);font-size:14px;margin:0 0 18px">'+esc(sp.blurb)+'</p>'+
+      '<h3 class="space-title">'+esc(sp.name)+'</h3>'+
+      '<p class="space-sub">'+esc(sp.blurb)+'</p>'+
       '<div class="prophead">What could grow here · '+n+' idea'+(n===1?'':'s')+'</div>'+props+
-      '<button class="d-locate" id="proposeBtn" style="background:var(--gold);color:var(--text)">+ Propose a use</button>'+
+      '<button class="d-locate gold" id="proposeBtn">+ Propose a use</button>'+
       '<div id="proposeForm"></div>'+
     '</div>';
   $("detail").classList.add("open");$("panel").classList.add("up");
@@ -3085,7 +3126,7 @@ function showProposeForm(sp){
   $("proposeForm").innerHTML=
     '<div class="propform">'+
       '<textarea id="propText" rows="3" placeholder="What would you do with this space?"></textarea>'+
-      '<input type="text" class="ti" id="propName" placeholder="Your name (optional)" style="margin-top:8px">'+
+      '<input type="text" class="ti mt8" id="propName" placeholder="Your name (optional)">'+
       '<div class="row">'+
         '<button class="btn ghost" id="propCancel">Cancel</button>'+
         '<button class="btn gold" id="propSubmit">Propose it</button>'+
@@ -3413,9 +3454,9 @@ function renderBanner(){
   }
   el.className="capbanner";
   el.innerHTML=
-    'Collecting for <b style="margin:0 5px">'+esc(m.label)+'</b>'+
-    (eventParam?'<span style="opacity:.75">· '+esc(eventParam)+'</span>':'')+
-    '<span style="opacity:.55;font-weight:500;margin-left:8px">· '+(MODES[draft.mode]||draft.mode)+'</span>';
+    'Collecting for <b>'+esc(m.label)+'</b>'+
+    (eventParam?'<span class="ev">· '+esc(eventParam)+'</span>':'')+
+    '<span class="mode">· '+(MODES[draft.mode]||draft.mode)+'</span>';
 }
 function renderProg(){$("prog").innerHTML=STEPS.map(function(_,i){return '<i class="'+(i<stepIdx?"done":i===stepIdx?"now":"")+'"></i>';}).join("");}
 function goNext(){stepIdx++;if(stepIdx>=STEPS.length)submitDraft();else renderStep();}
@@ -3573,17 +3614,17 @@ function renderStep(){
         '<b>Add a video</b><span>From your phone or computer</span></div>'+
       '<input type="file" id="videoIn" accept="video/*" multiple hidden>'+
       '<div class="draftmedia" id="draftMedia"></div>'+
-      navRow(false)+'<div style="text-align:center"><button class="skip" id="skipMedia">Skip, No Media</button></div>';
+      navRow(false)+'<div class="center"><button class="skip" id="skipMedia">Skip, No Media</button></div>';
     wireNav();$("nextBtn").disabled=false;$("skipMedia").addEventListener("click",goNext);
     wireRecorder();wireDraftMedia();
   } else if(step==="consent"){
-    b.innerHTML='<h2 class="q">You &amp; your consent.</h2><p class="qsub">These stories belong to Memphis. You choose how much of your name travels with yours.</p><input type="text" class="ti" id="cname" placeholder="Your name (optional)" value="'+esc(draft.name)+'" style="margin-bottom:14px"><div id="visOpts"></div>'+
+    b.innerHTML='<h2 class="q">You &amp; your consent.</h2><p class="qsub">These stories belong to Memphis. You choose how much of your name travels with yours.</p><input type="text" class="ti mb14" id="cname" placeholder="Your name (optional)" value="'+esc(draft.name)+'"><div id="visOpts"></div>'+
       '<div class="contactblock"><div class="cb-h"><span class="lock">'+ic("lock",15)+'</span> Stay in touch <span>private, The Big We only</span></div>'+
       '<p class="cb-note">So we can let you know when your story is published, or reach out if we need to. This never shows on the map.</p>'+
       '<input type="email" class="ti" id="cemail" placeholder="Email (optional)" value="'+esc(draft.email)+'" autocomplete="email">'+
       '<input type="tel" class="ti" id="cphone" placeholder="Phone, for a text (optional)" value="'+esc(draft.phone)+'" autocomplete="tel"></div>'+
       '<label class="inst">'+
-        '<input type="checkbox" id="instChk" '+(draft.inst?"checked":"")+' style="margin-top:3px">'+
+        '<input type="checkbox" id="instChk" class="mt3" '+(draft.inst?"checked":"")+'>'+
         '<span><b>Data for freedom.</b> OK for The Big We to share this, anonymized, with '+
         'city partners when advocating for restoration. You can say no and it still lives '+
         'on the community map.</span>'+
@@ -3594,7 +3635,7 @@ function renderStep(){
           (draft.kind==="future"?"vision":"memory")+'</button>'+
       '</div>';
     var VIS=[["full","Full name","Shown with your full name on the public map"],["first","First name only","Shown with just your first name"],["anon","Anonymous","On the public map, but no name attached"],["heritage","Heritage record only, not public","Never shown publicly; joins the community's private heritage record"]];
-    $("visOpts").innerHTML=VIS.map(function(v){return '<label class="consent-opt'+(draft.vis===v[0]?" on":"")+'" data-v="'+v[0]+'"><input type="radio" name="vis" '+(draft.vis===v[0]?"checked":"")+' style="margin-top:3px"><span><b>'+esc(v[1])+'</b><small>'+esc(v[2])+'</small></span></label>';}).join("");
+    $("visOpts").innerHTML=VIS.map(function(v){return '<label class="consent-opt'+(draft.vis===v[0]?" on":"")+'" data-v="'+v[0]+'"><input type="radio" name="vis" class="mt3" '+(draft.vis===v[0]?"checked":"")+'><span><b>'+esc(v[1])+'</b><small>'+esc(v[2])+'</small></span></label>';}).join("");
     $("visOpts").querySelectorAll("[data-v]").forEach(function(el){el.addEventListener("click",function(){draft.vis=el.dataset.v;$("visOpts").querySelectorAll(".consent-opt").forEach(function(c){c.classList.remove("on");});el.classList.add("on");el.querySelector("input").checked=true;});});
     $("cname").addEventListener("input",function(){draft.name=this.value;});$("instChk").addEventListener("change",function(){draft.inst=this.checked;});
     $("cemail").addEventListener("input",function(){draft.email=this.value;});$("cphone").addEventListener("input",function(){draft.phone=this.value;});
@@ -3743,7 +3784,7 @@ function renderThanks(s){var isV=s.kind==="future";
   var na=isV?publicStories().filter(function(x){return x.kind==="future"&&x.hood===s.hood&&x.id!==s.id;}).length:0;
   $("thanksInner").innerHTML=
     '<div class="thanks">'+
-      '<div class="big" style="color:var(--accent)">'+ic("sprout",44)+'</div>'+
+      '<div class="big">'+ic("sprout",44)+'</div>'+
       '<h2>'+(isV?"Vision":"Memory")+' rooted!</h2>'+
       '<p>Thank you'+(s.name?", "+esc(s.name.split(" ")[0]):"")+
         '. The Big We will review it before it joins the public map. '+
@@ -3760,15 +3801,15 @@ function renderThanks(s){var isV=s.kind==="future";
         '<div style="font-size:12px;font-weight:700;color:'+storyKind(s).color+'">'+
           kindMark(s,13,true)+
         '</div>'+
-        '<div style="font-size:14px;margin:6px 0">'+esc(s.story)+'</div>'+
+        '<div class="txt">'+esc(s.story)+'</div>'+
         (s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+
-        '<div style="font-size:12px;color:var(--muted)">'+esc(s.corner)+' · '+esc(eraLabel(s.era))+'</div>'+
+        '<div class="meta">'+esc(s.corner)+' · '+esc(eraLabel(s.era))+'</div>'+
       '</div>'+
-      '<div class="row" style="justify-content:center">'+
+      '<div class="row center">'+
         '<button class="btn ghost" id="tMap">See the Map</button>'+
-        '<button class="btn prim" id="tAgain" style="flex:none;padding:14px 22px">Add Another</button>'+
+        '<button class="btn prim wide" id="tAgain">Add Another</button>'+
       '</div>'+
-      '<p style="margin-top:20px;font-size:12px">Want to watch it go live? '+
+      '<p class="foot">Want to watch it go live? '+
         'Open <b>Moderate</b> and approve it.</p>'+
     '</div>';
   $("tMap").addEventListener("click",function(){showView("explore");apply();});$("tAgain").addEventListener("click",function(){startCapture();});
@@ -3936,7 +3977,7 @@ function renderEditor(){
       '<div><label class="efl" for="mKind">Story type</label><select class="ti" id="mKind">'+
         Object.keys(KIND).map(function(x){return '<option value="'+x+'"'+(x===s.kind?" selected":"")+'>'+esc(KIND[x].label)+'</option>';}).join("")+'</select></div>'+
     '</div>'+
-    '<div class="egrid2" style="margin-top:9px">'+
+    '<div class="egrid2 mt9">'+
       '<div><label class="efl" for="mCorner">Corner, as they said it</label><input class="ti" id="mCorner" value="'+esc(s.corner)+'"></div>'+
       /* The name field was only disabled for `anon`, but displayName() prints "Anonymous"
          for `heritage` too. So on a heritage story a moderator could type a full name,
@@ -3965,7 +4006,7 @@ function renderEditor(){
     (s.vis0&&s.vis0!==s.vis
       ? '<p class="ehint warn">'+ic("lock",11)+' They chose <b>'+esc(visLabel(s.vis0))+'</b>. You are overriding that. Only do this if they told you it was alright.</p>'
       : '<p class="ehint">They chose <b>'+esc(visLabel(s.vis))+'</b> when they submitted it. Changing this overrides their choice.</p>')+
-    '<div class="tagrow" style="margin-top:10px"><button type="button" class="mtag'+(s.featured?" on":"")+'" id="mFeat">'+ic("star",12)+' Feature on the Map</button></div>'+
+    '<div class="tagrow mt10"><button type="button" class="mtag'+(s.featured?" on":"")+'" id="mFeat">'+ic("star",12)+' Feature on the Map</button></div>'+
     '<p class="ehint">The only moderator decision the public sees.</p>'+
 
     '<p class="elegend">'+ic("camera",12)+' Photos, video and files</p>'+
@@ -3979,15 +4020,15 @@ function renderEditor(){
     '<div class="privbox">'+
       '<p class="elegend priv">'+ic("lock",12)+' Moderators only · never leaves this page</p>'+
       '<label class="efl">Workflow</label>'+modTagRow(MOD_WORKFLOW,v.workflow||[],"w")+
-      '<label class="efl" style="margin-top:10px">Value to the project</label>'+modTagRow(MOD_VALUE,v.value||[],"v")+
-      '<label class="efl" style="margin-top:12px">Contact, as they gave it</label>'+
+      '<label class="efl mt10">Value to the project</label>'+modTagRow(MOD_VALUE,v.value||[],"v")+
+      '<label class="efl mt12">Contact, as they gave it</label>'+
       '<div class="egrid3">'+
         '<div><input class="ti" id="mcName" placeholder="Name" value="'+esc((s.contact&&s.contact.name)||"")+'"></div>'+
         '<div><input class="ti" id="mcEmail" type="email" placeholder="Email" value="'+esc((s.contact&&s.contact.email)||"")+'"></div>'+
         '<div><input class="ti" id="mcPhone" type="tel" placeholder="Phone" value="'+esc((s.contact&&s.contact.phone)||"")+'"></div>'+
       '</div>'+
       '<p class="privmeta">For fixing a typo in an email or a missed digit in a phone number. Clearing all three removes the contact from the story.</p>'+
-      '<label class="efl" style="margin-top:12px" for="mNote">Note for the team</label>'+
+      '<label class="efl mt12" for="mNote">Note for the team</label>'+
       '<textarea class="ti" id="mNote" rows="2" placeholder="What the next person needs to know.">'+esc(v.note||"")+'</textarea>'+
       (v.updated_by?'<p class="privmeta">Last touched by '+esc(v.updated_by)+'</p>':'')+
     '</div>'+
@@ -3998,7 +4039,7 @@ function renderEditor(){
       (s.status!=="rejected"?'<button class="reject" id="mRej">'+ic("x",13)+' Reject</button>':"")+
       '<span class="esaved" id="mSaved"></span>'+
     '</div>'+
-    (s.audio?'<audio controls src="'+s.audio+'" style="width:100%;margin-top:12px"></audio>':"")+
+    (s.audio?'<audio controls src="'+s.audio+'" class="editaudio"></audio>':"")+
     contactRow(s.contact);
 
   wireMedia(s);
@@ -4097,15 +4138,15 @@ async function modStory(id,st){try{await supaSetStatus(id,st);}catch(e){if(e.mes
    stylesheet is a change to how it looks, and this commit changes only how it reads. */
 function renderLogin(msg){
   $("adminList").innerHTML=
-    '<div style="max-width:360px;margin:8px auto 0;background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px">'+
-      '<h3 style="margin:0 0 4px;font-family:var(--display)">Moderator Sign-in</h3>'+
-      '<p style="font-size:13px;color:var(--muted);margin:0 0 16px">'+
+    '<div class="signin">'+
+      '<h3>Moderator Sign-in</h3>'+
+      '<p>'+
         'Sign in with your Ground Truth moderator account to review and approve community stories.</p>'+
-      '<input type="email" class="ti" id="mEmail" placeholder="Email" autocomplete="username" style="margin-bottom:10px">'+
-      '<input type="password" class="ti" id="mPass" placeholder="Password" autocomplete="current-password" style="margin-bottom:6px">'+
+      '<input type="email" class="ti" id="mEmail" placeholder="Email" autocomplete="username">'+
+      '<input type="password" class="ti" id="mPass" placeholder="Password" autocomplete="current-password">'+
       /* min-height holds the row open so the card does not jump when an error arrives. */
-      '<div id="mErr" style="color:#B42318;font-size:12.5px;min-height:17px">'+(msg?esc(msg):"")+'</div>'+
-      '<button class="btn prim" id="mLogin" style="width:100%;margin-top:8px">Sign in</button>'+
+      '<div id="mErr" class="err">'+(msg?esc(msg):"")+'</div>'+
+      '<button class="btn prim" id="mLogin">Sign in</button>'+
     '</div>';
 
   $("mLogin").addEventListener("click",async function(){
@@ -4198,7 +4239,7 @@ function renderImpact(){
       '<div class="bar"><span class="bl">OK to cite to city partners</span>'+
         '<div class="bt"><div class="bf" style="width:'+pct+'%;background:var(--ok)"></div></div>'+
         '<span class="bv">'+pct+'%</span></div>'+
-      '<p style="font-size:12px;color:var(--muted);margin:9px 0 0">'+
+      '<p class="note">'+
         freedom+' of '+approved.length+' contributors opted in to let The Big We cite their '+
         'story (anonymized) when advocating with the city. '+heritage+' chose '+
         'heritage-record-only, held privately, never public.</p>'+
@@ -4214,7 +4255,7 @@ function renderImpact(){
             '%;background:var(--gold)"></div></div>'+
           '<span class="bv">'+pc+'</span></div>';
       }).join("")+
-      '<p style="font-size:12px;color:var(--muted);margin:9px 0 0">'+
+      '<p class="note">'+
         propCount+' proposed uses · '+cosignCount+' co-signs · '+dreamsAffirmed+
         ' dreams affirmed. Underused space claimed back as a commons.</p>'+
     '</div>';
