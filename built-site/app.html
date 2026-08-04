@@ -1808,6 +1808,15 @@ var FILTERS=[
      no count and no pill: its own profile carries the way back. */
   {key:"dc",type:"value",label:"Data center",param:"dc"},
 
+  /* The open story. Like `dc` it chooses what is shown rather than narrowing the list, so
+     no passes(), no count, no pill. Its control is the story itself: selectStory() sets
+     it, closeDetail() clears it.
+     Being in this list is the whole of what makes a story linkable. The URL carried the
+     neighborhood, the site, the type and the era, and nothing for the one thing people
+     actually want to send someone. Resolved against publicStories() and never STORIES,
+     so an id cannot be guessed into a heritage story. See D19. */
+  {key:"story",type:"value",label:"Story",param:"story"},
+
   {key:"q",type:"text",label:"Search",counts:true,param:"q",
    passes:function(s,v){
      var q=v.toLowerCase();
@@ -2637,7 +2646,10 @@ function renderActiveF(){
      dropdowns kept reading "Downtown / Clayborn" and "1960s-70s" over a list that was no
      longer filtered by either, which is the same lie the count on the toggle exists to
      prevent. */
-  var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){F=blankFilters();$("searchIn").value="";renderSelects();apply();});
+  /* closeDetail() first, because `story` is in the registry now and blankFilters() would
+     otherwise drop the id while leaving the pane sitting open over the panel. Clear All
+     means back to all of Memphis, and that includes whatever page or story is open. */
+  var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){closeDetail();F=blankFilters();$("searchIn").value="";renderSelects();apply();});
   var blank=blankFilters();
   $("activeF").querySelectorAll("[data-clr]").forEach(function(b){b.addEventListener("click",function(){F[b.dataset.clr]=blank[b.dataset.clr];apply();});});
   renderFCount();
@@ -3115,8 +3127,10 @@ function syncUrl(){
   var qs=p.toString();
   try{history.replaceState(null,"",location.pathname+(qs?"?"+qs:"")+location.hash);}catch(e){}
 }
-function copyLink(){
-  var url=location.href;
+/* Copies this page's address, or a given one. The guard on the type is doing real work:
+   this is also used bare as a click handler, where the argument is an Event. */
+function copyLink(target){
+  var url=typeof target==="string"?target:location.href;
   if(navigator.clipboard&&navigator.clipboard.writeText)
     navigator.clipboard.writeText(url).then(function(){toast("Link copied");}).catch(function(){toast(url);});
   else toast(url);
@@ -3125,12 +3139,44 @@ function apply(){renderKChips();renderActiveF();renderMeta();renderCards();rende
 
 /* === JS SECTION: STORY DETAIL AND LIGHTBOX ===========================================
    The expanded story, and the lightbox shared by card, detail and moderator desk. */
+/* Links to one story, in both directions. Built off this page's own address rather than
+   location.origin, because the demo has to work from a USB stick, where origin is "null"
+   and every link built from it is dead. */
+function pageUrl(){return location.href.split("#")[0].split("?")[0];}
+function storyLink(id){return pageUrl()+"?story="+encodeURIComponent(id);}
+function deskLink(id){return pageUrl()+"?mode=admin&story="+encodeURIComponent(id);}
 function selectStory(id,fly){
   var s=STORIES.find(function(x){return x.id===id;});if(!s)return;
+  // Opening a story puts it in the address bar, which is what makes it sendable without
+  // anybody pressing a button. syncUrl() picks it up from the registry.
+  F.story=id;
   selMarker(id);
   $("cards").querySelectorAll(".card").forEach(function(c){c.classList.toggle("sel",c.dataset.id===id);});
   if(fly&&map)map.flyTo([s.lat,s.lng],15,{duration:1.1});
   openDetail(s);
+  /* renderActiveF as well as syncUrl, because `story` is a registry value now and the
+     active-filter row is drawn from the registry. Without it the row goes stale: open a
+     story, close it again, and "Clear All Filters" sits there over nothing. Not apply(),
+     which would redraw the card list underneath the pane that just opened. */
+  renderActiveF();syncUrl();
+}
+/* A ?story= link, acted on only once the real stories have arrived. At boot STORIES holds
+   the local seed fallback, so resolving against it would open the wrong story or none. */
+function openLinkedStory(){
+  var id=F.story;if(!id)return;
+  // publicStories(), never STORIES. A heritage story is never public and must not become
+  // reachable by guessing an id, and the message below says the same thing whether the
+  // story is pending, rejected, heritage or was never there. D19.
+  var s=publicStories().filter(function(x){return x.id===id;})[0];
+  if(!s){toast("That story is not on the public map. It may still be waiting to be published.");return;}
+  /* The link wins over anything else the link carried. Somebody sent this to be read, and
+     a filter that hides it would show an empty list, which reads as a broken link. */
+  if(!passes(s)){
+    F=blankFilters();F.story=id;
+    var q=$("searchIn");if(q)q.value="";
+    renderSelects();apply();
+  }
+  selectStory(id,true);
 }
 /* Everything else attached to a story: the photos after the first, any video, any
    document. The hero already shows the first photo and the player already handles the
@@ -3235,11 +3281,20 @@ function openDetail(s){
       '<div class="r"><span>Era</span><b>'+storyWhen(s)+'</b></div>'+
       (s.campaign&&CAMPAIGNS[s.campaign]&&s.campaign!=="web"?'<div class="r"><span>Collected at</span><b>'+esc(CAMPAIGNS[s.campaign].label)+'</b></div>':"")+
     '</div>'+
-    '<button class="d-locate" id="dLocate">'+ic("pin",14)+' Show on the Map</button></div>';
+    '<button class="d-locate" id="dLocate">'+ic("pin",14)+' Show on the Map</button>'+
+    /* Copying is offered rather than assumed. The address bar already carries this story,
+       so the button is a shortcut for people who would not think to look there.
+       "Open in Moderate" appears only for someone already signed in, and it is navigation,
+       not access: the desk checks the session for itself. */
+    '<div class="sp-bar mt9"><button type="button" class="sp-link" id="dCopy">'+ic("join",12)+' Copy Link to This Story</button>'+
+    (SUPA.session?'<button type="button" class="sp-link" id="dMod">'+ic("edit",12)+' Open in Moderate</button>':'')+
+    '</div></div>';
   $("detail").classList.add("open");$("panel").classList.add("up");
   $("dClose").addEventListener("click",closeDetail);
   var ab=$("affirmBtn");if(ab)ab.addEventListener("click",function(){AFF[s.id]=(AFF[s.id]||0)+1;saveAff();s.affirms=AFF[s.id];renderMarkers();openDetail(s);toast("You share this dream: "+s.affirms+" now");});
   $("dLocate").addEventListener("click",function(){if(map)map.flyTo([s.lat,s.lng],16,{duration:1.1});});
+  $("dCopy").addEventListener("click",function(){copyLink(storyLink(s.id));});
+  var dm=$("dMod");if(dm)dm.addEventListener("click",function(){openOnDesk(s.id);});
   /* Hero, section heading and every thumbnail go through one path, and every one of them
      opens the whole photo set rather than just itself. Enter and Space as well as click,
      because these are images and headings acting as buttons and neither is focusable or
@@ -3256,7 +3311,7 @@ function openDetail(s){
     chipSet(el.dataset.tag,el.dataset.v);
   });});
 }
-function closeDetail(){$("detail").classList.remove("open");selMarker(null);}
+function closeDetail(){F.story=null;$("detail").classList.remove("open");selMarker(null);renderActiveF();syncUrl();}
 
 /* === JS SECTION: INTEGRATION 1, CLAIM A SPACE ========================================
    Jayne Engle's commons layer. Local-only. Its moderation path is dead code. */
@@ -4036,7 +4091,20 @@ function renderThanks(s){var isV=s.kind==="future";
 /* === JS SECTION: LEGACY ADMIN TABS ===================================================
    The tab strip above the moderator desk. */
 var adminTab="pending";
-document.querySelectorAll(".tabs button").forEach(function(b){b.addEventListener("click",function(){adminTab=b.dataset.tab;document.querySelectorAll(".tabs button").forEach(function(x){x.classList.remove("on");});b.classList.add("on");renderAdmin();});});
+/* A story somebody linked straight to, from ?story= or from "Open in Moderate" on the
+   public map. Held apart from modSel because the queue it is in may not be the tab that
+   is open, and renderAdmin() has to be free to go and look in the others. modTried stops
+   that search going round for ever when the id matches nothing anywhere. */
+var modWanted=null,modTried=[];
+function openOnDesk(id){modWanted=id;modTried=[];modSel=id;showView("admin");}
+/* The tab, switchable from code as well as from a click. The variable and the button
+   state were only ever set together inside the click handler, so nothing else could move
+   the queue without leaving the wrong tab looking selected. */
+function setAdminTab(name){
+  adminTab=name;
+  document.querySelectorAll(".tabs button").forEach(function(x){x.classList.toggle("on",x.dataset.tab===name);});
+}
+document.querySelectorAll(".tabs button").forEach(function(b){b.addEventListener("click",function(){setAdminTab(b.dataset.tab);modWanted=null;renderAdmin();});});
 ["mfHood","mfEra","mfKind","mfFlag"].forEach(function(id){var el=$(id);if(!el)return;
   el.addEventListener("change",function(){
     modFilters={hood:$("mfHood").value,era:$("mfEra").value,kind:$("mfKind").value,flag:$("mfFlag").value};
@@ -4180,6 +4248,15 @@ function renderEditor(){
       (s.inst?"ok to share with the city":"community-only")+'</p></div>'+
       '<span class="ktag ktag-sm" style="background:'+k.color+'">'+ic(k.icon,12)+' '+esc(k.short)+'</span></div>'+
 
+    /* The CEO case: a moderator wants to hand somebody this exact story, fast. The copy
+       gives a desk link for another moderator; the public one is an <a href>, so
+       middle-click and cmd-click open it in a tab the way any link should.
+       The public link is drawn only for an approved story, because for a pending or
+       rejected one it is guaranteed to land on "that story is not on the public map". */
+    '<div class="sp-bar"><button type="button" class="sp-link" id="eCopy">'+ic("join",12)+' Copy Desk Link</button>'+
+      (s.status==="approved"?'<a class="sp-link" id="ePublic" href="'+esc(storyLink(s.id))+'" target="_blank" rel="noopener">'+ic("pin",12)+' View on the Public Map</a>':'')+
+    '</div>'+
+
     '<p class="elegend">'+ic("edit",12)+' The story</p>'+
     '<textarea class="ti" id="mStory" rows="5">'+esc(s.story)+'</textarea>'+
     '<p class="ehint">Saving replaces what the person said. No earlier version is kept.</p>'+
@@ -4304,6 +4381,7 @@ function renderEditor(){
   checkDeskFields();
   var ap=$("mAppr");if(ap)ap.addEventListener("click",function(){modStory(s.id,"approved");});
   var rj=$("mRej");if(rj)rj.addEventListener("click",function(){modStory(s.id,"rejected");});
+  $("eCopy").addEventListener("click",function(){copyLink(deskLink(s.id));});
 }
 /* One save writes both halves: the public row, and the moderator layer beside it. */
 async function saveStoryEdits(s,v,btn){
@@ -4360,6 +4438,20 @@ async function renderAdmin(){
   }catch(e){ console.warn("contacts unavailable",e); }
   if(adminTab==="pending")$("nPend").textContent=modRows.length?"("+modRows.length+")":"";
   if(adminTab==="approved")$("nAppr").textContent=modRows.length?"("+modRows.length+")":"";
+  /* A linked-to story may sit in any of the three queues, so look through the other two
+     rather than landing silently on whatever happens to be at the top of this one. That
+     silent landing is the failure mode worth avoiding: a moderator sent a link about one
+     story and the next person opens a different story with no sign anything went wrong. */
+  if(modWanted){
+    if(modRows.some(function(s){return s.id===modWanted;})){modSel=modWanted;modWanted=null;modTried=[];}
+    else{
+      modTried.push(adminTab);
+      var next=["pending","approved","rejected"].filter(function(t){return modTried.indexOf(t)<0;})[0];
+      if(next){setAdminTab(next);return renderAdmin();}
+      modWanted=null;modTried=[];
+      toast("That story is not in any of these queues.");
+    }
+  }
   if(!modRows.some(function(s){return s.id===modSel;}))modSel=modRows.length?modRows[0].id:null;
   renderQueue();renderEditor();
 }
@@ -4571,10 +4663,16 @@ hydrateIcons(document);
 initFilterToggle();
 renderKChips();renderSelects();renderActiveF();renderMeta();renderCards();
 if(mode==="share"||mode==="kiosk"){showView("explore");startCapture(kindParam||null);}
-else if(mode==="admin"){showView("admin");}
+// ?mode=admin&story=<id> opens the desk on that exact story, whichever queue it is in.
+else if(mode==="admin"){if(F.story)openOnDesk(F.story);else showView("admin");}
 else{showView("explore");}
 setTimeout(renderSpotlight,400);
-(async function(){try{STORIES=await supaFetchApproved();renderSelects();apply();renderSpotlight();}catch(e){console.warn("Supabase load failed; showing local seed stories.",e);}})();
+(async function(){try{STORIES=await supaFetchApproved();renderSelects();apply();renderSpotlight();
+  /* ?story= is acted on here and not in the boot block above, because until this line
+     STORIES holds the local seed fallback and the id would resolve to nothing. On the
+     desk it is renderAdmin's job instead, off its own queues. */
+  if(mode!=="admin")openLinkedStory();
+}catch(e){console.warn("Supabase load failed; showing local seed stories.",e);}})();
 </script>
 </body>
 </html>
