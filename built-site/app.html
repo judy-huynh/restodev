@@ -21,19 +21,31 @@
      One file on purpose: it deploys by push and it works offline from a
      USB stick, which is what the demo needs. See DECISIONS.md.
 
-     TO NAVIGATE: search the text  SECTION: <name>  from the lists below.
+     TO NAVIGATE: search  CSS SECTION: <name>  or  JS SECTION: <name>.
+     The prefix matters. Several sections exist in BOTH the stylesheet and
+     the script (STORY CARD, MODERATOR DESK, ICONS, CITY DATA MODAL...),
+     and a search for the bare name will land you in the wrong one. That
+     has already caused a whole block of JavaScript to be pasted into the
+     stylesheet, where it parsed as nothing and failed only at runtime.
      Do NOT navigate by line number. Line numbers go stale, anchors do not.
-     Every banner names the counterpart you probably also have to edit.
 
-     THE THREE THINGS THAT BITE PEOPLE HERE
-     1. A story is drawn in FOUR places: renderCards (list), openDetail
-        (expanded), renderSpotlight (featured), renderQueue (moderator).
-        Changing one changes one.
-     2. The moderator editor and the code that SAVES it are ~2,000 lines
-        apart (SECTION: MODERATOR DESK vs SECTION: SUPABASE). A field added
-        to one and not the other renders, accepts typing, and never saves.
-     3. Responsive rules are grouped one @media block per breakpoint.
-        Add to the group, not to the end, or duplicates creep back.
+     WHERE TO EDIT THE THINGS YOU EDIT MOST
+
+     A STORY, as it appears anywhere:
+       JS SECTION: STORY PRIMITIVES  is what a story IS. Change meaning here
+       and all four renderers follow. Change LAYOUT in the renderer itself:
+       renderCards (list), openDetail (expanded), renderSpotlight (featured),
+       renderQueue (moderator row). Card styling: CSS SECTION: STORY CARD.
+
+     A MAP LAYER, adding or changing one:
+       JS SECTION: LAYER REGISTRY. One object per layer, and that is all.
+       The Layers panel, the click handlers and the City Data table all
+       derive from it. Do not hand-write a <button class="lrow">.
+
+     THE MODERATOR PAGE:
+       JS SECTION: MODERATOR DESK draws it. JS SECTION: SUPABASE saves it,
+       about 1,700 lines away. A field added to one and not the other will
+       render, accept typing, and silently never save.
 
      ---- STYLESHEET SECTIONS, in order ----
      DESIGN TOKENS AND BASE
@@ -48,8 +60,8 @@
      MEDIA UPLOAD
      LIGHTBOX
      STORY MEDIA IN THE DETAIL PANE
-     STORY CARD
      NEIGHBORHOOD AND DATA CENTRE PROFILE
+     STORY CARD
      MAP SHELL AND LAYER PANEL
      SPOTLIGHT AND MOBILE FAB
      MAP MARKERS
@@ -66,7 +78,6 @@
      IMPACT
      INTEGRATIONS: CLAIM A SPACE, SHARED DREAMS
      RESPONSIVE
-
      ---- SCRIPT SECTIONS, in order ----
      ICONS
      CONSTANTS
@@ -78,8 +89,10 @@
      MAP: TOKEN AND BASE TILES
      GEOCODING AND SEARCH
      MAP INIT AND PANES
+     LAYER REGISTRY
      STORY MARKERS
      PANEL, FILTERS AND SELECTS
+     STORY PRIMITIVES
      STORY CARD
      STORY DETAIL AND LIGHTBOX
      INTEGRATION 1, CLAIM A SPACE
@@ -93,14 +106,13 @@
      IMPACT SCREEN
      SPOTLIGHT
      BOOT: URL PARAMS AND FIRST RENDER
-
      NOT IN THIS FILE: story data (Supabase, tenant memphis-roots), map
      layers (data/*.geojson), landing page (index.html), city base map
      (layers.html). Internal notes: START-HERE.md, DECISIONS.md, CHANGELOG.md.
 -->
 <style>
 
-  /* === SECTION: DESIGN TOKENS AND BASE ============================================
+  /* === CSS SECTION: DESIGN TOKENS AND BASE ============================================
      Colours, fonts, shadows. Change a colour ONCE here, not in a rule.
      Story-type colours are NOT here: they live in KIND, in SECTION: CONSTANTS. */
   :root{
@@ -121,9 +133,9 @@
   ::-webkit-scrollbar-thumb{background:#E4D8E0;border-radius:20px;border:3px solid var(--panel)}
 
 
-  /* === SECTION: APP BAR AND NAV ===================================================
+  /* === CSS SECTION: APP BAR AND NAV ===================================================
      The top bar: logo, menu, Add button. Markup is inline in <body>, search id="appbar".
-     The mobile sizes for these are in SECTION: RESPONSIVE at the end of this stylesheet. */
+     The mobile sizes for these are in CSS SECTION: RESPONSIVE at the end of this stylesheet. */
   .appbar{display:flex;align-items:center;gap:12px;padding:0 18px;height:60px;background:var(--panel);border-bottom:1px solid var(--border);z-index:1200;flex:none}
   .brand{display:flex;align-items:center;gap:11px;padding:0;background:none;border:0;cursor:pointer;text-align:left;flex:none;text-decoration:none;color:inherit}
   .brand:hover .bk b{color:var(--primaryDark)}
@@ -147,12 +159,12 @@
 
   /* inline icons */
 
-  /* === SECTION: ICONS =============================================================
-     Wrapper for the inline SVG set. The paths are in SECTION: ICONS in the script. */
+  /* === CSS SECTION: ICONS =============================================================
+     Wrapper for the inline SVG set. The paths are in JS SECTION: ICONS. */
   .ic{display:inline-block;vertical-align:-.15em;flex:none;pointer-events:none}
 
 
-  /* === SECTION: MODAL SHELL =======================================================
+  /* === CSS SECTION: MODAL SHELL =======================================================
      Shared chrome for any centred modal: scrim, panel, header, close. */
   .mscrim{position:fixed;inset:0;z-index:1600;background:rgba(36,28,59,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:22px;animation:mfade .18s ease}
   @keyframes mfade{from{opacity:0}to{opacity:1}}
@@ -168,8 +180,8 @@
   /* City Data tables. The wrapper scrolls on its own so the modal body never scrolls
      sideways, and the header row stays put while you read down 17 neighborhoods. */
 
-  /* === SECTION: CITY DATA MODAL ===================================================
-     The City Data screen only. Built by renderCityData() in SECTION: CITY DATA MODAL (script).
+  /* === CSS SECTION: CITY DATA MODAL ===================================================
+     The City Data screen only. Built by renderCityData() in JS SECTION: CITY DATA MODAL.
      Every number in it is computed, never typed, so text changes belong in the script. */
   .cdwrap{overflow-x:auto;margin:2px -4px -4px;padding:0 4px 4px}
   .cdtable{border-collapse:collapse;width:100%;font-size:12.5px}
@@ -213,7 +225,7 @@
   @media(max-width:560px){.mtiles{grid-template-columns:1fr}.mbar{grid-template-columns:1fr;gap:5px}.mhead h2{font-size:1.2rem}}
 
 
-  /* === SECTION: LAYOUT SHELL ======================================================
+  /* === CSS SECTION: LAYOUT SHELL ======================================================
      The two-column explore layout: story panel on the left, map on the right. */
   main{flex:1;position:relative;overflow:hidden}
   .view{position:absolute;inset:0}
@@ -224,7 +236,7 @@
      chrome and the stories got what was left. Title and count share a line now, the
      mission sentence moved into the collapsible half, and the padding is tighter. */
 
-  /* === SECTION: STORY PANEL: HEAD, SEARCH, FILTERS ================================
+  /* === CSS SECTION: STORY PANEL: HEAD, SEARCH, FILTERS ================================
      Everything above the cards. Built by renderKChips/renderSelects/renderActiveF.
      The filter collapse and its count badge are setFiltersOpen() and renderFCount(). */
   .p-head{padding:11px 16px 10px;border-bottom:1px solid var(--line)}
@@ -275,7 +287,7 @@
   /* cards */
   /* the page for one Cultural District site, at the top of the story column */
 
-  /* === SECTION: CULTURAL DISTRICT SITE PAGE =======================================
+  /* === CSS SECTION: CULTURAL DISTRICT SITE PAGE =======================================
      The page for one of the 24 sites. Built by sitePage(). */
   .sitepage{margin:-10px -12px 14px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(255,195,0,.16),rgba(251,86,7,.05) 62%,transparent)}
   .sitepage .sp-hero{display:block;width:100%;height:200px;object-fit:cover;object-position:center 42%}
@@ -296,10 +308,10 @@
   .sitepage .shadd:hover{background:var(--primaryDark)}
   .sitepage .sp-count{display:flex;align-items:center;gap:6px;margin:0;padding:9px 18px;border-top:1px solid var(--line);background:rgba(255,255,255,.55);font-size:11px;font-weight:800;letter-spacing:.02em;color:var(--muted)}
 
-  /* === SECTION: MODERATOR DESK ====================================================
+  /* === CSS SECTION: MODERATOR DESK ====================================================
      The queue on the left (.qrow) and the editor on the right (.e*, .privbox).
      Built by renderQueue() and renderEditor(). Saving is supaSaveStory(), which lives
-     far away in SECTION: SUPABASE. A new field needs editing in BOTH places. */
+     far away in JS SECTION: SUPABASE. A new field needs editing in BOTH places. */
   .deskbar{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 12px}
   .deskbar select{font:inherit;font-size:12px;padding:6px 9px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--text)}
   .deskbody{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--panel)}
@@ -341,7 +353,7 @@
   .privbox .mtag.on{background:#5B4B8A;border-color:#5B4B8A}
   /* story form: photo and video drop zones */
 
-  /* === SECTION: MEDIA UPLOAD ======================================================
+  /* === CSS SECTION: MEDIA UPLOAD ======================================================
      Two uploaders share this: the public form (.dropz/.dtile) and the desk (.mediazone/.mediatile).
      Change one and check the other. */
   .dropz{display:flex;flex-direction:column;align-items:center;gap:3px;padding:18px 14px;margin-top:12px;border:1.5px dashed var(--border);border-radius:14px;background:var(--panel);color:var(--muted);cursor:pointer;text-align:center}
@@ -377,7 +389,7 @@
   .eacts .btn.prim{background:var(--primary);color:#fff;border:0;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700}
   .esaved{font-size:12px;font-weight:700;color:var(--ok)}
 
-  /* === SECTION: LIGHTBOX ==========================================================
+  /* === CSS SECTION: LIGHTBOX ==========================================================
      One lightbox for the whole app. Opened by openLightbox() from card, detail and desk. */
   .lightbox{position:fixed;inset:0;z-index:3000;background:rgba(20,15,32,.92);display:none;align-items:center;justify-content:center;padding:28px}
   .lightbox.open{display:flex}
@@ -390,7 +402,7 @@
   .lb-count{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:11.5px;font-weight:700;color:rgba(255,255,255,.82);background:rgba(20,15,32,.6);border-radius:999px;padding:5px 12px;font-variant-numeric:tabular-nums}
   .lightbox :focus-visible{outline:2px solid #fff;outline-offset:2px}
 
-  /* === SECTION: STORY MEDIA IN THE DETAIL PANE ====================================
+  /* === CSS SECTION: STORY MEDIA IN THE DETAIL PANE ====================================
      Photos, video and files inside an open story. Built by storyMediaHtml(). */
   .d-sect{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.02em;color:var(--faint);margin:18px 0 9px}
   /* The photo section heading is a real control, so it looks and behaves like one:
@@ -409,7 +421,7 @@
   .d-hero img{cursor:zoom-in}
 
 
-  /* === SECTION: NEIGHBORHOOD AND DATA CENTRE PROFILE ==============================
+  /* === CSS SECTION: NEIGHBORHOOD AND DATA CENTRE PROFILE ==============================
      The .hp-* profile block and the .dc* data centre block, above the cards in the same column.
      Built by hoodPage() and dcPage(). The numbers come from data/neighborhood-profiles.json. */
   .hoodpage{margin:-10px -12px 14px;border-bottom:1px solid var(--line)}
@@ -483,7 +495,7 @@
   .hp-note{font-size:11px;color:var(--muted);line-height:1.45;margin:9px 0 0}
   .hp-foot{margin:0;padding:11px 18px 13px;border-top:1px solid var(--line);background:var(--bg);font-size:10.5px;line-height:1.5;color:var(--faint)}
 
-/* === SECTION: STORY CARD =======================================================
+/* === CSS SECTION: STORY CARD =======================================================
      The card in the story list, in the order the markup builds it. Built by
      renderCards(). Cousins that must stay visually consistent: openDetail()
      (expanded), renderSpotlight() (featured), renderQueue() (moderator). */
@@ -517,7 +529,7 @@
   .cards .empty .em{font-size:30px;display:block;margin-bottom:8px}
 
 
-  /* === SECTION: MAP SHELL AND LAYER PANEL =========================================
+  /* === CSS SECTION: MAP SHELL AND LAYER PANEL =========================================
      The map container and the Layers control. Toggling is toggleCtx(). */
   .mapwrap{position:relative}
   #map{position:absolute;inset:0;background:#EDE7E0}
@@ -551,7 +563,7 @@
   @keyframes lsw{0%,100%{left:2px}50%{left:16px}}
   .lrow.on .sw::after{left:16px}
 
-  /* === SECTION: SPOTLIGHT AND MOBILE FAB ==========================================
+  /* === CSS SECTION: SPOTLIGHT AND MOBILE FAB ==========================================
      The floating action button that used to live here is gone: it was display:none at
      every width, so no user could ever reach it. The add affordance on small screens is
      the "+ Share" button in the app bar (#navAdd), plus press-and-hold on the map (D28). */
@@ -566,11 +578,11 @@
   .spotlight .sclose{position:absolute;top:6px;right:6px;width:22px;height:22px;border:0;border-radius:50%;background:none;color:var(--faint);display:grid;place-items:center;cursor:pointer}
   .spotlight .sclose:hover{background:var(--bg);color:var(--text)}
   /* No 860px rule for .spotlight: it is display:none below that width.
-     See SECTION: RESPONSIVE. */
+     See CSS SECTION: RESPONSIVE. */
 
   /* leaflet marker */
 
-  /* === SECTION: MAP MARKERS =======================================================
+  /* === CSS SECTION: MAP MARKERS =======================================================
      Story pins, Cultural District stars, and their labels. Built by mkIcon()/renderMarkers(). */
   .mk{width:20px;height:20px;transform-origin:50% 88%;filter:drop-shadow(0 2px 4px rgba(36,28,59,.45));transition:transform .16s,filter .16s}
   .mk svg{width:100%;height:100%;display:block}
@@ -590,7 +602,7 @@
      Constraints, not auto: a floor so a short label cannot collapse into a column, a
      ceiling so a long one cannot run across the map. */
 
-  /* === SECTION: LEAFLET POPUPS ====================================================
+  /* === CSS SECTION: LEAFLET POPUPS ====================================================
      Overrides on Leaflet's own popup classes. width:max-content is deliberate: `auto`
      collapsed every popup to one word per line. Do not change it back. */
   .leaflet-popup-content-wrapper{border-radius:12px;box-shadow:var(--shadow);padding:0}
@@ -607,7 +619,7 @@
   .leaflet-popup-content p{margin:0}
 
 
-  /* === SECTION: STORY DETAIL PANE =================================================
+  /* === CSS SECTION: STORY DETAIL PANE =================================================
      The expanded story. Built by openDetail(). */
   .detail{position:absolute;inset:0;background:var(--panel);z-index:60;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);min-height:0}
   .detail.open{transform:translateX(0)}
@@ -640,7 +652,7 @@
   .d-locate{margin-top:18px;width:100%;background:var(--primary);color:#fff;font-weight:700;font-size:13.5px;padding:12px;border-radius:11px}
 
 
-  /* === SECTION: CAPTURE FORM ======================================================
+  /* === CSS SECTION: CAPTURE FORM ======================================================
      The public add-a-memory flow, all steps. Built by renderStep(). */
   .capmodal{position:absolute;inset:0;background:var(--bg);z-index:1500;overflow:auto}
   .cap-wrap{max-width:600px;margin:0 auto;padding:26px 20px 60px}
@@ -675,7 +687,7 @@
   .pinmap{height:290px;border-radius:14px;overflow:hidden;border:1.5px solid var(--border)}
   /* geocode autocomplete, shared by the capture flow and the map search */
 
-  /* === SECTION: AUTOCOMPLETE ======================================================
+  /* === CSS SECTION: AUTOCOMPLETE ======================================================
      Shared by the map search and the form. Wired by wireAutocomplete(). */
   .ac{position:relative}
   .aclist{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:1200;background:#fff;border:1.5px solid var(--border);border-radius:11px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.13);max-height:232px;overflow-y:auto}
@@ -689,7 +701,7 @@
   .acrow.on{background:var(--primaryLight)}
   /* the place half of the intake form */
 
-  /* === SECTION: PLACE STEP AND GEOLOCATION ========================================
+  /* === CSS SECTION: PLACE STEP AND GEOLOCATION ========================================
      Choosing where a story goes, including the blue "you are here" dot. */
   .place,.fsec{margin-top:26px;padding-top:22px;border-top:1px solid var(--border)}
   .q2{font-family:var(--display);font-size:1.05rem;margin:0 0 4px;letter-spacing:-.01em}
@@ -709,7 +721,7 @@
   /* Clicking a shape used to leave the browser's focus rectangle around it, a blue box
      the size of the whole neighbourhood. Keyboard focus still gets a visible ring. */
 
-  /* === SECTION: MAP TOOLTIPS AND NEIGHBORHOOD PICKER ==============================
+  /* === CSS SECTION: MAP TOOLTIPS AND NEIGHBORHOOD PICKER ==============================
      Hover labels on shapes and stars. */
   .leaflet-interactive:focus{outline:none}
   .leaflet-interactive:focus-visible{outline:2px solid var(--primaryDark);outline-offset:2px}
@@ -725,7 +737,7 @@
   .hoodpick select.ti{appearance:none;background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23777' stroke-width='1.8' stroke-linecap='round'/></svg>") no-repeat right 14px center;padding-right:38px;cursor:pointer}
   .placebtns .btn{min-height:46px;font-size:13.5px;padding:11px 10px}
 
-  /* === SECTION: MAP SEARCH AND THE ADD-HERE POPUP =================================
+  /* === CSS SECTION: MAP SEARCH AND THE ADD-HERE POPUP =================================
      The search box over the map, and the right-click popup. See DECISIONS D28: left-click
      reads, right-click adds. The .maphint line under the box is the only affordance for it. */
   #mapWrap{margin-top:13px}
@@ -777,7 +789,7 @@
   .addhere:hover{background:var(--primaryDark)}
   @media(max-width:860px){.mapsearch{width:calc(100% - 24px)}.mapwrap .leaflet-top.leaflet-left{top:106px}}
 
-  /* === SECTION: CONSENT AND CONTACT ===============================================
+  /* === CSS SECTION: CONSENT AND CONTACT ===============================================
      How a person chooses to be named, and the private contact block.
      Contact NEVER goes in stories.answers. See DECISIONS D19. */
   .consent-opt{display:flex;gap:11px;align-items:flex-start;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:13.5px;background:#fff;cursor:pointer}
@@ -798,7 +810,7 @@
   .contactrow a{color:#7A5B12;font-weight:600;text-decoration:none;border-bottom:1px solid rgba(122,91,18,.35)}
   .contactrow .none{color:#B99A55;font-style:italic}
 
-  /* === SECTION: THANKS SCREEN =====================================================
+  /* === CSS SECTION: THANKS SCREEN =====================================================
      After a story is submitted. Built by renderThanks(). */
   .thanks{max-width:540px;margin:0 auto;padding:44px 20px;text-align:center}
   .thanks .big{font-size:46px}.thanks h2{font-family:var(--display);font-size:1.6rem;margin:8px 0 6px}
@@ -807,7 +819,7 @@
   .cardmini{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;text-align:left;margin-bottom:18px}
 
 
-  /* === SECTION: LEGACY ADMIN, TOAST ===============================================
+  /* === CSS SECTION: LEGACY ADMIN, TOAST ===============================================
      The pre-desk admin list. .scard/.pill-status are largely superseded by the moderator
      desk above. .toast and .empty ARE still used everywhere. */
   .admin{max-width:1400px;margin:0 auto;padding:24px 26px 60px;height:100%;overflow:auto}
@@ -838,7 +850,7 @@
   .protobar b{color:var(--gold)}
 
 
-  /* === SECTION: IMPACT ============================================================
+  /* === CSS SECTION: IMPACT ============================================================
      The Impact screen. Built by renderImpact(). */
   .impact{max-width:920px;margin:0 auto;padding:24px 20px 60px;height:100%;overflow:auto}
   .impact h2{font-family:var(--display);font-size:1.5rem;margin:0 0 4px;letter-spacing:-.01em}
@@ -862,7 +874,7 @@
   @media(max-width:560px){.bar{grid-template-columns:110px 1fr 36px}}
 
 
-  /* === SECTION: INTEGRATIONS: CLAIM A SPACE, SHARED DREAMS ========================
+  /* === CSS SECTION: INTEGRATIONS: CLAIM A SPACE, SHARED DREAMS ========================
      Jayne Engle's commons work. NOTE: the moderation path for space proposals is dead code
      dead and has been removed, so approving a proposal is not currently possible at all.
      Building it back means a moderation path on the desk, not a revert. */
@@ -882,7 +894,7 @@
   .thanks .notalone{background:#E8F1FF;border:1px solid #C9DEFF;border-radius:12px;padding:12px 15px;font-size:13.5px;color:#1D5FD6;margin:0 auto 16px;max-width:44ch;font-weight:600}
 
 
-  /* === SECTION: RESPONSIVE ========================================================
+  /* === CSS SECTION: RESPONSIVE ========================================================
      Mobile and small-screen overrides. ONE @media block per breakpoint, grouped by
      what it changes. If you add a rule, put it in the group it belongs to rather
      than at the end, or this becomes two blocks again.
@@ -1058,7 +1070,7 @@
 
 <script>
 "use strict";
-/* === SECTION: ICONS ===============================================================
+/* === JS SECTION: ICONS ===============================================================
    The inline SVG path set. ic("name") returns an <svg>. Adding an icon means adding
    a path to ICON here. A missing name draws an EMPTY svg, silently. */
 var ICON={
@@ -1106,7 +1118,7 @@ ICON.cart=ICON.store;ICON.building=ICON.hall;
 function ic(n,s,cls){s=s||16;return '<svg class="ic'+(cls?" "+cls:"")+'" width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICON[n]||"")+'</svg>';}
 function hydrateIcons(root){(root||document).querySelectorAll("[data-ic]").forEach(function(el){var n=el.getAttribute("data-ic");var s=el.getAttribute("data-s")||16;el.innerHTML=ic(n,parseInt(s,10));el.removeAttribute("data-ic");});}
 
-/* === SECTION: CONSTANTS ===========================================================
+/* === JS SECTION: CONSTANTS ===========================================================
    Story types, eras, campaigns, collection modes. KIND holds the colour and icon for each
    story type, so changing a card colour happens HERE, not in the stylesheet. */
 var PHOTO="media/";
@@ -1284,8 +1296,8 @@ var SEED_CAMPAIGN={s1:"porch",s2:"porch",s3:"web",s4:"web",s5:"juneteenth",s6:"m
 var SEED_MODE={s1:"ambassador",s2:"ambassador",s3:"web",s4:"web",s5:"kiosk",s6:"kiosk",s7:"ambassador",s8:"kiosk",s9:"kiosk",s10:"kiosk"};
 SEEDS.forEach(function(s){s.campaign=s.campaign||SEED_CAMPAIGN[s.id]||"web";s.mode=s.mode||SEED_MODE[s.id]||"web";if(s.affirms==null)s.affirms=0;});
 
-/* === SECTION: SPACES STORE (claim-a-space integration) ============================
-   Local-only. The stylesheet counterpart is SECTION: INTEGRATIONS: CLAIM A SPACE,
+/* === JS SECTION: SPACES STORE (claim-a-space integration) ============================
+   Local-only. The stylesheet counterpart is CSS SECTION: INTEGRATIONS: CLAIM A SPACE,
    SHARED DREAMS, which records why approving a proposal does not currently work. */
 var SKEY="mr_v3c_spaces";
 function loadSpaces(){try{var v=JSON.parse(localStorage.getItem(SKEY));if(v&&v.length)return v;}catch(e){}return null;}
@@ -1294,7 +1306,7 @@ var SPACES=loadSpaces()||JSON.parse(JSON.stringify(SEED_SPACES));
 SPACES.forEach(function(sp){(sp.proposals||[]).forEach(function(p){if(!p.status)p.status="approved";});});saveSpaces();
 
 
-/* === SECTION: STORY STORE (local fallback) ========================================
+/* === JS SECTION: STORY STORE (local fallback) ========================================
    localStorage seeds, used only until Supabase answers. The real store is the next section. */
 var KEY="mr_v3c_stories";
 function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&s.length)return s;}catch(e){}return null;}
@@ -1302,10 +1314,10 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(STORIES));}catch(e){
 var STORIES=SEEDS.map(function(s){return Object.assign({},s);}); // local fallback until Supabase loads
 function publicStories(){return STORIES.filter(function(s){return s.status==="approved"&&s.vis!=="heritage";});}
 
-/* === SECTION: SUPABASE ============================================================
+/* === JS SECTION: SUPABASE ============================================================
    The real story store, and everything that reads or writes it.
    THE MODERATOR EDITOR SAVES THROUGH HERE (supaSaveStory, supaInternal). A field added
-   to SECTION: MODERATOR DESK must be added to those too, or it will never persist.
+   to JS SECTION: MODERATOR DESK must be added to those too, or it will never persist.
    Contact details go to story_contacts, never to stories.answers. See DECISIONS D19. */
 var AFF={};try{AFF=JSON.parse(localStorage.getItem("mr_aff"))||{};}catch(e){}
 function saveAff(){try{localStorage.setItem("mr_aff",JSON.stringify(AFF));}catch(e){}}
@@ -1416,7 +1428,7 @@ async function supaSetStatus(id,st){await supaAuthed("stories?id=eq."+id,{method
 async function refreshStories(){try{STORIES=await supaFetchApproved();}catch(e){console.warn("refresh failed",e);}renderSelects();apply();}
 
 
-/* === SECTION: HELPERS =============================================================
+/* === JS SECTION: HELPERS =============================================================
    esc() escapes user content and must wrap anything a person typed.
    publicName()/displayName() are the ONE place that decides whether a name shows. */
 function $(id){return document.getElementById(id);}
@@ -1450,7 +1462,7 @@ function photoSrc(p){if(!p)return null;return(p.indexOf("data:")===0||p.indexOf(
 var toastT;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("show");},2600);}
 
 
-/* === SECTION: FILTER STATE ========================================================
+/* === JS SECTION: FILTER STATE ========================================================
    F holds every active filter. apply() re-renders everything from it. */
 /* `place` is the kind of place a story is about (a church, a school). `site` is one
    named building in the Cultural District, set by clicking its star. */
@@ -1476,7 +1488,7 @@ function filtered(){
 }
 
 
-/* === SECTION: MAP: TOKEN AND BASE TILES ===========================================
+/* === JS SECTION: MAP: TOKEN AND BASE TILES ===========================================
    Swap MAP_STYLE to restyle the whole basemap from Mapbox Studio. */
 var map,anchorLayer,hoodLayer,markersById={},anchorsOn=true,hoodsOn=true,ctxLayers={};
 var STAR_SVG='<svg viewBox="0 0 24 24" fill="#FFC300" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path d="m12 1.6 2.95 6.4 7 .6-5.3 4.65 1.6 6.85L12 17.1l-6.25 3.5 1.6-6.85L2.05 8.6l7-.6L12 1.6Z"/></svg>';
@@ -1486,7 +1498,7 @@ var MAP_STYLE="j00by/cm4u8ncu3009401s0fxinaejd"; // Judy's "Parks as Infrastruct
 // Light like light-v11, but water reads as water and green space reads as green. On the stock
 // light style the Mississippi is the same grey as the land, which makes Memphis hard to read.
 // The style is private in Studio; tiles are served because the token above has access.
-/* === SECTION: GEOCODING AND SEARCH ================================================
+/* === JS SECTION: GEOCODING AND SEARCH ================================================
    Shared by the capture flow (place a story) and the map search (find a place).
    Bounded to Shelby County so "Main St" means Main St in Memphis, and proximity
    biased to Clayborn so the closest match wins. Fails soft: a geocode that does
@@ -1688,7 +1700,7 @@ function wireAutocomplete(input,list,onPick){
 }
 
 
-/* === SECTION: MAP INIT AND PANES ==================================================
+/* === JS SECTION: MAP INIT AND PANES ==================================================
    Pane order decides what draws on top of what. */
 function baseTiles(){return L.tileLayer("https://api.mapbox.com/styles/v1/"+MAP_STYLE+"/tiles/{z}/{x}/{y}?access_token="+MAPBOX_TOKEN,{tileSize:512,zoomOffset:-1,maxZoom:19,attribution:'&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'});}
 function initMap(){
@@ -1998,8 +2010,8 @@ function pop(title,meta,src){
     (src?'<span class="pq">'+esc(src)+'</span>':'');
 }
 function ctxCircle(color,r){return {radius:r||5,fillColor:color,color:"#fff",weight:1,fillOpacity:.9,pane:"ctx",renderer:ctxRenderer()};}
-/* THE LAYER REGISTRY. One entry per layer, and it is the only place a layer is
-   declared. Adding a layer used to mean four edits in three sections: a CTX entry,
+/* === JS SECTION: LAYER REGISTRY ===================================================
+   One entry per layer, and it is the only place a layer is declared. Adding a layer used to mean four edits in three sections: a CTX entry,
    a <button class="lrow"> in the markup, a click handler in the boot block, and a
    CITY_LAYERS row. The name and the source were written twice and could drift apart.
 
@@ -2182,7 +2194,7 @@ function toggleCtx(key,btn){
   });
 }
 
-/* === SECTION: STORY MARKERS =======================================================
+/* === JS SECTION: STORY MARKERS =======================================================
    The pins for stories. Card hover highlights these via hiMarker(). */
 function mkIcon(color,feat){return L.divIcon({className:"mk-wrap"+(feat?" feat":""),html:'<div class="mk"><svg viewBox="0 0 24 24" fill="'+color+'" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>',iconSize:[20,20],iconAnchor:[10,18]});}
 function renderMarkers(){
@@ -2201,7 +2213,7 @@ function renderMarkers(){
 function hiMarker(id,on){var m=markersById[id];if(m&&m._icon)m._icon.classList.toggle("hi",on);}
 function selMarker(id){Object.keys(markersById).forEach(function(k){if(markersById[k]._icon)markersById[k]._icon.classList.toggle("sel",k===id);});}
 
-/* === SECTION: PANEL, FILTERS AND SELECTS ==========================================
+/* === JS SECTION: PANEL, FILTERS AND SELECTS ==========================================
    The controls above the story list. apply() is the one function that redraws everything. */
 function renderMeta(){
   var list=filtered();var hoods=new Set(publicStories().map(function(s){return s.hood;}));
@@ -2563,15 +2575,15 @@ function dcPage(id){
   '</div>';
 }
 
-/* === SECTION: STORY PRIMITIVES ====================================================
+/* === JS SECTION: STORY PRIMITIVES ====================================================
    What a story IS, in one place. A story is drawn in four places and they are
    deliberately NOT one component, because a moderator queue row and an expanded
    story are different objects with different jobs:
 
-     renderCards()      the card in the story list      SECTION: STORY CARD
-     openDetail()       the expanded story              SECTION: STORY DETAIL AND LIGHTBOX
-     renderSpotlight()  the featured one over the map   SECTION: SPOTLIGHT
-     renderQueue()      the moderator queue row         SECTION: MODERATOR DESK
+     renderCards()      the card in the story list      JS SECTION: STORY CARD
+     openDetail()       the expanded story              JS SECTION: STORY DETAIL AND LIGHTBOX
+     renderSpotlight()  the featured one over the map   JS SECTION: SPOTLIGHT
+     renderQueue()      the moderator queue row         JS SECTION: MODERATOR DESK
 
    What they MUST agree on is what a story is called, who it belongs to, where and
    when it happened, and what is attached to it. That is what lives here. Change the
@@ -2622,13 +2634,13 @@ function storyText(s,max){
   return max&&t.length>max?esc(t.slice(0,max))+'…':esc(t);
 }
 
-/* === SECTION: STORY CARD ==========================================================
+/* === JS SECTION: STORY CARD ==========================================================
    THE card in the story list. To change how a story looks you may need FOUR places:
      renderCards()      <- here, the list card
      openDetail()       <- the expanded story
      renderSpotlight()  <- the featured one over the map
      renderQueue()      <- the moderator queue row
-   Styles are split across SECTION: STORY CARD in the stylesheet. */
+   Styles are split across CSS SECTION: STORY CARD. */
 function renderCards(){
   var list=filtered(),f=F.site?siteByName(F.site):null;
   // A building is the more specific answer, so it wins over its neighbourhood.
@@ -2726,7 +2738,7 @@ function copyLink(){
 }
 function apply(){renderKChips();renderActiveF();renderMeta();renderCards();renderMarkers();renderSpotlight();syncUrl();}
 
-/* === SECTION: STORY DETAIL AND LIGHTBOX ===========================================
+/* === JS SECTION: STORY DETAIL AND LIGHTBOX ===========================================
    The expanded story, and the lightbox shared by card, detail and moderator desk. */
 function selectStory(id,fly){
   var s=STORIES.find(function(x){return x.id===id;});if(!s)return;
@@ -2858,7 +2870,7 @@ function openDetail(s){
 }
 function closeDetail(){$("detail").classList.remove("open");selMarker(null);}
 
-/* === SECTION: INTEGRATION 1, CLAIM A SPACE ========================================
+/* === JS SECTION: INTEGRATION 1, CLAIM A SPACE ========================================
    Jayne Engle's commons layer. Local-only. Its moderation path is dead code. */
 function openSpace(sp){
   selMarker(null);
@@ -2890,7 +2902,7 @@ function showProposeForm(sp){
   $("propCancel").addEventListener("click",function(){$("proposeForm").innerHTML="";});
   $("propSubmit").addEventListener("click",function(){var t=$("propText").value.trim();if(!t)return;sp.proposals.push({id:uid(),text:t,name:$("propName").value.trim()||null,cosigns:1,status:"pending"});saveSpaces();openSpace(sp);toast("Sent to The Big We for review, it appears once approved");});
 }
-/* === SECTION: INTEGRATION 2, SHARED DREAMS ========================================
+/* === JS SECTION: INTEGRATION 2, SHARED DREAMS ========================================
    Shown inside a "vision" story. */
 function dreamBox(s){
   var n=s.affirms||0;
@@ -2899,7 +2911,7 @@ function dreamBox(s){
 }
 
 
-/* === SECTION: VIEW SWITCHING ======================================================
+/* === JS SECTION: VIEW SWITCHING ======================================================
    Explore / Capture / Thanks / Moderate / Impact. One function shows and hides all five. */
 function showView(v){["explore","capture","thanks","admin","impact"].forEach(function(n){$("v-"+n).classList.toggle("hidden",n!==v);});
   // The nav shows which of these you are looking at, which it never used to.
@@ -2925,7 +2937,7 @@ function cityLayerRows(){
 }
 var CITY_COUNTS=null;
 
-/* === SECTION: CITY DATA MODAL =====================================================
+/* === JS SECTION: CITY DATA MODAL =====================================================
    Every figure is computed from the layer files on open. Nothing here is typed, so a
    stale number means a stale data file, not stale copy. */
 function cityCounts(){
@@ -3050,7 +3062,7 @@ function wireHoodSort(){
 function openData(){$("dataModal").classList.remove("hidden");renderCityData();}
 function closeData(){$("dataModal").classList.add("hidden");}
 
-/* === SECTION: BOOT AND TOP-LEVEL WIRING ===========================================
+/* === JS SECTION: BOOT AND TOP-LEVEL WIRING ===========================================
    Where the nav buttons, modal, geolocation and map events get their listeners. */
 $("navData").addEventListener("click",openData);
 $("dataClose").addEventListener("click",closeData);
@@ -3180,7 +3192,7 @@ $("navMap").addEventListener("click",function(){showView("explore");});
 $("panel").addEventListener("click",function(e){if(e.target===this||e.target.classList.contains("p-head")){this.classList.toggle("up");}});
 
 
-/* === SECTION: CAPTURE FLOW (the public form) ======================================
+/* === JS SECTION: CAPTURE FLOW (the public form) ======================================
    The whole add-a-memory flow. renderStep() draws whichever step stepIdx points at;
    STEPS decides the order. Uploads happen on submit, so abandoning leaves nothing behind. */
 var draft=null,stepIdx=0,STEPS=[],mediaRec,chunks=[],pinMap,pinMarker,thanksMap;
@@ -3510,7 +3522,7 @@ function renderThanks(s){var isV=s.kind==="future";
   setTimeout(function(){if(thanksMap){thanksMap.remove();thanksMap=null;}thanksMap=L.map("thanksmap",{zoomControl:false,dragging:false,scrollWheelZoom:false}).setView([s.lat,s.lng],15);baseTiles().addTo(thanksMap);L.marker([s.lat,s.lng],{icon:mkIcon(storyKind(s).color)}).addTo(thanksMap);setTimeout(function(){thanksMap.invalidateSize();},80);},60);
 }
 
-/* === SECTION: LEGACY ADMIN TABS ===================================================
+/* === JS SECTION: LEGACY ADMIN TABS ===================================================
    The tab strip above the moderator desk. */
 var adminTab="pending";
 document.querySelectorAll(".tabs button").forEach(function(b){b.addEventListener("click",function(){adminTab=b.dataset.tab;document.querySelectorAll(".tabs button").forEach(function(x){x.classList.remove("on");});b.classList.add("on");renderAdmin();});});
@@ -3519,9 +3531,9 @@ document.querySelectorAll(".tabs button").forEach(function(b){b.addEventListener
     modFilters={hood:$("mfHood").value,era:$("mfEra").value,kind:$("mfKind").value,flag:$("mfFlag").value};
     if(!modVisible().some(function(s){return s.id===modSel;})){var f=modVisible()[0];modSel=f?f.id:null;}
     renderQueue();renderEditor();});});
-/* === SECTION: MODERATOR DESK ======================================================
+/* === JS SECTION: MODERATOR DESK ======================================================
    Queue, editor, media, private tags. renderQueue() draws the left, renderEditor() the right.
-   SAVING IS NOT HERE. supaSaveStory() and supaInternal() are in SECTION: SUPABASE, about
+   SAVING IS NOT HERE. supaSaveStory() and supaInternal() are in JS SECTION: SUPABASE, about
    2,000 lines up. Add a field to the editor and you MUST add it there too, or it will
    render, accept typing, and silently never save. */
 
@@ -3866,7 +3878,7 @@ $("reseed").addEventListener("click",async function(){await refreshStories();toa
 $("signout").addEventListener("click",function(){supaLogout();toast("Signed out");renderAdmin();});
 
 
-/* === SECTION: IMPACT SCREEN =======================================================
+/* === JS SECTION: IMPACT SCREEN =======================================================
    Counts and bars. Reads the same store as everything else. */
 function renderImpact(){
   var pub=publicStories(),all=STORIES;
@@ -3910,7 +3922,7 @@ function renderImpact(){
     '<div class="ipanel"><h3>Commons: space being re-permissioned <span>after Jayne Engle · Permissioning the City</span></h3>'+SPACES.map(function(sp){var pc=sp.proposals?sp.proposals.length:0;var cc=sp.proposals?sp.proposals.reduce(function(b,p){return b+p.cosigns;},0):0;return '<div class="bar"><span class="bl">'+esc(sp.name)+'</span><div class="bt"><div class="bf" style="width:'+Math.min(100,cc*6+pc*4)+'%;background:var(--gold)"></div></div><span class="bv">'+pc+'</span></div>';}).join("")+'<p style="font-size:12px;color:var(--muted);margin:9px 0 0">'+propCount+' proposed uses · '+cosignCount+' co-signs · '+dreamsAffirmed+' dreams affirmed. Underused space claimed back as a commons.</p></div>';
 }
 
-/* === SECTION: SPOTLIGHT ===========================================================
+/* === JS SECTION: SPOTLIGHT ===========================================================
    The featured story card floating over the map. */
 /* The spotlight used to say "Featured memory" over whichever approved story happened to
    have a photograph, which was not a claim anyone had made. It now shows a story a
@@ -3937,7 +3949,7 @@ function renderSpotlight(){
 }
 var spotDismissed=false;
 
-/* === SECTION: BOOT: URL PARAMS AND FIRST RENDER ===================================
+/* === JS SECTION: BOOT: URL PARAMS AND FIRST RENDER ===================================
    Reads ?hood= ?site= ?dc= ?era= ?mode= and applies them BEFORE the first render. */
 var params=new URLSearchParams(location.search),mode=params.get("mode"),kindParam=params.get("kind");
 campaignParam=params.get("campaign")||"web";eventParam=params.get("event")||"";captureMode=(mode==="kiosk")?"kiosk":(mode==="share"?"share":"web");
