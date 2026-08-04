@@ -4091,16 +4091,31 @@ function renderEditor(){
 /* One save writes both halves: the public row, and the moderator layer beside it. */
 async function saveStoryEdits(s,v,btn){
   btn.disabled=true;btn.textContent="Saving…";
+  /* Three writes, three tables. The story is the one that matters, so it goes first and
+     a failure on either of the others must not report the whole save as lost: it did
+     save. Contacts in particular can 403 on their own, because story_contacts has its
+     own row-level policy and a moderator role can be allowed to write stories without
+     being allowed to write contacts. Say which one failed, not "couldn't save". */
+  var partial=null;
   try{
     await supaSaveStory(s);
-    await supaSaveInternal(s.id,v);
-    await supaSaveContact(s.id,s.contact);
   }catch(e){
     if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;}
-    btn.disabled=false;btn.innerHTML=ic("check",13)+" Save Changes";toast("Couldn't save: "+e.message);return;
+    btn.disabled=false;btn.innerHTML=ic("check",13)+" Save Changes";
+    toast("Couldn't save the story: "+e.message);
+    return;
   }
+  /* The story is saved from here on. Anything below is an extra that can fail alone. */
+  try{ await supaSaveInternal(s.id,v); }
+  catch(e){ if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;}
+            partial="private tags ("+e.message+")"; console.warn("story_internal:",e); }
+  try{ await supaSaveContact(s.id,s.contact); }
+  catch(e){ if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;}
+            partial=(partial?partial+" and ":"")+"contact details ("+e.message+")"; console.warn("story_contacts:",e); }
+
   btn.disabled=false;btn.innerHTML=ic("check",13)+" Save Changes";
-  var f=$("mSaved");if(f){f.textContent="Saved";setTimeout(function(){if(f)f.textContent="";},1800);}
+  var f=$("mSaved");if(f){f.textContent=partial?"Story saved":"Saved";setTimeout(function(){if(f)f.textContent="";},1800);}
+  if(partial)toast("Story saved. Could not save "+partial+".");
   await refreshStories();
 }
 async function renderAdmin(){
