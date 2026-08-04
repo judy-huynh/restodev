@@ -42,6 +42,12 @@
        The Layers panel, the click handlers and the City Data table all
        derive from it. Do not hand-write a <button class="lrow">.
 
+     A FILTER on the story list:
+       JS SECTION: FILTER REGISTRY. One object per filter. passes(), the
+       dropdowns, the pills, the count on the Filters toggle, the shareable
+       URL and the clickable chips all derive from it. The URL is the half
+       that used to go missing without a word.
+
      THE MODERATOR PAGE:
        JS SECTION: MODERATOR DESK draws it. JS SECTION: SUPABASE saves it,
        about 1,700 lines away. A field added to one and not the other will
@@ -85,7 +91,7 @@
      STORY STORE (local fallback)
      SUPABASE
      HELPERS
-     FILTER STATE
+     FILTER REGISTRY
      MAP: TOKEN AND BASE TILES
      GEOCODING AND SEARCH
      MAP INIT AND PANES
@@ -100,6 +106,7 @@
      VIEW SWITCHING
      CITY DATA MODAL
      BOOT AND TOP-LEVEL WIRING
+     CAPTURE STEPS
      CAPTURE FLOW (the public form)
      LEGACY ADMIN TABS
      MODERATOR DESK
@@ -1678,20 +1685,176 @@ function photoSrc(p){if(!p)return null;return(p.indexOf("data:")===0||p.indexOf(
 var toastT;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("show");},2600);}
 
 
-/* === JS SECTION: FILTER STATE ========================================================
-   F holds every active filter. apply() re-renders everything from it. */
-/* `place` is the kind of place a story is about (a church, a school). `site` is one
-   named building in the Cultural District, set by clicking its star. */
-var F={kinds:new Set(),hood:"all",era:"all",campaign:"all",place:null,site:null,dc:null,q:""};
+/* === JS SECTION: FILTER REGISTRY =====================================================
+   Every filter the story list has, declared once. F holds what each one is set to, and
+   apply() re-renders everything from F.
+
+   Adding a filter used to be about ten edits across nine sections, and TWO OF THEM FAILED
+   SILENTLY: leave it out of syncUrl() and shareable links quietly drop it, leave it out of
+   the boot block and links already sent to people stop working. Neither throws. Both had
+   already happened here. `campaign` and `place` were filterable in the panel and could not
+   be put in a link at all, and `campaign` was counted on the Filters badge but not by the
+   test that decides whether "Clear All Filters" appears, so it could be on with no way to
+   turn everything off.
+
+   Now: add one object here. passes(), the dropdowns, the removable pills, the count on the
+   toggle, the URL, and the clickable chips on a card and tags in an open story all read
+   this list.
+
+   Each entry:
+     key       the property on F
+     type      "set"    a multi-select held as a Set (the category chips); off when empty
+               "select" a dropdown; off when it reads "all"
+               "value"  set by clicking something on the map; off when null
+               "text"   the search box; off when ""
+     label     what this filter is called, in words
+     el        (select) the id of the <select> in the markup
+     options   (select) the whole <option> list. Each dropdown builds its own, because the
+               three come from three different places: the gazetteer, a fixed table, and
+               whatever campaigns the live stories happen to carry. One shared builder
+               would need a flag per dropdown, which is what D29 says not to do.
+     passes    does a story survive this filter. OMITTED for one that chooses a PAGE
+               rather than a subset: `dc` opens a data centre profile above the list and
+               leaves the stories themselves alone.
+     param     the URL parameter. Omitted for a filter that is not shareable.
+     toParam   value -> string for the URL. Return null to leave it out.
+     fromParam string -> value on boot. Return undefined to REJECT it, which is what
+               validates ?era= and ?type= against the tables they name. The default
+               accepts any non-empty string.
+     onBoot    anything else a link has to set up, run once, before the first render
+     counts    contributes to the number on the Filters toggle
+     pill      v -> the words on a removable pill in the active-filter row
+     also      (select) other state this control changes, run before apply()
+     then      (select) what happens after the re-render, run after apply() */
+var FILTERS=[
+  {key:"kinds",type:"set",label:"Category",counts:true,
+   passes:function(s,v){return v.has(s.kind);},
+   param:"type",
+   /* One type is a link worth sending; two are a state only this browser is in. So the
+      parameter is cleared either way and written back only when there is exactly one. */
+   toParam:function(v){return v.size===1?Array.from(v)[0]:null;},
+   fromParam:function(r){return KIND[r]?new Set([r]):undefined;}},
+
+  {key:"hood",type:"select",label:"Neighborhood",counts:true,el:"hoodSel",param:"hood",
+   passes:function(s,v){return s.hood===v;},
+   // Neighborhoods come from the gazetteer, in gazetteer order, with story counts, so
+   // this reads as a way to navigate Memphis rather than a list of whatever got typed.
+   // Anything in the data that predates the gazetteer is kept at the bottom so no story
+   // becomes unreachable by filter.
+   options:function(){
+     var counts={};publicStories().forEach(function(s){counts[s.hood]=(counts[s.hood]||0)+1;});
+     var known={},opts=NEIGHBORHOODS.map(function(h){
+       known[h.n]=1;var c=counts[h.n]||0;
+       return '<option value="'+esc(h.n)+'"'+(F.hood===h.n?" selected":"")+'>'+esc(h.n)+(c?" ("+c+")":"")+'</option>';
+     });
+     var extra=Object.keys(counts).filter(function(h){return h&&!known[h];}).sort().map(function(h){
+       return '<option value="'+esc(h)+'"'+(F.hood===h?" selected":"")+'>'+esc(h)+" ("+counts[h]+")"+'</option>';
+     });
+     return '<option value="all">All neighborhoods</option>'+opts.join("")
+       +(extra.length?'<optgroup label="Other places named in stories">'+extra.join("")+'</optgroup>':"");
+   },
+   /* A neighborhood and a single building are two ways of asking the same question, so
+      picking one drops the other. Keeping both just empties the list and explains nothing. */
+   also:function(){F.site=null;},
+   /* Picking a neighborhood filters AND travels there. That is the whole navigation story:
+      you should not have to know where Binghampton is to go and look at it. */
+   then:function(v){
+     if(!map)return;
+     if(v==="all"){highlightHood(null);map.flyTo(CLAYBORN,13,{duration:.8});return;}
+     highlightHood(v);
+     // Fit the actual shape where we have one, so you see the whole neighborhood rather
+     // than a guessed zoom around its middle. Sub-districts have no shape; use the centre.
+     var shape=null;
+     if(hoodLayer)hoodLayer.eachLayer(function(l){if(l.feature&&l.feature.properties.name===v)shape=l;});
+     if(shape){map.flyToBounds(shape.getBounds(),{padding:[40,40],duration:.8});return;}
+     var h=hoodByName(v);
+     if(h)map.flyTo([h.lat,h.lng],h.z||15,{duration:.8});
+   }},
+
+  {key:"era",type:"select",label:"Era",counts:true,el:"eraSel",param:"era",
+   passes:function(s,v){return s.era===v;},
+   options:function(){
+     return '<option value="all">All eras</option>'+ERAS.map(function(e){return '<option value="'+e[0]+'"'+(F.era===e[0]?" selected":"")+'>'+esc(e[1])+'</option>';}).join("");
+   },
+   fromParam:function(r){return ERAS.some(function(e){return e[0]===r;})?r:undefined;}},
+
+  /* The parameter is `collected`, NOT `campaign`. ?campaign= already means something else
+     on this page: the campaign a NEW story gets tagged with when the form is opened at an
+     event kiosk. One name doing both jobs would have had syncUrl() strip the kiosk's own
+     link on the first click. */
+  {key:"campaign",type:"select",label:"Collected at",counts:true,el:"campSel",param:"collected",
+   passes:function(s,v){return s.campaign===v;},
+   options:function(){
+     var camps=Array.from(new Set(publicStories().map(function(s){return s.campaign;})));
+     return '<option value="all">All events &amp; campaigns</option>'+camps.map(function(c){var m=CAMPAIGNS[c];return '<option value="'+esc(c)+'"'+(F.campaign===c?" selected":"")+'>'+(m?esc(m.label):esc(c))+'</option>';}).join("");
+   }},
+
+  /* The kind of place a story is about, a church or a school. Set only by the tag inside
+     an open story; there is no dropdown for it, so the removable pill is the only sign it
+     is on and the only way off. */
+  {key:"place",type:"value",label:"Place type",counts:true,param:"place",
+   passes:function(s,v){return s.place===v;},
+   pill:function(v){return PLACE[v].l;},
+   fromParam:function(r){return PLACE[r]?r:undefined;}},
+
+  /* One named building in the Cultural District, set by clicking its star. No pill and no
+     count on purpose: the site page that opens above the story list says it far louder,
+     with the address and a way back. */
+  {key:"site",type:"value",label:"Cultural District site",param:"site",
+   passes:function(s,v){return siteNameFor(s)===v;}},
+
+  /* Chooses a PAGE, not a subset. Selecting a data centre opens its profile above the
+     story list, and the stories underneath are still all of Memphis. Hence no passes(),
+     no count and no pill: its own profile carries the way back. */
+  {key:"dc",type:"value",label:"Data center",param:"dc"},
+
+  {key:"q",type:"text",label:"Search",counts:true,param:"q",
+   passes:function(s,v){
+     var q=v.toLowerCase();
+     return (s.story+" "+(s.name||"")+" "+s.corner+" "+s.hood).toLowerCase().indexOf(q)>=0;
+   },
+   /* The box has to show the word the link filtered by, or a short list looks like a bug. */
+   onBoot:function(v){var si=$("searchIn");if(si)si.value=v;}}
+];
+function filterBy(k){for(var i=0;i<FILTERS.length;i++)if(FILTERS[i].key===k)return FILTERS[i];return null;}
+/* The cleared state, built from the same list, so "Clear All Filters" cannot fall behind
+   a filter somebody added afterwards. Each type has its own idea of "off". */
+function blankFilters(){
+  var o={};
+  FILTERS.forEach(function(f){
+    o[f.key]=f.type==="set"?new Set():f.type==="select"?"all":f.type==="text"?"":null;
+  });
+  return o;
+}
+/* Is this one doing anything? Everything that asks "are we filtered" asks through here,
+   so the count on the toggle and the test that shows Clear All can no longer disagree. */
+function fOn(f){
+  var v=F[f.key];
+  return f.type==="set"?v.size>0:f.type==="select"?!!(v&&v!=="all"):!!v;
+}
+var F=blankFilters();
 function passes(s){
-  if(F.kinds.size&&!F.kinds.has(s.kind))return false;
-  if(F.hood!=="all"&&s.hood!==F.hood)return false;
-  if(F.era!=="all"&&s.era!==F.era)return false;
-  if(F.campaign!=="all"&&s.campaign!==F.campaign)return false;
-  if(F.place&&s.place!==F.place)return false;
-  if(F.site&&siteNameFor(s)!==F.site)return false;
-  if(F.q){var q=F.q.toLowerCase();if((s.story+" "+(s.name||"")+" "+s.corner+" "+s.hood).toLowerCase().indexOf(q)<0)return false;}
+  for(var i=0;i<FILTERS.length;i++){
+    var f=FILTERS[i];
+    if(!f.passes||!fOn(f))continue;
+    if(!f.passes(s,F[f.key]))return false;
+  }
   return true;
+}
+/* Turning a filter on by clicking the thing itself: a chip on a card, a tag inside an
+   open story. One path for both, so a filter added to the registry becomes clickable
+   everywhere it is shown without a branch in either handler.
+   The two used to disagree. A neighborhood chip on a card travelled to that neighborhood
+   and dropped any selected building, because it faked a change on the dropdown; the same
+   tag in an open story did neither. They do the same thing now, and it is the dropdown's
+   thing, because "picking a neighborhood travels there" is how this map navigates. */
+function chipSet(key,v){
+  var f=filterBy(key);if(!f)return;
+  F[key]=f.type==="set"?new Set([v]):v;
+  if(f.also)f.also(v);
+  renderSelects();
+  apply();
+  if(f.then)f.then(v);
 }
 /* Featured is a decision a moderator made, so it has to show up somewhere other than a
    database column: pinned to the top of the list, ringed on the map, and the only thing
@@ -2453,33 +2616,30 @@ function renderKChips(){
   }).join("");
   $("kchips").querySelectorAll("[data-k]").forEach(function(b){b.addEventListener("click",function(){var k=b.dataset.k;if(F.kinds.has(k))F.kinds.delete(k);else F.kinds.add(k);apply();});});
 }
+/* Each dropdown builds its own options; see JS SECTION: FILTER REGISTRY for why. */
 function renderSelects(){
-  // Neighborhoods come from the gazetteer, in gazetteer order, with story counts, so
-  // this reads as a way to navigate Memphis rather than a list of whatever got typed.
-  // Anything in the data that predates the gazetteer is kept at the bottom so no story
-  // becomes unreachable by filter.
-  var counts={};publicStories().forEach(function(s){counts[s.hood]=(counts[s.hood]||0)+1;});
-  var known={},opts=NEIGHBORHOODS.map(function(h){
-    known[h.n]=1;var c=counts[h.n]||0;
-    return '<option value="'+esc(h.n)+'"'+(F.hood===h.n?" selected":"")+'>'+esc(h.n)+(c?" ("+c+")":"")+'</option>';
+  FILTERS.forEach(function(f){
+    if(f.type!=="select")return;
+    var el=$(f.el);if(el)el.innerHTML=f.options();
   });
-  var extra=Object.keys(counts).filter(function(h){return h&&!known[h];}).sort().map(function(h){
-    return '<option value="'+esc(h)+'"'+(F.hood===h?" selected":"")+'>'+esc(h)+" ("+counts[h]+")"+'</option>';
-  });
-  $("hoodSel").innerHTML='<option value="all">All neighborhoods</option>'+opts.join("")
-    +(extra.length?'<optgroup label="Other places named in stories">'+extra.join("")+'</optgroup>':"");
-  $("eraSel").innerHTML='<option value="all">All eras</option>'+ERAS.map(function(e){return '<option value="'+e[0]+'"'+(F.era===e[0]?" selected":"")+'>'+esc(e[1])+'</option>';}).join("");
-  var camps=Array.from(new Set(publicStories().map(function(s){return s.campaign;})));
-  $("campSel").innerHTML='<option value="all">All events &amp; campaigns</option>'+camps.map(function(c){var m=CAMPAIGNS[c];return '<option value="'+esc(c)+'"'+(F.campaign===c?" selected":"")+'>'+(m?esc(m.label):esc(c))+'</option>';}).join("");
 }
 function renderActiveF(){
-  var chips=[];
-  if(F.place)chips.push('<span class="fpill">'+esc(PLACE[F.place].l)+' <button data-clr="place" aria-label="Clear">'+ic("x",12)+'</button></span>');
-  // F.site gets no pill: the place header below says it louder, with the address.
-  var any=F.kinds.size||F.hood!=="all"||F.era!=="all"||F.place||F.site||F.q;
+  // A pill is for a filter with nowhere else to show itself. `site` and `dc` are left off
+  // it deliberately: the page each one opens above the story list says it far louder.
+  var chips=FILTERS.filter(function(f){return f.pill&&fOn(f);}).map(function(f){
+    return '<span class="fpill">'+esc(f.pill(F[f.key]))+' <button data-clr="'+f.key+'" aria-label="Clear">'+ic("x",12)+'</button></span>';
+  });
+  var any=FILTERS.some(function(f){return fOn(f);});
   $("activeF").innerHTML=chips.join("")+(any?'<button class="clearf" id="clearAll">Clear All Filters</button>':"");
-  var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){F={kinds:new Set(),hood:"all",era:"all",campaign:"all",place:null,site:null,dc:null,q:""};$("searchIn").value="";apply();});
-  $("activeF").querySelectorAll("[data-clr]").forEach(function(b){b.addEventListener("click",function(){F[b.dataset.clr]=b.dataset.clr==="place"?null:"all";apply();});});
+  /* renderSelects() as well as apply(), because apply() deliberately leaves the dropdowns
+     alone: rebuilding a <select> while someone has it open is worse than a stale label.
+     Clearing everything is the one moment that does not apply. Without this the two
+     dropdowns kept reading "Downtown / Clayborn" and "1960s-70s" over a list that was no
+     longer filtered by either, which is the same lie the count on the toggle exists to
+     prevent. */
+  var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){F=blankFilters();$("searchIn").value="";renderSelects();apply();});
+  var blank=blankFilters();
+  $("activeF").querySelectorAll("[data-clr]").forEach(function(b){b.addEventListener("click",function(){F[b.dataset.clr]=blank[b.dataset.clr];apply();});});
   renderFCount();
 }
 /* How many filters are on, shown on the collapse control. This is the whole reason the
@@ -2487,8 +2647,7 @@ function renderActiveF(){
    where a closed panel with nothing on it would let someone read a filtered map as an
    empty one. Search counts, because it filters as hard as any of the others. */
 function activeFilterCount(){
-  return (F.kinds.size?1:0)+(F.hood!=="all"?1:0)+(F.era!=="all"?1:0)+
-         (F.campaign&&F.campaign!=="all"?1:0)+(F.place?1:0)+(F.q?1:0);
+  return FILTERS.filter(function(f){return f.counts&&fOn(f);}).length;
 }
 function renderFCount(){
   var el=$("fCount");if(!el)return;
@@ -2887,7 +3046,7 @@ function renderCards(){
         '<div class="cchips">'+
           '<button class="cchip" data-chip="hood" data-v="'+esc(s.hood)+'"><span class="csw" style="background:'+hoodColor(s.hood)+'"></span>'+esc(s.hood)+'</button>'+
           '<button class="cchip" data-chip="era" data-v="'+esc(s.era)+'">'+storyWhen(s)+'</button>'+
-          '<button class="cchip" data-chip="kind" data-v="'+esc(s.kind)+'">'+kindMark(s,11)+'</button>'+
+          '<button class="cchip" data-chip="kinds" data-v="'+esc(s.kind)+'">'+kindMark(s,11)+'</button>'+
         '</div>'+
         '<div class="cfoot">'+
           storyBadges(s)+
@@ -2923,11 +3082,8 @@ function renderCards(){
   $("cards").querySelectorAll("[data-chip]").forEach(function(b){
     b.addEventListener("click",function(e){
       e.stopPropagation();
-      var t=b.dataset.chip,v=b.dataset.v;
-      if(t==="hood"){var sel=$("hoodSel");if(sel){sel.value=v;sel.dispatchEvent(new Event("change"));return;}}
-      else if(t==="era"){F.era=v;renderSelects();}
-      else if(t==="kind"){F.kinds=new Set([v]);}
-      apply();
+      // data-chip IS the registry key, so nothing here needs to know the list.
+      chipSet(b.dataset.chip,b.dataset.v);
     });
   });
   $("cards").querySelectorAll(".card").forEach(function(c){
@@ -2940,19 +3096,22 @@ function renderCards(){
   });
 }
 function hiCard(id,on){var c=$("cards").querySelector('.card[data-id="'+id+'"]');if(c){c.classList.toggle("sel",on);if(on)c.scrollIntoView({block:"nearest",behavior:"smooth"});}}
-/* A filtered map should be sendable. The address bar carries the neighborhood, the
-   Cultural District site, the type, the era and the search, so "look at Soulsville" is a
-   link rather than a set of instructions. `kind` is left alone: the kiosk already uses it
-   to open the form on a particular kind of story. */
+/* A filtered map should be sendable, so the address bar carries every filter that
+   declares a `param` in JS SECTION: FILTER REGISTRY and nothing else. Reading the list
+   rather than repeating it is the point: a filter left out of here used to drop out of
+   shareable links without a word, and two of them already had.
+   Parameters this page uses for other jobs are untouched, because only the ones named in
+   the registry are cleared: `kind` and `campaign` open the form at an event kiosk, `mode`
+   chooses the view. */
 function syncUrl(){
   var p=new URLSearchParams(location.search);
-  ["hood","site","dc","type","era","q"].forEach(function(k){p.delete(k);});
-  if(F.hood&&F.hood!=="all")p.set("hood",F.hood);
-  if(F.site)p.set("site",F.site);
-  if(F.dc)p.set("dc",F.dc);
-  if(F.kinds.size===1)p.set("type",Array.from(F.kinds)[0]);
-  if(F.era&&F.era!=="all")p.set("era",F.era);
-  if(F.q)p.set("q",F.q);
+  FILTERS.forEach(function(f){
+    if(!f.param)return;
+    p.delete(f.param);
+    if(!fOn(f))return;
+    var v=f.toParam?f.toParam(F[f.key]):F[f.key];
+    if(v!=null&&v!=="")p.set(f.param,v);
+  });
   var qs=p.toString();
   try{history.replaceState(null,"",location.pathname+(qs?"?"+qs:"")+location.hash);}catch(e){}
 }
@@ -3057,7 +3216,10 @@ function openDetail(s){
   // The hero carries data-lb like every other photo, so one handler covers all of them
   // and the hero can never quietly fall out of the set again.
   var hero=src?'<div class="d-hero"><img src="'+src+'" data-lb="'+esc(s.photo)+'" tabindex="0" role="button" aria-label="Open this photo" alt=""><div class="dscrim"></div>':'<div class="d-hero noimg" style="background:'+k.color+'22;color:'+k.color+'">'+ic(k.icon,46)+'<div class="dscrim"></div>';
-  var tags=[['kind',ic(k.icon,13)+" "+esc(k.label)],['place',PLACE[s.place]?esc(PLACE[s.place].l):null],['hood',ic("pin",13)+" "+esc(s.hood)],['era',esc(eraLabel(s.era))]].filter(function(t){return t[1];});
+  // The first item of each pair is a key in JS SECTION: FILTER REGISTRY, and the click
+  // handler below sets that filter. A tag naming something that is not a filter would do
+  // nothing, quietly, so keep these two in step.
+  var tags=[['kinds',ic(k.icon,13)+" "+esc(k.label),s.kind],['place',PLACE[s.place]?esc(PLACE[s.place].l):null,s.place],['hood',ic("pin",13)+" "+esc(s.hood),s.hood],['era',esc(eraLabel(s.era)),s.era]].filter(function(t){return t[1];});
   $("detail").innerHTML=hero+
     '<button class="d-close" id="dClose">←</button>'+
     '<span class="d-ktag" style="background:'+k.color+'">'+ic(k.icon,13)+' '+esc(k.label)+'</span></div>'+
@@ -3065,7 +3227,7 @@ function openDetail(s){
     (s.audio?'<div class="d-sect">'+ic("mic",13)+' Voice recording</div><audio controls src="'+s.audio+'"></audio>':"")+
     storyMediaHtml(s)+
     (s.kind==="future"?dreamBox(s):"")+
-    '<div class="d-tags">'+tags.map(function(t){return '<span class="t" data-tag="'+t[0]+'">'+t[1]+'</span>';}).join("")+'</div>'+
+    '<div class="d-tags">'+tags.map(function(t){return '<span class="t" data-tag="'+t[0]+'" data-v="'+esc(t[2])+'">'+t[1]+'</span>';}).join("")+'</div>'+
     '<div class="d-meta">'+
       '<div class="r"><span>Shared by</span><b>'+storyWho(s)+'</b></div>'+
       '<div class="r"><span>Neighborhood</span><b>'+esc(s.hood)+'</b></div>'+
@@ -3090,8 +3252,8 @@ function openDetail(s){
       if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}});
   });
   $("detail").querySelectorAll("[data-tag]").forEach(function(el){el.addEventListener("click",function(){
-    var t=el.dataset.tag;if(t==="hood")F.hood=s.hood;else if(t==="era")F.era=s.era;else if(t==="place")F.place=s.place;else if(t==="kind"){F.kinds=new Set([s.kind]);}
-    renderSelects();closeDetail();apply();
+    closeDetail();
+    chipSet(el.dataset.tag,el.dataset.v);
   });});
 }
 function closeDetail(){$("detail").classList.remove("open");selMarker(null);}
@@ -3342,7 +3504,11 @@ function onMeFailed(){
 }
 renderLayerPanel();
 $("lpHead").addEventListener("click",function(){var c=$("layerPanel").classList.toggle("collapsed");this.setAttribute("aria-expanded",c?"false":"true");});
-$("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMeta();renderCards();renderMarkers();renderActiveF();});
+/* Not apply(): typing should not re-pick the spotlight or redraw the kind chips on every
+   keystroke. syncUrl() is in the list because the search box was the last filter a link
+   could not carry, which is the exact defect the registry exists to stop. A word typed by
+   hand is a handful of replaceState calls, well inside what a browser will take. */
+$("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMeta();renderCards();renderMarkers();renderActiveF();syncUrl();});
 
 /* Map search: finds a place and moves the map. Distinct from #searchIn above,
    which filters the story list and never moves the map. */
@@ -3398,24 +3564,19 @@ $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMe
   });
   document.addEventListener("click",function(e){if(!e.target.closest(".mapsearch"))acx.close();});
 })();
-// Picking a neighborhood filters AND travels there. That is the whole navigation story:
-// you should not have to know where Binghampton is to go and look at it.
-$("hoodSel").addEventListener("change",function(){
-  // A neighborhood and a single building are two ways of asking the same question, so
-  // picking one drops the other. Keeping both just empties the list and explains nothing.
-  F.hood=this.value;F.site=null;apply();
-  if(this.value==="all"){highlightHood(null);map.flyTo(CLAYBORN,13,{duration:.8});return;}
-  highlightHood(this.value);
-  // Fit the actual shape where we have one, so you see the whole neighborhood rather
-  // than a guessed zoom around its middle. Sub-districts have no shape; use the centre.
-  var shape=null;
-  if(hoodLayer)hoodLayer.eachLayer(function(l){if(l.feature&&l.feature.properties.name===F.hood)shape=l;});
-  if(shape){map.flyToBounds(shape.getBounds(),{padding:[40,40],duration:.8});return;}
-  var h=hoodByName(this.value);
-  if(h)map.flyTo([h.lat,h.lng],h.z||15,{duration:.8});
+/* Every dropdown in the filter panel wires itself from JS SECTION: FILTER REGISTRY. What
+   they share is "set the value and redraw"; what one of them does either side of that is
+   declared on its own entry, so a new dropdown needs no code here at all. */
+FILTERS.forEach(function(f){
+  if(f.type!=="select")return;
+  var el=$(f.el);if(!el)return;
+  el.addEventListener("change",function(){
+    F[f.key]=this.value;
+    if(f.also)f.also(this.value);
+    apply();
+    if(f.then)f.then(this.value);
+  });
 });
-$("eraSel").addEventListener("change",function(){F.era=this.value;apply();});
-$("campSel").addEventListener("change",function(){F.campaign=this.value;apply();});
 $("navImpact").addEventListener("click",function(){showView("impact");});
 $("navMap").addEventListener("click",function(){showView("explore");});
 /* navHome has no handler any more: it is an <a href="app.html"> and the browser does the
@@ -3426,51 +3587,48 @@ $("navMap").addEventListener("click",function(){showView("explore");});
 $("panel").addEventListener("click",function(e){if(e.target===this||e.target.classList.contains("p-head")){this.classList.toggle("up");}});
 
 
-/* === JS SECTION: CAPTURE FLOW (the public form) ======================================
-   The whole add-a-memory flow. renderStep() draws whichever step stepIdx points at;
-   STEPS decides the order. Uploads happen on submit, so abandoning leaves nothing behind. */
-var draft=null,stepIdx=0,STEPS=[],mediaRec,chunks=[],pinMap,pinMarker,thanksMap;
-var campaignParam="web",eventParam="",captureMode="web";
-function startCapture(kind){
-  var defEra=kind==="future"?(campaignParam==="reimagine2065"?"future2065":"tomorrow"):"";
-  // locSource records where the coordinate actually came from. "unset" means the
-  // person never placed it, and a story must not submit that way: an unplaced pin
-  // used to silently file the story at Clayborn.
-  draft={id:uid(),kind:kind||null,place:"",hood:"",hoodPicked:false,story:"",corner:"",era:defEra,lat:CLAYBORN[0],lng:CLAYBORN[1],locSource:"unset",photo:null,audio:null,files:[],name:"",email:"",phone:"",vis:"first",inst:false,status:"pending",campaign:campaignParam,mode:captureMode};
-  // What happened, where, and when are the record itself, so they are one screen.
-  // Media comes after, because a photo or a voice supports a story that already exists.
-  // This also removed a duplicate question: the flow used to ask where the story
-  // belonged, then ask again on a map three steps later.
-  STEPS=draft.kind?["story","media","consent"]:["kind","story","media","consent"];
-  stepIdx=0;showView("capture");renderBanner();renderStep();
-}
-/* The bar across the top of the form at an event: which campaign this is being
-   collected for, and how. Hidden entirely for an ordinary web submission. */
-function renderBanner(){
-  var el=$("capBanner"); if(!el)return;
-  var m=CAMPAIGNS[draft.campaign];
-  if(!(draft.campaign&&draft.campaign!=="web"&&m)){
-    el.className="capbanner hidden"; el.innerHTML=""; return;
-  }
-  el.className="capbanner";
-  el.innerHTML=
-    'Collecting for <b>'+esc(m.label)+'</b>'+
-    (eventParam?'<span class="ev">· '+esc(eventParam)+'</span>':'')+
-    '<span class="mode">· '+(MODES[draft.mode]||draft.mode)+'</span>';
-}
-function renderProg(){$("prog").innerHTML=STEPS.map(function(_,i){return '<i class="'+(i<stepIdx?"done":i===stepIdx?"now":"")+'"></i>';}).join("");}
-function goNext(){stepIdx++;if(stepIdx>=STEPS.length)submitDraft();else renderStep();}
-function goBack(){if(stepIdx>0){stepIdx--;renderStep();}else showView("explore");}
-function navRow(nd){return '<div class="row"><button class="btn ghost" id="backBtn">Back</button><button class="btn prim" id="nextBtn"'+(nd?" disabled":"")+'>Continue →</button></div>';}
-function wireNav(){$("backBtn").addEventListener("click",goBack);$("nextBtn").addEventListener("click",goNext);}
-function renderStep(){
-  renderProg();var step=STEPS[stepIdx],b=$("stepBody");
-  window.__suggestName=null;window.__refreshStep=null;   // rebound by the intake step only
-  if(step==="kind"){
+/* === JS SECTION: CAPTURE STEPS =======================================================
+   The public form, one entry per screen. This is the surface a community member actually
+   touches at an event, and the one where wording matters most, so it is also the one that
+   gets edited most often at short notice.
+
+   It used to be a 178-line if/else chain inside renderStep(), plus a hardcoded order with
+   a conditional in it:
+
+       STEPS = draft.kind ? ["story","media","consent"] : ["kind","story","media","consent"]
+
+   so reordering, adding a screen, or dropping one for a particular event meant editing
+   the chain and that array and keeping the two in step. The array said which screens
+   existed; the chain said what they were; nothing checked that they agreed. A key in one
+   and not the other renders a blank screen with a Continue button on it.
+
+   Now: one entry per screen, in the order they are asked.
+
+     key    the screen's name, and what STEPS holds
+     skip   this draft does not need this screen. Asked once, in startCapture(), NOT on
+            every render: the kind screen sets draft.kind, and a list recomputed after
+            that would drop the screen the person is standing on and shift every index
+            under them.
+     render draws it into the step body and wires it. Each one owns its own layout on
+            purpose. A picker, a long compound question, an uploader and a consent screen
+            are four different jobs, and one templating function with a flag per screen
+            would be worse than the four. See D29 on what a registry is NOT for.
+
+   NOT here: what happens on submit. submitDraft() and supaSubmit() own that, and a field
+   added to a screen still has to reach both. */
+var CAPTURE_STEPS=[
+
+  /* Skipped whenever the person has already said what they are sharing on the way in: a
+     Cultural District star, a right-click on the map, or a kiosk link carrying ?kind=. */
+  {key:"kind",skip:function(d){return !!d.kind;},
+   render:function(b){
     b.innerHTML='<h2 class="q">What are you sharing?</h2><p class="qsub">This sets the color of your dot on the map.</p><div class="opts" id="ko"></div>';
     $("ko").innerHTML=Object.keys(KIND).map(function(k){return '<button class="opt" data-k="'+k+'"><span class="em" style="color:'+KIND[k].color+'">'+ic(KIND[k].icon,22)+'</span><span>'+esc(KIND[k].label)+'<small>'+esc(KIND[k].sub)+'</small></span></button>';}).join("");
     b.querySelectorAll("[data-k]").forEach(function(el){el.addEventListener("click",function(){draft.kind=el.dataset.k;if(draft.kind==="future")draft.era="tomorrow";goNext();});});
-  } else if(step==="story"){
+   }},
+
+  {key:"story",
+   render:function(b){
     var isV=draft.kind==="future",is65=isV&&draft.campaign==="reimagine2065";
     var q=is65?"It's 2068. What does Memphis feel like?":isV?"What should grow here?":"Tell the story.";
     var sub=is65
@@ -3598,7 +3756,10 @@ function renderStep(){
       else{suggestName();}
     }
     refresh();
-  } else if(step==="media"){
+   }},
+
+  {key:"media",
+   render:function(b){
     // Same set the Rainproof form offers: as many photos as they have, a video, a voice.
     // The recorder is kept first because a voice is how a memory really travels.
     b.innerHTML='<h2 class="q">Add a voice, photos or a video.</h2>'+
@@ -3617,7 +3778,10 @@ function renderStep(){
       navRow(false)+'<div class="center"><button class="skip" id="skipMedia">Skip, No Media</button></div>';
     wireNav();$("nextBtn").disabled=false;$("skipMedia").addEventListener("click",goNext);
     wireRecorder();wireDraftMedia();
-  } else if(step==="consent"){
+   }},
+
+  {key:"consent",
+   render:function(b){
     b.innerHTML='<h2 class="q">You &amp; your consent.</h2><p class="qsub">These stories belong to Memphis. You choose how much of your name travels with yours.</p><input type="text" class="ti mb14" id="cname" placeholder="Your name (optional)" value="'+esc(draft.name)+'"><div id="visOpts"></div>'+
       '<div class="contactblock"><div class="cb-h"><span class="lock">'+ic("lock",15)+'</span> Stay in touch <span>private, The Big We only</span></div>'+
       '<p class="cb-note">So we can let you know when your story is published, or reach out if we need to. This never shows on the map.</p>'+
@@ -3640,7 +3804,60 @@ function renderStep(){
     $("cname").addEventListener("input",function(){draft.name=this.value;});$("instChk").addEventListener("change",function(){draft.inst=this.checked;});
     $("cemail").addEventListener("input",function(){draft.email=this.value;});$("cphone").addEventListener("input",function(){draft.phone=this.value;});
     $("backBtn").addEventListener("click",goBack);$("submitBtn").addEventListener("click",submitDraft);
+   }}
+];
+function stepByKey(k){for(var i=0;i<CAPTURE_STEPS.length;i++)if(CAPTURE_STEPS[i].key===k)return CAPTURE_STEPS[i];return null;}
+/* The screens this particular draft will walk. Derived with a function rather than kept
+   as an array built at load, which is the rule D29 came out of: a screen added to the
+   registry has to be visible to a draft started afterwards. */
+function captureStepsFor(d){
+  return CAPTURE_STEPS.filter(function(s){return !s.skip||!s.skip(d);}).map(function(s){return s.key;});
+}
+
+/* === JS SECTION: CAPTURE FLOW (the public form) ======================================
+   The whole add-a-memory flow. renderStep() draws whichever step stepIdx points at;
+   STEPS decides the order. Uploads happen on submit, so abandoning leaves nothing behind. */
+var draft=null,stepIdx=0,STEPS=[],mediaRec,chunks=[],pinMap,pinMarker,thanksMap;
+var campaignParam="web",eventParam="",captureMode="web";
+function startCapture(kind){
+  var defEra=kind==="future"?(campaignParam==="reimagine2065"?"future2065":"tomorrow"):"";
+  // locSource records where the coordinate actually came from. "unset" means the
+  // person never placed it, and a story must not submit that way: an unplaced pin
+  // used to silently file the story at Clayborn.
+  draft={id:uid(),kind:kind||null,place:"",hood:"",hoodPicked:false,story:"",corner:"",era:defEra,lat:CLAYBORN[0],lng:CLAYBORN[1],locSource:"unset",photo:null,audio:null,files:[],name:"",email:"",phone:"",vis:"first",inst:false,status:"pending",campaign:campaignParam,mode:captureMode};
+  // What happened, where, and when are the record itself, so they are one screen.
+  // Media comes after, because a photo or a voice supports a story that already exists.
+  // This also removed a duplicate question: the flow used to ask where the story
+  // belonged, then ask again on a map three steps later.
+  STEPS=captureStepsFor(draft);
+  stepIdx=0;showView("capture");renderBanner();renderStep();
+}
+/* The bar across the top of the form at an event: which campaign this is being
+   collected for, and how. Hidden entirely for an ordinary web submission. */
+function renderBanner(){
+  var el=$("capBanner"); if(!el)return;
+  var m=CAMPAIGNS[draft.campaign];
+  if(!(draft.campaign&&draft.campaign!=="web"&&m)){
+    el.className="capbanner hidden"; el.innerHTML=""; return;
   }
+  el.className="capbanner";
+  el.innerHTML=
+    'Collecting for <b>'+esc(m.label)+'</b>'+
+    (eventParam?'<span class="ev">· '+esc(eventParam)+'</span>':'')+
+    '<span class="mode">· '+(MODES[draft.mode]||draft.mode)+'</span>';
+}
+function renderProg(){$("prog").innerHTML=STEPS.map(function(_,i){return '<i class="'+(i<stepIdx?"done":i===stepIdx?"now":"")+'"></i>';}).join("");}
+function goNext(){stepIdx++;if(stepIdx>=STEPS.length)submitDraft();else renderStep();}
+function goBack(){if(stepIdx>0){stepIdx--;renderStep();}else showView("explore");}
+function navRow(nd){return '<div class="row"><button class="btn ghost" id="backBtn">Back</button><button class="btn prim" id="nextBtn"'+(nd?" disabled":"")+'>Continue →</button></div>';}
+function wireNav(){$("backBtn").addEventListener("click",goBack);$("nextBtn").addEventListener("click",goNext);}
+function renderStep(){
+  renderProg();var step=stepByKey(STEPS[stepIdx]),b=$("stepBody");
+  window.__suggestName=null;window.__refreshStep=null;   // rebound by the intake step only
+  /* A key in STEPS with no entry in CAPTURE_STEPS used to draw a blank screen with a
+     working Continue button under it. It says so now, and stops. */
+  if(!step){console.warn("[capture] no CAPTURE_STEPS entry for step \""+STEPS[stepIdx]+"\"");return;}
+  step.render(b);
 }
 function wireRecorder(){var btn=$("micBtn"),lbl=$("recLbl");if(draft.audio)$("audioPrev").innerHTML='<audio controls src="'+draft.audio+'"></audio>';
   btn.addEventListener("click",function(){
@@ -4304,19 +4521,25 @@ function renderSpotlight(){
 var spotDismissed=false;
 
 /* === JS SECTION: BOOT: URL PARAMS AND FIRST RENDER ===================================
-   Reads ?hood= ?site= ?dc= ?era= ?mode= and applies them BEFORE the first render. */
+   Reads ?mode= for the view, ?kind= ?campaign= ?event= for a form opened at an event,
+   and every filter parameter named in JS SECTION: FILTER REGISTRY. All of it applied
+   BEFORE the first render. */
 var params=new URLSearchParams(location.search),mode=params.get("mode"),kindParam=params.get("kind");
 campaignParam=params.get("campaign")||"web";eventParam=params.get("event")||"";captureMode=(mode==="kiosk")?"kiosk":(mode==="share"?"share":"web");
 /* A shared link arrives as filter state. Applied before the first render so the page
-   opens on what was sent, rather than opening on everything and then jumping. */
+   opens on what was sent, rather than opening on everything and then jumping.
+   Read straight off the registry, which is the half of the round trip that used to go
+   missing: a filter syncUrl() could write and this block could not read produced links
+   that worked when sent and did nothing when opened. */
 (function(){
-  var hood=params.get("hood"),site=params.get("site"),type=params.get("type"),era=params.get("era"),q=params.get("q");
-  if(hood)F.hood=hood;
-  if(site)F.site=site;
-  if(params.get("dc"))F.dc=params.get("dc");
-  if(type&&KIND[type])F.kinds=new Set([type]);
-  if(era&&ERAS.some(function(e){return e[0]===era;}))F.era=era;
-  if(q){F.q=q;var si=$("searchIn");if(si)si.value=q;}
+  FILTERS.forEach(function(f){
+    if(!f.param)return;
+    var raw=params.get(f.param);if(raw==null)return;
+    var v=f.fromParam?f.fromParam(raw):(raw||undefined);
+    if(v===undefined)return;
+    F[f.key]=v;
+    if(f.onBoot)f.onBoot(v);
+  });
 })();
 (function(){
   var lb=$("lightbox");if(!lb)return;
