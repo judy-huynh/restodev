@@ -69,6 +69,22 @@
   .mclose{position:absolute;top:15px;right:15px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:19px;display:grid;place-items:center;line-height:1}
   .mclose:hover{background:rgba(255,255,255,.32)}
   .mbody{padding:22px 26px 26px;overflow:auto}
+  /* City Data tables. The wrapper scrolls on its own so the modal body never scrolls
+     sideways, and the header row stays put while you read down 17 neighborhoods. */
+  .cdwrap{overflow-x:auto;margin:2px -4px -4px;padding:0 4px 4px}
+  .cdtable{border-collapse:collapse;width:100%;font-size:12.5px}
+  .cdtable th,.cdtable td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  .cdtable th{position:sticky;top:0;background:var(--bg);font-size:10px;font-weight:800;
+    letter-spacing:.02em;color:var(--faint);cursor:pointer;user-select:none;z-index:1}
+  .cdtable th:hover{color:var(--text)}
+  .cdtable th.on{color:var(--primaryDark)}
+  .cdtable th.n,.cdtable td.n{text-align:right;font-variant-numeric:tabular-nums}
+  .cdtable .cdar{margin-left:3px;font-size:8px}
+  .cdtable tbody tr:hover{background:var(--bg)}
+  .cdtable tr:last-child td{border-bottom:0}
+  .cdtable .cdw{display:block;font-size:10.5px;color:var(--muted);font-weight:400;white-space:normal;max-width:34ch}
+  .cdtable .cds{font-size:11px;color:var(--muted)}
+  .cdtable th:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .mcard{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:var(--shadow-sm);margin-bottom:16px}
   .mcard .mch{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:17px;flex-wrap:wrap}
   .mcard .mch h3{font-family:var(--display);font-weight:600;font-size:.98rem;margin:0}
@@ -195,6 +211,13 @@
   .elegend.priv{color:#5B4B8A}
   .efl{display:block;font-size:11px;font-weight:700;color:var(--muted);margin:0 0 4px}
   .ehint{font-size:10.5px;color:var(--faint);margin:5px 0 14px}
+  /* Overriding what someone chose about their own name should not look like a routine
+     setting, so it says so in the colour the rest of the app uses for strain. */
+  .ehint.warn{display:flex;align-items:flex-start;gap:6px;color:var(--strain);font-weight:600;
+    background:#FCE3EC;border-radius:8px;padding:7px 9px;margin:5px 0 14px}
+  .ehint.warn .ic{flex:none;margin-top:1px}
+  .epreview{font-size:11.5px;color:var(--muted);margin:7px 0 0}
+  .epreview b{color:var(--text)}
   .egrid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
   .egrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
   @media(max-width:640px){.egrid2,.egrid3{grid-template-columns:1fr}}
@@ -394,8 +417,6 @@
   .lrow.loading .lname b::after{content:" · loading…";font-weight:600;color:var(--faint)}
   @keyframes lsw{0%,100%{left:2px}50%{left:16px}}
   .lrow.on .sw::after{left:16px}
-  .lp-data{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:6px;padding:9px;border-radius:9px;background:var(--text);color:#fff;font-size:11.5px;font-weight:700}
-  .lp-data:hover{background:#3a2f57}
   .spotlight{position:absolute;left:16px;bottom:16px;z-index:500;max-width:330px;background:var(--panel);border:1px solid var(--gold);border-radius:14px;padding:11px 12px;box-shadow:var(--shadow);display:flex;gap:11px;align-items:center;cursor:pointer;transition:.2s}
   .spotlight:hover{transform:translateY(-2px);box-shadow:0 22px 46px -22px rgba(36,28,59,.6)}
   .spotlight img{width:54px;height:54px;border-radius:10px;object-fit:cover;flex:none}
@@ -725,7 +746,7 @@
     <a class="nav" href="index.html">The Story</a>
     <button class="nav" id="navMap" data-view="explore">The Map</button>
     <button class="nav" id="navImpact" data-view="impact">Impact</button>
-    <button class="nav" id="navData">The Data</button>
+    <button class="nav" id="navData">City Data</button>
     <button class="nav quiet" id="navMod" data-view="admin">Moderate</button>
   </nav>
   <button class="addbtn" id="navAdd">+ Share<span class="addtail"> Your Story</span></button>
@@ -796,7 +817,6 @@
                 <button class="lrow" id="commToggle"><span class="lname"><b>Community Centers</b><em>City of Memphis</em></span><span class="sw"></span></button>
                 <button class="lrow" id="libToggle"><span class="lname"><b>Libraries</b><em>Memphis Public Libraries</em></span><span class="sw"></span></button>
               </div>
-              <button class="lp-data" id="ctxData"><span class="ic" data-ic="chart"></span> See the Data Behind These Layers</button>
             </div>
           </div>
         </div>
@@ -856,29 +876,12 @@
 <div class="mscrim hidden" id="dataModal" role="dialog" aria-modal="true" aria-labelledby="dataModalTitle">
   <div class="dmodal">
     <div class="mhead">
-      <div class="ek">Follow the data · within 1 mile of Clayborn</div>
+      <div class="ek">City Data</div>
       <h2 id="dataModalTitle">The ground these stories sit on</h2>
-      <p>The city's own data, read around Clayborn Temple. The layers on this map are the context; the memories go on top.</p>
+      <p>Every layer on this map, where it came from, and what it adds up to in each neighborhood. The layers are the context; the memories go on top.</p>
       <button class="mclose" id="dataClose" aria-label="Close"><span class="ic" data-ic="x" data-s="18"></span></button>
     </div>
-    <div class="mbody">
-      <div class="mcard">
-        <div class="mch">
-          <div><h3>A neighborhood of corner stores</h3><p class="sub">Food retailers by type, citywide</p></div>
-          <div class="tot">of <b>147</b> outlets</div>
-        </div>
-        <div class="mbar"><div class="ml"><span class="c" style="background:#C2410C"></span> Convenience</div><div class="mtrack"><div class="mfill" style="width:100%;background:#C2410C"><span class="v">106</span></div></div></div>
-        <div class="mbar"><div class="ml"><span class="c" style="background:#2B6CA3"></span> Other outlets</div><div class="mtrack"><div class="mfill" style="width:19.8%;background:#2B6CA3"><span class="v">21</span></div></div></div>
-        <div class="mbar"><div class="ml"><span class="c" style="background:#1B7A3D"></span> Full grocery</div><div class="mtrack"><div class="mfill" style="width:18.9%;background:#1B7A3D"><span class="v">20</span></div></div></div>
-        <p class="mcap">Only <b>1 in 7</b> food outlets sells a full grocery basket. Convenience stores outnumber grocers <b>5 to 1</b>. That is a food desert.</p>
-      </div>
-      <div class="mtiles">
-        <div class="mtile flag"><div class="tn">0</div><div class="tl">community centers within a mile</div><div class="ts">Memphis runs 25. The nearest is over a mile out: the sharpest gap.</div></div>
-        <div class="mtile"><div class="tn">14</div><div class="tl">food outlets within a mile</div><div class="ts">Only 3 sell full groceries. Nearest grocer 0.22 mi (South Point Grocery).</div></div>
-        <div class="mtile"><div class="tn ok">14</div><div class="tl">parks within a mile</div><div class="ts">4 within a half mile. Green space for gathering is already here.</div></div>
-      </div>
-      <p class="mnote"><b>On higher ground:</b> Clayborn sits outside FEMA's high-risk flood zone, though blocks around it (zones A and AE) do not. That makes it a candidate refuge. Toggle the layers at right to see each of these on the map. <a href="layers.html">Open the full base map →</a></p>
-    </div>
+    <div class="mbody" id="cityDataBody"></div>
   </div>
 </div>
 
@@ -1132,7 +1135,7 @@ function contactRow(c){
   if(c.phone)parts.push('<span>'+ic("phone",12)+' <a href="tel:'+esc((c.phone+"").replace(/[^0-9+]/g,""))+'">'+esc(c.phone)+'</a></span>');
   return '<div class="contactrow"><span class="cr-lab">'+ic("lock",11)+' Contact</span>'+parts.join("")+'</div>';
 }
-function rowToStory(r){var a=r.answers||{},photo=null,audio=null;var media=(r.media||[]).filter(function(m){return m&&m.url;});media.forEach(function(m){if(m.kind==="photo"&&!photo)photo=m.url;if(m.kind==="audio"&&!audio)audio=m.url;});var src=r.source||{};return{id:r.id,kind:a.kind||"memory",place:a.place_type||"",hood:r.location_label||HOOD_OTHER,corner:a.corner||r.location_label||"",era:a.era||"today",story:a.story||"",lat:r.lat,lng:r.lng,name:r.display_name,vis:CONSENT2VIS[r.consent_level]||"first",inst:!!a.inst,contact:null,photo:photo,audio:audio,media:media,campaign:src.campaign||"web",mode:src.mode||"web",featured:!!r.featured,affirms:AFF[r.id]||0,at:r.submitted_at||null,status:r.status||"approved"};}
+function rowToStory(r){var a=r.answers||{},photo=null,audio=null;var media=(r.media||[]).filter(function(m){return m&&m.url;});media.forEach(function(m){if(m.kind==="photo"&&!photo)photo=m.url;if(m.kind==="audio"&&!audio)audio=m.url;});var src=r.source||{};return{id:r.id,kind:a.kind||"memory",place:a.place_type||"",hood:r.location_label||HOOD_OTHER,corner:a.corner||r.location_label||"",era:a.era||"today",story:a.story||"",lat:r.lat,lng:r.lng,name:r.display_name,vis:CONSENT2VIS[r.consent_level]||"first",vis0:CONSENT2VIS[r.consent_level]||"first",inst:!!a.inst,contact:null,photo:photo,audio:audio,media:media,campaign:src.campaign||"web",mode:src.mode||"web",featured:!!r.featured,affirms:AFF[r.id]||0,at:r.submitted_at||null,status:r.status||"approved"};}
 async function supaFetchApproved(){var res=await fetch(SUPA.url+"/rest/v1/stories?tenant_id=eq."+SUPA.tid+"&status=eq.approved&select=id,status,display_name,consent_level,answers,lat,lng,location_label,media,source,submitted_at,featured&order=submitted_at.desc&limit=500",{headers:supaHeaders()});if(!res.ok)throw new Error("load "+res.status);return (await res.json()).map(rowToStory);}
 /* Same shape as the Rainproof uploader: one file in, {url,kind,name} out, the real
    extension preserved so a .mov stays a .mov and a PDF stays a PDF. Uploads as the
@@ -1200,6 +1203,10 @@ async function supaAuthed(path,opts){opts=opts||{};var res=await fetch(SUPA.url+
 async function supaSaveStory(s,answers){
   return supaAuthed("stories?id=eq."+s.id,{method:"PATCH",headers:{Prefer:"return=minimal"},
     body:JSON.stringify({location_label:s.hood,lat:s.lat,lng:s.lng,display_name:s.name||null,
+      // consent_level was deliberately left out so a save could not clobber it. That also
+      // meant it could never be corrected, which is the bug: the name box was editable and
+      // the thing that actually governs the name was not.
+      consent_level:VIS2CONSENT[s.vis]||"first_name",
       featured:!!s.featured,answers:answers,media:s.media||[]})});
 }
 /* The moderator-only layer. A separate table with its own row-level rule, because anyone
@@ -1229,7 +1236,26 @@ function storyDate(s){
   if(!s.at)return "";
   try{return new Date(s.at).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});}catch(e){return "";}
 }
-function displayName(s){return(s.vis==="anon"||s.vis==="heritage")?"Anonymous":(s.name||"Anonymous");}
+/* One place decides whether a name is shown, so the moderator desk and the public card can
+   never disagree about it. They used to: the desk greyed the name box for `anon` only,
+   while this function hid the name for `heritage` as well. */
+function nameHidden(s){return s.vis==="anon"||s.vis==="heritage";}
+function visLabel(v){return {full:"full name",first:"first name only",anon:"anonymous",
+  heritage:"heritage record only"}[v]||v;}
+/* "First name only" means the first name, not whatever happens to be stored. It is applied
+   at display time rather than by trimming what was typed, so the full name is never lost
+   and switching back to "full name" restores it. Titles ride along with the first word,
+   or Dr. Hutchinson becomes "Dr." */
+function publicName(s){
+  if(nameHidden(s))return "Anonymous";
+  var n=(s.name||"").trim();
+  if(!n)return "Anonymous";
+  if(s.vis!=="first")return n;
+  var parts=n.split(/\s+/), out=[parts[0]];
+  if(/^(dr|mr|mrs|ms|rev|pastor|bishop|elder|prof|sr|fr)\.?$/i.test(parts[0])&&parts[1])out.push(parts[1]);
+  return out.join(" ");
+}
+function displayName(s){return publicName(s);}
 function photoSrc(p){if(!p)return null;return(p.indexOf("data:")===0||p.indexOf("http")===0||p.indexOf("..")===0)?p:PHOTO+p;}
 var toastT;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("show");},2600);}
 
@@ -2497,10 +2523,155 @@ function showView(v){["explore","capture","thanks","admin","impact"].forEach(fun
   if(v==="explore"){initMap();setTimeout(function(){map.invalidateSize();},60);}
   if(v==="admin")renderAdmin();
   if(v==="impact")renderImpact();}
-function openData(){$("dataModal").classList.remove("hidden");}
+/* City Data is built from the layer files themselves, every time it opens.
+   The version before this was hand-written HTML, and it had gone quietly wrong: it said
+   "147 food outlets" and "1 in 7 sells a full grocery basket" long after food.geojson was
+   replaced with the full 753, and its Clayborn flood claim was computed against the flood
+   layer that stopped short of half the city. Numbers typed into a page cannot be corrected
+   by fixing the data. These are counted at open, so they cannot drift again. */
+var CITY_LAYERS=[
+  {key:"neighborhoods",file:"neighborhoods.geojson",name:"Neighborhoods",
+   what:"City tract lines grouped into the names this map uses",src:"City of Memphis"},
+  {key:"cultural",file:"cultural.geojson",name:"Cultural District",
+   what:"Sites in the district anchored on Clayborn Temple",src:"RestoDev Framework"},
+  {key:"food",file:"food.geojson",name:"Food Access",
+   what:"Shops that take SNAP, city-wide",src:"USDA SNAP"},
+  {key:"parks",file:"parks.geojson",name:"Parks",what:"City parks",src:"City of Memphis"},
+  {key:"comm",file:"community.geojson",name:"Community Centers",what:"City-run centers",src:"City of Memphis"},
+  {key:"lib",file:"libraries.geojson",name:"Libraries",what:"Public library branches",src:"Memphis Public Libraries"},
+  {key:"faith",file:"faith.geojson",name:"Churches and Faith",
+   what:"Named places of worship",src:"OpenStreetMap"},
+  {key:"flood",file:"flood.geojson",name:"Land that can flood",
+   what:"Ground with about a 1 in 100 chance of flooding in any year",src:"FEMA"},
+  {key:"flood500",file:"flood500.geojson",name:"Land that floods less often",
+   what:"About a 1 in 500 chance in any year",src:"FEMA"},
+  {key:"datacenters",file:"datacenters.geojson",name:"Data Centers",
+   what:"xAI Colossus sites, with 1 and 5 mile rings",src:"Reporting and permits"}
+];
+var CITY_COUNTS=null;
+function cityCounts(){
+  if(CITY_COUNTS)return Promise.resolve(CITY_COUNTS);
+  return Promise.all(CITY_LAYERS.map(function(L){
+    return fetch("data/"+L.file,{cache:"no-cache"}).then(function(r){return r.ok?r.json():null;})
+      .then(function(d){return {key:L.key,n:d&&d.features?d.features.length:null,doc:d};})
+      .catch(function(){return {key:L.key,n:null,doc:null};});
+  })).then(function(rows){
+    CITY_COUNTS={};rows.forEach(function(r){CITY_COUNTS[r.key]=r;});return CITY_COUNTS;
+  });
+}
+var FULL_FOOD={"Grocery Store":1,"Supermarket":1,"Super Store":1,"Farmers and Markets":1};
+function renderCityData(){
+  var el=$("cityDataBody");if(!el)return;
+  el.innerHTML='<p class="mnote">Counting the layers…</p>';
+  cityCounts().then(function(c){
+    // Food, split the way the map splits it, straight from the file.
+    var food=c.food&&c.food.doc?c.food.doc.features:[];
+    var full=food.filter(function(f){return FULL_FOOD[f.properties.type];}).length;
+    var conv=food.filter(function(f){return /convenience/i.test(f.properties.type||"");}).length;
+    var other=food.length-full-conv;
+    var bar=function(label,n,col){
+      var w=food.length?Math.max(2,n/food.length*100):0;
+      return '<div class="mbar"><div class="ml"><span class="c" style="background:'+col+'"></span> '+esc(label)+'</div>'+
+        '<div class="mtrack"><div class="mfill" style="width:'+w+'%;background:'+col+'"><span class="v">'+num(n)+'</span></div></div></div>';
+    };
+    var foodCard=food.length?'<div class="mcard">'+
+      '<div class="mch"><div><h3>Where you can buy food</h3><p class="sub">Shops that take SNAP, city-wide</p></div>'+
+      '<div class="tot">of <b>'+num(food.length)+'</b> shops</div></div>'+
+      bar("Corner stores",conv,"#C2410C")+bar("Other shops",other,"#2B6CA3")+bar("Full grocery",full,"#1B7A3D")+
+      '<p class="mcap">About <b>1 in '+Math.max(1,Math.round(food.length/(full||1)))+'</b> of these sells a full basket of groceries. '+
+      'Corner stores outnumber grocery stores <b>'+Math.round(conv/(full||1))+' to 1</b>.</p></div>':"";
+
+    // What every layer holds, and where it came from.
+    var rows=CITY_LAYERS.map(function(L){
+      var n=c[L.key]?c[L.key].n:null;
+      return '<tr><td><b>'+esc(L.name)+'</b><span class="cdw">'+esc(L.what)+'</span></td>'+
+        '<td class="n">'+(n==null?"—":num(n))+'</td><td class="cds">'+esc(L.src)+'</td></tr>';
+    }).join("");
+    var layerTable='<div class="mcard"><div class="mch"><div><h3>Every layer on this map</h3>'+
+      '<p class="sub">Counted from the files themselves, each time this opens</p></div></div>'+
+      '<div class="cdwrap"><table class="cdtable"><thead><tr><th>Layer</th><th class="n">Shapes</th><th>From</th></tr></thead>'+
+      '<tbody>'+rows+'</tbody></table></div></div>';
+
+    el.innerHTML=foodCard+layerTable+hoodTable()+
+      '<p class="mnote">Neighborhood figures are exact sums over whole census tracts, so nothing is split across a boundary. '+
+      'Full method sits with each layer in <code>built-site/data/</code>.</p>';
+    wireHoodSort();
+  }).catch(function(e){
+    el.innerHTML='<p class="mnote">Could not read the layer files. '+esc(e.message||"")+'</p>';
+  });
+}
+/* The neighborhood breakdown. One row per neighborhood, the columns a person would
+   actually compare, and sortable because comparing is the whole point of a table. */
+var CD_COLS=[
+  {k:"name",  l:"Neighborhood", t:"s"},
+  {k:"population", l:"People", t:"n"},
+  {k:"under18Pct", l:"Under 18", t:"p"},
+  {k:"medianIncome", l:"Typical income", t:"m"},
+  {k:"childPovertyPct", l:"Kids in poverty", t:"p"},
+  {k:"snapFull", l:"Groceries", t:"a"},
+  {k:"libraries", l:"Libraries", t:"a"},
+  {k:"parks", l:"Parks", t:"a"},
+  {k:"faith", l:"Churches", t:"a"},
+  {k:"floodSharePct", l:"Can flood", t:"p"}
+];
+var cdSort={k:"population",dir:-1};
+function hoodTable(){
+  if(!HOOD_PROFILES)return "";
+  var names=Object.keys(HOOD_PROFILES);
+  var val=function(n,col){
+    var d=HOOD_PROFILES[n];
+    if(col.k==="name")return n;
+    if(col.t==="a")return (d.assets||{})[col.k];
+    return d[col.k];
+  };
+  /* dir -1 is "biggest first" for a number and A to Z for a name, which is what a first
+     click means in each case. The comparator had the number branch inverted, so the first
+     click on People opened with the smallest neighborhood. */
+  names.sort(function(a,b){
+    var col=CD_COLS.filter(function(c){return c.k===cdSort.k;})[0]||CD_COLS[0];
+    var x=val(a,col),y=val(b,col);
+    if(col.t==="s")return String(x).localeCompare(String(y))*(cdSort.dir<0?1:-1);
+    return (((x==null?-1:x)-(y==null?-1:y))*cdSort.dir);
+  });
+  var head=CD_COLS.map(function(c){
+    var on=cdSort.k===c.k;
+    return '<th class="'+(c.t==="s"?"":"n")+(on?" on":"")+'" data-cds="'+c.k+'" tabindex="0" role="button">'+
+      esc(c.l)+(on?'<span class="cdar">'+(c.t==="s"?(cdSort.dir<0?"▲":"▼"):(cdSort.dir<0?"▼":"▲"))+'</span>':'')+'</th>';
+  }).join("");
+  var body=names.map(function(n){
+    var d=HOOD_PROFILES[n];
+    return '<tr>'+CD_COLS.map(function(c){
+      var v=val(n,c);
+      if(c.t==="s")return '<td><b>'+esc(n)+'</b></td>';
+      if(v==null)return '<td class="n">—</td>';
+      if(c.t==="m")return '<td class="n">'+money(v)+'</td>';
+      if(c.t==="p")return '<td class="n">'+v.toFixed(1)+'%</td>';
+      return '<td class="n">'+num(v)+'</td>';
+    }).join("")+'</tr>';
+  }).join("");
+  return '<div class="mcard"><div class="mch"><div><h3>Neighborhood by neighborhood</h3>'+
+    '<p class="sub">'+names.length+' neighborhoods · tap a heading to sort</p></div></div>'+
+    '<div class="cdwrap"><table class="cdtable hood"><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div></div>';
+}
+function wireHoodSort(){
+  var el=$("cityDataBody");if(!el)return;
+  el.querySelectorAll("[data-cds]").forEach(function(th){
+    var go=function(){
+      var k=th.dataset.cds;
+      var col=CD_COLS.filter(function(c){return c.k===k;})[0];
+      if(cdSort.k===k)cdSort.dir*=-1; else {cdSort.k=k;cdSort.dir=-1;}
+      if(col&&col.t==="s"&&cdSort.k!==k)cdSort.dir=-1;
+      var card=th.closest(".mcard");
+      card.outerHTML=hoodTable();
+      wireHoodSort();
+    };
+    th.addEventListener("click",go);
+    th.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}});
+  });
+}
+function openData(){$("dataModal").classList.remove("hidden");renderCityData();}
 function closeData(){$("dataModal").classList.add("hidden");}
 $("navData").addEventListener("click",openData);
-$("ctxData").addEventListener("click",openData);
 $("dataClose").addEventListener("click",closeData);
 $("dataModal").addEventListener("click",function(e){if(e.target===this)closeData();});
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeData();});
@@ -3095,8 +3266,33 @@ function renderEditor(){
     '</div>'+
     '<div class="egrid2" style="margin-top:9px">'+
       '<div><label class="efl" for="mCorner">Corner, as they said it</label><input class="ti" id="mCorner" value="'+esc(s.corner)+'"></div>'+
-      '<div><label class="efl" for="mName">Shown as</label><input class="ti" id="mName" value="'+esc(s.name||"")+'"'+(s.vis==="anon"?' disabled placeholder="Anonymous"':'')+'></div>'+
+      /* The name field was only disabled for `anon`, but displayName() prints "Anonymous"
+         for `heritage` too. So on a heritage story a moderator could type a full name,
+         watch it save, and the public card would still say Anonymous. The field lied.
+         It is disabled whenever the name will not be shown, whichever reason. */
+      '<div><label class="efl" for="mName">Their name</label><input class="ti" id="mName" value="'+esc(s.name||"")+'"'+
+        (nameHidden(s)?' disabled placeholder="Not shown"':'')+'></div>'+
     '</div>'+
+
+    /* The real answer to "why will it not show the full name". The name box was never the
+       control; consent was, and consent had no control at all. A story submitted as
+       "first name only" or "anonymous" could never be changed, however clearly the person
+       later said it was fine.
+       It is editable now, and deliberately loud about it, because this is the one field
+       on the desk that overrides something a person chose about their own story. */
+    '<p class="elegend">'+ic("lock",12)+' How their name appears · public</p>'+
+    '<select class="ti" id="mVis">'+
+      [["full","Full name, as written above"],
+       ["first","First name only"],
+       ["anon","Anonymous, no name shown"],
+       ["heritage","Heritage record only, never shown publicly"]]
+      .map(function(o){return '<option value="'+o[0]+'"'+(o[0]===s.vis?" selected":"")+'>'+esc(o[1])+'</option>';}).join("")+
+    '</select>'+
+    '<p class="epreview">The public card will say <b id="mVisPrev">'+esc(publicName(s))+'</b>'+
+      (s.vis!==s.vis0?'':'')+'</p>'+
+    (s.vis0&&s.vis0!==s.vis
+      ? '<p class="ehint warn">'+ic("lock",11)+' They chose <b>'+esc(visLabel(s.vis0))+'</b>. You are overriding that. Only do this if they told you it was alright.</p>'
+      : '<p class="ehint">They chose <b>'+esc(visLabel(s.vis))+'</b> when they submitted it. Changing this overrides their choice.</p>')+
     '<div class="tagrow" style="margin-top:10px"><button type="button" class="mtag'+(s.featured?" on":"")+'" id="mFeat">'+ic("star",12)+' Feature on the Map</button></div>'+
     '<p class="ehint">The only moderator decision the public sees.</p>'+
 
@@ -3137,11 +3333,22 @@ function renderEditor(){
   var live=function(){
     s.story=$("mStory").value; s.corner=$("mCorner").value;
     if(!$("mName").disabled)s.name=$("mName").value;
+    var pv=$("mVisPrev"); if(pv)pv.textContent=publicName(s);
     renderQueue();
   };
   $("mStory").addEventListener("input",live);
   $("mCorner").addEventListener("input",live);
   $("mName").addEventListener("input",live);
+  $("mVis").addEventListener("change",function(){
+    s.vis=this.value;
+    // The name box follows the choice immediately, so the desk never shows an editable
+    // field for a name that will not appear.
+    var nb=$("mName");
+    nb.disabled=nameHidden(s);
+    nb.placeholder=nb.disabled?"Not shown":"";
+    live();
+    renderEditor();          // redraw so the override warning appears or clears
+  });
   $("mHood").addEventListener("change",function(){s.hood=this.value;renderQueue();});
   $("mEra").addEventListener("change",function(){s.era=this.value;renderQueue();});
   $("mKind").addEventListener("change",function(){s.kind=this.value;renderQueue();});
