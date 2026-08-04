@@ -41,8 +41,12 @@ const fs = require('fs');
    nobody is watching for.
 
    Each entry: `check` is the check name it applies to (a bare name, or a prefix before
-   a dot), `match` is a regex tested against the old and new values, `why` is what gets
-   printed. Anything that differs and matches nothing here fails the run.
+   a dot); `match` is a regex tested against the old and new values; `state` is a regex
+   tested against the filter state or link the difference happened in; `why` is what gets
+   printed. Whichever of `match` and `state` you give must both hold, so `state` is how
+   you say "only excuse this where the story filter is actually on" instead of excusing
+   every difference that happens to contain the same word. Anything that differs and is
+   not excused fails the run.
 
    For reference, the entries used for the STORY-69 filter registry were:
 
@@ -53,7 +57,15 @@ const fs = require('fs');
      {check:'renderActiveF', why:'Clear All appears for campaign and dc too',
       match:/clearf/},
 */
-const EXPECTED_DIFFS = [];
+const EXPECTED_DIFFS = [
+  // STORY-71: `story` joined the registry, so a story is linkable.
+  {check: 'syncUrl',       why: 'a story is linkable now',
+   match: /(^|&)story=/,      state: /"story":"[^"]/},
+  {check: 'bootParam',     why: '?story= is read back now',
+   match: /"story":"[^"]/,    state: /story=/},
+  {check: 'renderActiveF', why: 'Clear All appears while a story is open',
+   match: /clearf/,           state: /"story":"[^"]/},
+];
 
 /* ---- slicing ---------------------------------------------------------------------- */
 function scriptOf(path) {
@@ -119,7 +131,7 @@ function build(path) {
     // them on a seed story, or the site filter would match nothing and prove nothing.
     '\n;CULTURAL=[{properties:{name:"Clayborn Temple"},geometry:{coordinates:[-90.0511,35.1365]}},' +
     '{properties:{name:"Stax"},geometry:{coordinates:[-90.0292,35.1148]}}];' +
-    '\n;return {get F(){return F;},set F(v){F=v;},passes:passes,' +
+    '\n;return {get F(){return F;},set F(v){F=v;},passes:passes,filters:FILTERS,' +
     'renderSelects:renderSelects,renderActiveF:renderActiveF,' +
     'activeFilterCount:activeFilterCount,syncUrl:syncUrl,boot:__boot,' +
     'stories:function(){return STORIES;}};';
@@ -169,6 +181,7 @@ const AXES = {
   place: [null, 'church'],
   site: [null, 'Clayborn Temple'],
   dc: [null, 'colossus1'],
+  story: [null, 's3'],
   q: ['', 'the'],
 };
 function states() {
@@ -183,6 +196,20 @@ function states() {
 const applyState = (api, st) => {
   api.F = Object.assign({}, st, {kinds: new Set(st.kinds)});
 };
+
+/* The matrix has to keep up with the registry or this whole file quietly stops covering
+   things: a filter nobody added an axis for is simply never switched on, every check
+   passes, and the run still says PASS. So ask the candidate what filters it has. */
+function checkCoverage(api) {
+  const declared = (api.filters || []).map(f => f.key);
+  if (!declared.length) return ['could not read FILTERS out of the candidate'];
+  const gaps = declared.filter(k => !(k in AXES));
+  const stale = Object.keys(AXES).filter(k => !declared.includes(k));
+  return [
+    ...gaps.map(k => `FILTERS declares "${k}" but AXES has no values for it, so it is never tested. Add one.`),
+    ...stale.map(k => `AXES tests "${k}" but FILTERS no longer declares it. Remove it.`),
+  ];
+}
 
 const LINKS = [
   '', '?hood=Soulsville', '?hood=', '?hood=Nowhere',
@@ -200,6 +227,8 @@ const LINKS = [
   '?hood=Soulsville&hood=Midtown', '?q=%22quoted%22', '?q=a%26b',
   '?type=memory&type=future', '?place=street&site=Clayborn%20Temple',
   '?q=the+blues', '?era=tomorrow', '?hood=Downtown%20%2F%20Clayborn', '?dc=nonexistent',
+  '?story=s3', '?story=', '?story=nonexistent', '?story=s3&hood=Soulsville',
+  '?mode=admin&story=s3', '?story=s1&type=culture&era=civilrights',
 ];
 
 /* ---- run ---------------------------------------------------------------------------- */
@@ -217,9 +246,18 @@ function cmp(check, label, a, b) {
   compared++;
   if (a === b) return;
   const line = check + '  ' + label + '\n    baseline : ' + a + '\n    candidate: ' + b;
-  const ok = EXPECTED_DIFFS.find(d => (d.check === check || check.indexOf(d.check + '.') === 0) &&
-                                     (d.match.test(String(a)) || d.match.test(String(b))));
+  const ok = EXPECTED_DIFFS.find(d =>
+    (d.check === check || check.indexOf(d.check + '.') === 0) &&
+    (!d.match || d.match.test(String(a)) || d.match.test(String(b))) &&
+    (!d.state || d.state.test(String(label))));
   (ok ? allowed : fails).push(ok ? {line, why: ok.why} : line);
+}
+
+const coverageGaps = checkCoverage(B);
+if (coverageGaps.length) {
+  console.error('FAIL  the matrix no longer covers the registry:');
+  coverageGaps.forEach(g => console.error('  ' + g));
+  process.exit(1);
 }
 
 const stories = A.stories();
@@ -269,16 +307,33 @@ for (const st of states().slice(0, 64)) {
 }
 
 // 6. a link in, filter state out
+/* The whole filter state, keyed off the candidate's own registry rather than a list
+   written out by hand here. That list had already gone stale once: `story` was added to
+   the registry and to AXES, and this function still did not mention it, so the boot check
+   compared two shapes neither of which contained the new filter and reported no
+   difference. It looked like a pass. Anything the baseline does not have reads as null,
+   which is what makes "the old one could not do this" show up as a difference. */
+const SHAPE_KEYS = (B.filters || []).map(f => ({key: f.key, type: f.type}));
 const shape = api => {
-  const F = api.F;
-  return JSON.stringify({
-    kinds: Array.from(F.kinds).sort(), hood: F.hood, era: F.era, campaign: F.campaign,
-    place: F.place, site: F.site, dc: F.dc, q: F.q, searchBox: api.vals.searchIn,
+  const F = api.F, out = {};
+  SHAPE_KEYS.forEach(({key, type}) => {
+    const v = F[key];
+    out[key] = type === 'set' ? Array.from(v || []).sort() : (v === undefined ? null : v);
   });
+  out.searchBox = api.vals.searchIn || '';
+  return JSON.stringify(out);
+};
+/* The cleared state, also from the registry, for the same reason. */
+const blankF = () => {
+  const o = {};
+  SHAPE_KEYS.forEach(({key, type}) => {
+    o[key] = type === 'set' ? new Set() : type === 'select' ? 'all' : type === 'text' ? '' : null;
+  });
+  return o;
 };
 for (const link of LINKS) {
-  A.F = {kinds: new Set(), hood: 'all', era: 'all', campaign: 'all', place: null, site: null, dc: null, q: ''};
-  B.F = {kinds: new Set(), hood: 'all', era: 'all', campaign: 'all', place: null, site: null, dc: null, q: ''};
+  A.F = blankF();
+  B.F = blankF();
   A.vals.searchIn = ''; B.vals.searchIn = '';
   A.setSearch(link); B.setSearch(link);
   A.boot(); B.boot();
@@ -288,13 +343,13 @@ for (const link of LINKS) {
 // 7. every state the boot block can produce must survive a round trip back to a URL
 let roundTrips = 0;
 for (const link of LINKS) {
-  B.F = {kinds: new Set(), hood: 'all', era: 'all', campaign: 'all', place: null, site: null, dc: null, q: ''};
+  B.F = blankF();
   B.vals.searchIn = '';
   B.setSearch(link); B.boot();
   const first = shape(B);
   B.setSearch(''); B.syncUrl();
   const url = '?' + B.params();
-  B.F = {kinds: new Set(), hood: 'all', era: 'all', campaign: 'all', place: null, site: null, dc: null, q: ''};
+  B.F = blankF();
   B.vals.searchIn = '';
   B.setSearch(url); B.boot();
   roundTrips++; compared++;

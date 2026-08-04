@@ -378,6 +378,15 @@
   .dtile img,.dtile video{width:100%;height:100%;object-fit:cover;display:block}
   .dtile .drm{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(36,28,59,.72);color:#fff;display:grid;place-items:center;cursor:pointer}
   .dtile .drm:hover{background:var(--primaryDark)}
+  /* The voice note sits in the same row as the photos. It has no thumbnail, so it says
+     what it is and how long it runs instead. */
+  .dtile.audio{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--primaryLight);color:var(--primaryDark)}
+  .dtile .dlen{font-size:11px;font-weight:700}
+  /* Counters. Quiet by default: this is a hint, not a warning, until it is over. */
+  .qcount{margin:5px 2px 0;font-size:11.5px;color:var(--muted);min-height:14px}
+  .qcount.tally{width:100%;margin-top:9px}
+  .qcount.over{color:var(--anchor);font-weight:700}
+  .rec .lbl.warn{color:var(--anchor);font-weight:700}
   .mediazone{display:flex;flex-direction:column;align-items:center;gap:3px;padding:16px;border:1.5px dashed var(--border);border-radius:12px;background:var(--bg);color:var(--muted);cursor:pointer;text-align:center}
   .mediazone:hover,.mediazone.over{border-color:var(--primary);color:var(--text);background:var(--primaryLight)}
   .mediazone:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -1512,6 +1521,33 @@ async function supaFetchApproved(){
    signed-in moderator when there is a session, and as the site otherwise, which is what
    the public intake form already does. */
 var MEDIA_MAX=52428800;   // 50MB; past this the browser upload is the wrong tool
+/* What the form will accept, agreed with Judy 2026-08-04. One place, because every one of
+   these is SHOWN to the person in one wording and ENFORCED somewhere else, and those two
+   drifting apart is how a form starts lying about what it will take.
+
+   storyMax is DERIVED, not picked because it is a round number: five minutes of speech is
+   roughly 700 words, so a person who types and a person who speaks can give the same
+   story. Change audioSec and this should move with it.
+
+   storyMin exists so "test" does not reach the moderation queue.
+   videoSec is 60 because above that the upload fails on venue wifi before it fails on
+   any policy, and a limit the room hits by accident is worse than one it is told about. */
+var LIMITS={
+  storyMin:20, storyMax:4000,
+  audioSec:300, audioWarnSec:270,
+  photos:6, videos:1, videoSec:60,
+  fileBytes:MEDIA_MAX
+};
+/* m:ss. Used by the recorder, the voice tile and the over-length message, so the three
+   never disagree about what 90 seconds looks like. */
+function fmtSecs(s){
+  s=Math.max(0,Math.round(s||0));
+  return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+}
+/* "1 more characters" is the kind of thing a person notices and a developer does not.
+   These counters are read by somebody mid-sentence at an event, so they get to be
+   sentences. */
+function chars(n){return n+" character"+(n===1?"":"s");}
 function mediaKindOf(file){
   var t=(file.type||"").toLowerCase();
   if(t.indexOf("image/")===0)return "photo";
@@ -1807,6 +1843,15 @@ var FILTERS=[
      story list, and the stories underneath are still all of Memphis. Hence no passes(),
      no count and no pill: its own profile carries the way back. */
   {key:"dc",type:"value",label:"Data center",param:"dc"},
+
+  /* The open story. Like `dc` it chooses what is shown rather than narrowing the list, so
+     no passes(), no count, no pill. Its control is the story itself: selectStory() sets
+     it, closeDetail() clears it.
+     Being in this list is the whole of what makes a story linkable. The URL carried the
+     neighborhood, the site, the type and the era, and nothing for the one thing people
+     actually want to send someone. Resolved against publicStories() and never STORIES,
+     so an id cannot be guessed into a heritage story. See D19. */
+  {key:"story",type:"value",label:"Story",param:"story"},
 
   {key:"q",type:"text",label:"Search",counts:true,param:"q",
    passes:function(s,v){
@@ -2637,7 +2682,10 @@ function renderActiveF(){
      dropdowns kept reading "Downtown / Clayborn" and "1960s-70s" over a list that was no
      longer filtered by either, which is the same lie the count on the toggle exists to
      prevent. */
-  var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){F=blankFilters();$("searchIn").value="";renderSelects();apply();});
+  /* closeDetail() first, because `story` is in the registry now and blankFilters() would
+     otherwise drop the id while leaving the pane sitting open over the panel. Clear All
+     means back to all of Memphis, and that includes whatever page or story is open. */
+  var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){closeDetail();F=blankFilters();$("searchIn").value="";renderSelects();apply();});
   var blank=blankFilters();
   $("activeF").querySelectorAll("[data-clr]").forEach(function(b){b.addEventListener("click",function(){F[b.dataset.clr]=blank[b.dataset.clr];apply();});});
   renderFCount();
@@ -3115,8 +3163,10 @@ function syncUrl(){
   var qs=p.toString();
   try{history.replaceState(null,"",location.pathname+(qs?"?"+qs:"")+location.hash);}catch(e){}
 }
-function copyLink(){
-  var url=location.href;
+/* Copies this page's address, or a given one. The guard on the type is doing real work:
+   this is also used bare as a click handler, where the argument is an Event. */
+function copyLink(target){
+  var url=typeof target==="string"?target:location.href;
   if(navigator.clipboard&&navigator.clipboard.writeText)
     navigator.clipboard.writeText(url).then(function(){toast("Link copied");}).catch(function(){toast(url);});
   else toast(url);
@@ -3125,12 +3175,44 @@ function apply(){renderKChips();renderActiveF();renderMeta();renderCards();rende
 
 /* === JS SECTION: STORY DETAIL AND LIGHTBOX ===========================================
    The expanded story, and the lightbox shared by card, detail and moderator desk. */
+/* Links to one story, in both directions. Built off this page's own address rather than
+   location.origin, because the demo has to work from a USB stick, where origin is "null"
+   and every link built from it is dead. */
+function pageUrl(){return location.href.split("#")[0].split("?")[0];}
+function storyLink(id){return pageUrl()+"?story="+encodeURIComponent(id);}
+function deskLink(id){return pageUrl()+"?mode=admin&story="+encodeURIComponent(id);}
 function selectStory(id,fly){
   var s=STORIES.find(function(x){return x.id===id;});if(!s)return;
+  // Opening a story puts it in the address bar, which is what makes it sendable without
+  // anybody pressing a button. syncUrl() picks it up from the registry.
+  F.story=id;
   selMarker(id);
   $("cards").querySelectorAll(".card").forEach(function(c){c.classList.toggle("sel",c.dataset.id===id);});
   if(fly&&map)map.flyTo([s.lat,s.lng],15,{duration:1.1});
   openDetail(s);
+  /* renderActiveF as well as syncUrl, because `story` is a registry value now and the
+     active-filter row is drawn from the registry. Without it the row goes stale: open a
+     story, close it again, and "Clear All Filters" sits there over nothing. Not apply(),
+     which would redraw the card list underneath the pane that just opened. */
+  renderActiveF();syncUrl();
+}
+/* A ?story= link, acted on only once the real stories have arrived. At boot STORIES holds
+   the local seed fallback, so resolving against it would open the wrong story or none. */
+function openLinkedStory(){
+  var id=F.story;if(!id)return;
+  // publicStories(), never STORIES. A heritage story is never public and must not become
+  // reachable by guessing an id, and the message below says the same thing whether the
+  // story is pending, rejected, heritage or was never there. D19.
+  var s=publicStories().filter(function(x){return x.id===id;})[0];
+  if(!s){toast("That story is not on the public map. It may still be waiting to be published.");return;}
+  /* The link wins over anything else the link carried. Somebody sent this to be read, and
+     a filter that hides it would show an empty list, which reads as a broken link. */
+  if(!passes(s)){
+    F=blankFilters();F.story=id;
+    var q=$("searchIn");if(q)q.value="";
+    renderSelects();apply();
+  }
+  selectStory(id,true);
 }
 /* Everything else attached to a story: the photos after the first, any video, any
    document. The hero already shows the first photo and the player already handles the
@@ -3235,11 +3317,20 @@ function openDetail(s){
       '<div class="r"><span>Era</span><b>'+storyWhen(s)+'</b></div>'+
       (s.campaign&&CAMPAIGNS[s.campaign]&&s.campaign!=="web"?'<div class="r"><span>Collected at</span><b>'+esc(CAMPAIGNS[s.campaign].label)+'</b></div>':"")+
     '</div>'+
-    '<button class="d-locate" id="dLocate">'+ic("pin",14)+' Show on the Map</button></div>';
+    '<button class="d-locate" id="dLocate">'+ic("pin",14)+' Show on the Map</button>'+
+    /* Copying is offered rather than assumed. The address bar already carries this story,
+       so the button is a shortcut for people who would not think to look there.
+       "Open in Moderate" appears only for someone already signed in, and it is navigation,
+       not access: the desk checks the session for itself. */
+    '<div class="sp-bar mt9"><button type="button" class="sp-link" id="dCopy">'+ic("join",12)+' Copy Link to This Story</button>'+
+    (SUPA.session?'<button type="button" class="sp-link" id="dMod">'+ic("edit",12)+' Open in Moderate</button>':'')+
+    '</div></div>';
   $("detail").classList.add("open");$("panel").classList.add("up");
   $("dClose").addEventListener("click",closeDetail);
   var ab=$("affirmBtn");if(ab)ab.addEventListener("click",function(){AFF[s.id]=(AFF[s.id]||0)+1;saveAff();s.affirms=AFF[s.id];renderMarkers();openDetail(s);toast("You share this dream: "+s.affirms+" now");});
   $("dLocate").addEventListener("click",function(){if(map)map.flyTo([s.lat,s.lng],16,{duration:1.1});});
+  $("dCopy").addEventListener("click",function(){copyLink(storyLink(s.id));});
+  var dm=$("dMod");if(dm)dm.addEventListener("click",function(){openOnDesk(s.id);});
   /* Hero, section heading and every thumbnail go through one path, and every one of them
      opens the whole photo set rather than just itself. Enter and Space as well as click,
      because these are images and headings acting as buttons and neither is focusable or
@@ -3256,7 +3347,7 @@ function openDetail(s){
     chipSet(el.dataset.tag,el.dataset.v);
   });});
 }
-function closeDetail(){$("detail").classList.remove("open");selMarker(null);}
+function closeDetail(){F.story=null;$("detail").classList.remove("open");selMarker(null);renderActiveF();syncUrl();}
 
 /* === JS SECTION: INTEGRATION 1, CLAIM A SPACE ========================================
    Jayne Engle's commons layer. Local-only. Its moderation path is dead code. */
@@ -3640,6 +3731,9 @@ var CAPTURE_STEPS=[
       : "What happened here? Who was there? What did this place mean, and what should it mean next?";
     b.innerHTML='<h2 class="q">'+q+'</h2><p class="qsub">'+sub+'</p>'
       +'<textarea id="story" rows="6" placeholder="'+(isV?"I want to see…":"Take your time…")+'">'+esc(draft.story)+'</textarea>'
+      /* A count that turns up as you get near the limit, not a rejection after four
+         minutes of typing. Silent for most of the box, which is most people. */
+      +'<p class="qcount" id="storyCount"></p>'
       +'<div class="fsec place">'
       +  '<h3 class="q2"><label for="corner">Where is this place?</label></h3>'
       +  '<p class="qsub">A neighborhood, a street, or a building. However you would say it to a neighbor.</p>'
@@ -3682,10 +3776,24 @@ var CAPTURE_STEPS=[
     refreshHood();
 
     function refresh(){
-      var hasStory=!!draft.story.trim(),hasPlace=draft.locSource!=="unset",hasWhen=!!draft.era;
-      $("nextBtn").disabled=!(hasStory&&hasPlace&&hasWhen);
+      var n=draft.story.trim().length;
+      var hasStory=n>=LIMITS.storyMin,tooLong=n>LIMITS.storyMax;
+      var hasPlace=draft.locSource!=="unset",hasWhen=!!draft.era;
+      $("nextBtn").disabled=!(hasStory&&!tooLong&&hasPlace&&hasWhen);
+      // The count is silent until it is useful: near the ceiling, or under the floor
+      // once somebody has actually started typing.
+      var c=$("storyCount");
+      if(c){
+        c.textContent=
+          n===0?"":
+          n<LIMITS.storyMin?(LIMITS.storyMin-n)+" more character"+(LIMITS.storyMin-n===1?"":"s")+" and you can continue.":
+          tooLong?chars(n-LIMITS.storyMax)+" over. Trim it a little and it will send.":
+          (LIMITS.storyMax-n)<=400?chars(LIMITS.storyMax-n)+" left.":"";
+        c.classList.toggle("over",tooLong);
+      }
       // Never leave a disabled button unexplained. Name the one thing still missing.
-      why.textContent=hasStory&&hasPlace&&hasWhen?""
+      why.textContent=hasStory&&!tooLong&&hasPlace&&hasWhen?""
+        :tooLong?"Your story is a little long. Trim it and you can continue."
         :!hasStory?"Write your story above to continue."
         :!hasPlace?"Now tell us where it is: type a name, point to it on the map, or use where you are."
         :"Last thing: pick roughly when this was.";
@@ -3859,27 +3967,50 @@ function renderStep(){
   if(!step){console.warn("[capture] no CAPTURE_STEPS entry for step \""+STEPS[stepIdx]+"\"");return;}
   step.render(b);
 }
+var recTimer=null,recStart=0;
 function wireRecorder(){var btn=$("micBtn"),lbl=$("recLbl");if(draft.audio)$("audioPrev").innerHTML='<audio controls src="'+draft.audio+'"></audio>';
+  /* The clock while recording. Someone talking has no other way to know how long they
+     have been going, and a recording that stops dead at five minutes with no warning
+     loses the ending, which is usually the part that matters. So: elapsed time
+     throughout, a countdown for the last thirty seconds, and only then the hard stop. */
+  function tick(){
+    var s=Math.floor((Date.now()-recStart)/1000),left=LIMITS.audioSec-s;
+    if(s>=LIMITS.audioSec){if(mediaRec&&mediaRec.state==="recording")mediaRec.stop();return;}
+    var warn=s>=LIMITS.audioWarnSec;
+    lbl.textContent=warn?fmtSecs(s)+" · "+left+" seconds left, start wrapping up"
+                        :fmtSecs(s)+" · tap to stop";
+    lbl.classList.toggle("warn",warn);
+    recTimer=setTimeout(tick,250);
+  }
+  function stopTick(){if(recTimer){clearTimeout(recTimer);recTimer=null;}lbl.classList.remove("warn");}
   btn.addEventListener("click",function(){
     if(mediaRec&&mediaRec.state==="recording"){mediaRec.stop();return;}
     if(!navigator.mediaDevices||!window.MediaRecorder){lbl.textContent="Recording not supported here";return;}
     navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
       chunks=[];mediaRec=new MediaRecorder(stream);mediaRec.ondataavailable=function(e){chunks.push(e.data);};
       mediaRec.onstop=function(){
+        var secs=Math.round((Date.now()-recStart)/1000);
+        stopTick();
         var blob=new Blob(chunks,{type:"audio/webm"});
         var r=new FileReader();
         r.onload=function(){
-          draft.audio=r.result;
+          draft.audio=r.result;draft.audioSec=secs;
           $("audioPrev").innerHTML='<audio controls src="'+draft.audio+'"></audio>';
+          /* The whole point of STORY-74: the recording joins the list of things you are
+             attaching, the moment it stops. It used to appear only in its own box beside
+             the microphone, so nothing in "what you have added" changed and people
+             recorded again or assumed it was broken. */
+          draftMediaTiles();
         };
         r.readAsDataURL(blob);
         /* Release the microphone, or the browser keeps showing the recording
            indicator after the person has finished. */
         stream.getTracks().forEach(function(t){t.stop();});
         btn.classList.remove("rec-on");
-        lbl.textContent="Tap to record again";
+        lbl.textContent=secs>=LIMITS.audioSec?"Five minutes, that is the limit. Tap to record again."
+                                             :"Tap to record again";
       };
-      mediaRec.start();btn.classList.add("rec-on");lbl.textContent="Recording… tap to stop";
+      mediaRec.start();recStart=Date.now();btn.classList.add("rec-on");tick();
     }).catch(function(){lbl.textContent="Mic permission needed";});
   });
 }
@@ -3887,15 +4018,45 @@ function wireRecorder(){var btn=$("micBtn"),lbl=$("recLbl");if(draft.audio)$("au
    preview URL and uploaded on submit, which is the Rainproof order: nothing reaches the
    bucket until the person actually sends the story. Photos are still resized, because a
    12MP phone photo over a workshop hotspot is how an upload fails. */
+/* ONE list of what you are attaching. The voice note is drawn here with the photos and
+   the video even though it is stored on draft.audio rather than in draft.files, because
+   two mechanisms were the bug: recording one changed nothing in this list. Keeping it off
+   draft.files is deliberate, it would mean touching the submit path for a display fix. */
 function draftMediaTiles(){
   var el=$("draftMedia");if(!el)return;
-  var m=draft.files||[];
-  el.innerHTML=m.length?m.map(function(f,i){
+  var m=draft.files||[],tiles=[];
+  if(draft.audio){
+    tiles.push('<div class="dtile audio">'+ic("audio",22)+
+      '<span class="dlen">'+fmtSecs(draft.audioSec)+'</span>'+
+      '<button type="button" class="drm" data-drm="audio" aria-label="Remove the voice note">'+ic("x",12)+'</button></div>');
+  }
+  m.forEach(function(f,i){
     var inner=f.kind==="video"?'<video src="'+f.preview+'" muted preload="metadata"></video>':'<img src="'+f.preview+'" alt="">';
-    return '<div class="dtile">'+inner+'<button type="button" class="drm" data-drm="'+i+'" aria-label="Remove">'+ic("x",12)+'</button></div>';
-  }).join(""):"";
+    tiles.push('<div class="dtile">'+inner+'<button type="button" class="drm" data-drm="'+i+'" aria-label="Remove">'+ic("x",12)+'</button></div>');
+  });
+  el.innerHTML=tiles.join("")+mediaTally();
   el.querySelectorAll("[data-drm]").forEach(function(b){b.addEventListener("click",function(){
-    draft.files.splice(+b.dataset.drm,1);draftMediaTiles();});});
+    if(b.dataset.drm==="audio"){
+      draft.audio=null;draft.audioSec=0;
+      var p=$("audioPrev");if(p)p.innerHTML="";
+      var l=$("recLbl");if(l)l.textContent="Tap to record";
+    }
+    else draft.files.splice(+b.dataset.drm,1);
+    draftMediaTiles();});});
+}
+/* What is attached and what is left, in words rather than as a rule people find by
+   hitting it. Silent when nothing is attached, because an empty step should not open
+   by listing everything you are not allowed to do. */
+function mediaTally(){
+  var m=draft.files||[];
+  var ph=m.filter(function(f){return f.kind==="photo";}).length;
+  var vi=m.filter(function(f){return f.kind==="video";}).length;
+  if(!ph&&!vi&&!draft.audio)return "";
+  var bits=[];
+  if(draft.audio)bits.push("a voice note");
+  if(ph)bits.push(ph+" of "+LIMITS.photos+" photos");
+  if(vi)bits.push(vi+" of "+LIMITS.videos+" video"+(LIMITS.videos===1?"":"s"));
+  return '<p class="qcount tally">Attached: '+bits.join(" · ")+'.</p>';
 }
 function shrinkImage(file){
   return new Promise(function(res){
@@ -3916,12 +4077,41 @@ function shrinkImage(file){
     r.readAsDataURL(file);
   });
 }
+/* How long a video runs, before it is accepted. Anything unreadable comes back as 0 and
+   is let through: a metadata read that fails is not a reason to refuse somebody's story. */
+function videoSeconds(file){
+  return new Promise(function(res){
+    var v=document.createElement("video"),url=URL.createObjectURL(file),done=false;
+    var finish=function(s){if(done)return;done=true;URL.revokeObjectURL(url);res(s);};
+    v.preload="metadata";
+    v.onloadedmetadata=function(){finish(isFinite(v.duration)?v.duration:0);};
+    v.onerror=function(){finish(0);};
+    setTimeout(function(){finish(0);},4000);   // a file the browser will not parse
+    v.src=url;
+  });
+}
 async function addDraftFiles(files,kind){
   draft.files=draft.files||[];
   var list=Array.prototype.slice.call(files||[]);
+  var cap=kind==="video"?LIMITS.videos:LIMITS.photos;
   for(var i=0;i<list.length;i++){
     var f=list[i];
-    if(f.size>MEDIA_MAX){toast((f.name||"That file")+" is over the 50MB limit");continue;}
+    /* Counted fresh each time round, not once before the loop, so selecting eight photos
+       at once stops at the sixth instead of accepting all eight. */
+    var have=draft.files.filter(function(x){return x.kind===kind;}).length;
+    if(have>=cap){
+      toast(kind==="video"?"One video per story. Remove the one you have to swap it."
+                          :"Six photos is the limit. Remove one to add another.");
+      break;
+    }
+    if(f.size>LIMITS.fileBytes){toast((f.name||"That file")+" is over the 50MB limit");continue;}
+    if(kind==="video"){
+      var secs=await videoSeconds(f);
+      if(secs>LIMITS.videoSec){
+        toast("That video is "+fmtSecs(secs)+". Videos need to be under "+LIMITS.videoSec+" seconds.");
+        continue;
+      }
+    }
     if(kind==="photo")f=await shrinkImage(f);
     draft.files.push({kind:kind,file:f,preview:URL.createObjectURL(f)});
     draftMediaTiles();
@@ -4036,7 +4226,20 @@ function renderThanks(s){var isV=s.kind==="future";
 /* === JS SECTION: LEGACY ADMIN TABS ===================================================
    The tab strip above the moderator desk. */
 var adminTab="pending";
-document.querySelectorAll(".tabs button").forEach(function(b){b.addEventListener("click",function(){adminTab=b.dataset.tab;document.querySelectorAll(".tabs button").forEach(function(x){x.classList.remove("on");});b.classList.add("on");renderAdmin();});});
+/* A story somebody linked straight to, from ?story= or from "Open in Moderate" on the
+   public map. Held apart from modSel because the queue it is in may not be the tab that
+   is open, and renderAdmin() has to be free to go and look in the others. modTried stops
+   that search going round for ever when the id matches nothing anywhere. */
+var modWanted=null,modTried=[];
+function openOnDesk(id){modWanted=id;modTried=[];modSel=id;showView("admin");}
+/* The tab, switchable from code as well as from a click. The variable and the button
+   state were only ever set together inside the click handler, so nothing else could move
+   the queue without leaving the wrong tab looking selected. */
+function setAdminTab(name){
+  adminTab=name;
+  document.querySelectorAll(".tabs button").forEach(function(x){x.classList.toggle("on",x.dataset.tab===name);});
+}
+document.querySelectorAll(".tabs button").forEach(function(b){b.addEventListener("click",function(){setAdminTab(b.dataset.tab);modWanted=null;renderAdmin();});});
 ["mfHood","mfEra","mfKind","mfFlag"].forEach(function(id){var el=$(id);if(!el)return;
   el.addEventListener("change",function(){
     modFilters={hood:$("mfHood").value,era:$("mfEra").value,kind:$("mfKind").value,flag:$("mfFlag").value};
@@ -4180,6 +4383,15 @@ function renderEditor(){
       (s.inst?"ok to share with the city":"community-only")+'</p></div>'+
       '<span class="ktag ktag-sm" style="background:'+k.color+'">'+ic(k.icon,12)+' '+esc(k.short)+'</span></div>'+
 
+    /* The CEO case: a moderator wants to hand somebody this exact story, fast. The copy
+       gives a desk link for another moderator; the public one is an <a href>, so
+       middle-click and cmd-click open it in a tab the way any link should.
+       The public link is drawn only for an approved story, because for a pending or
+       rejected one it is guaranteed to land on "that story is not on the public map". */
+    '<div class="sp-bar"><button type="button" class="sp-link" id="eCopy">'+ic("join",12)+' Copy Desk Link</button>'+
+      (s.status==="approved"?'<a class="sp-link" id="ePublic" href="'+esc(storyLink(s.id))+'" target="_blank" rel="noopener">'+ic("pin",12)+' View on the Public Map</a>':'')+
+    '</div>'+
+
     '<p class="elegend">'+ic("edit",12)+' The story</p>'+
     '<textarea class="ti" id="mStory" rows="5">'+esc(s.story)+'</textarea>'+
     '<p class="ehint">Saving replaces what the person said. No earlier version is kept.</p>'+
@@ -4304,6 +4516,7 @@ function renderEditor(){
   checkDeskFields();
   var ap=$("mAppr");if(ap)ap.addEventListener("click",function(){modStory(s.id,"approved");});
   var rj=$("mRej");if(rj)rj.addEventListener("click",function(){modStory(s.id,"rejected");});
+  $("eCopy").addEventListener("click",function(){copyLink(deskLink(s.id));});
 }
 /* One save writes both halves: the public row, and the moderator layer beside it. */
 async function saveStoryEdits(s,v,btn){
@@ -4360,6 +4573,20 @@ async function renderAdmin(){
   }catch(e){ console.warn("contacts unavailable",e); }
   if(adminTab==="pending")$("nPend").textContent=modRows.length?"("+modRows.length+")":"";
   if(adminTab==="approved")$("nAppr").textContent=modRows.length?"("+modRows.length+")":"";
+  /* A linked-to story may sit in any of the three queues, so look through the other two
+     rather than landing silently on whatever happens to be at the top of this one. That
+     silent landing is the failure mode worth avoiding: a moderator sent a link about one
+     story and the next person opens a different story with no sign anything went wrong. */
+  if(modWanted){
+    if(modRows.some(function(s){return s.id===modWanted;})){modSel=modWanted;modWanted=null;modTried=[];}
+    else{
+      modTried.push(adminTab);
+      var next=["pending","approved","rejected"].filter(function(t){return modTried.indexOf(t)<0;})[0];
+      if(next){setAdminTab(next);return renderAdmin();}
+      modWanted=null;modTried=[];
+      toast("That story is not in any of these queues.");
+    }
+  }
   if(!modRows.some(function(s){return s.id===modSel;}))modSel=modRows.length?modRows[0].id:null;
   renderQueue();renderEditor();
 }
@@ -4571,10 +4798,16 @@ hydrateIcons(document);
 initFilterToggle();
 renderKChips();renderSelects();renderActiveF();renderMeta();renderCards();
 if(mode==="share"||mode==="kiosk"){showView("explore");startCapture(kindParam||null);}
-else if(mode==="admin"){showView("admin");}
+// ?mode=admin&story=<id> opens the desk on that exact story, whichever queue it is in.
+else if(mode==="admin"){if(F.story)openOnDesk(F.story);else showView("admin");}
 else{showView("explore");}
 setTimeout(renderSpotlight,400);
-(async function(){try{STORIES=await supaFetchApproved();renderSelects();apply();renderSpotlight();}catch(e){console.warn("Supabase load failed; showing local seed stories.",e);}})();
+(async function(){try{STORIES=await supaFetchApproved();renderSelects();apply();renderSpotlight();
+  /* ?story= is acted on here and not in the boot block above, because until this line
+     STORIES holds the local seed fallback and the id would resolve to nothing. On the
+     desk it is renderAdmin's job instead, off its own queues. */
+  if(mode!=="admin")openLinkedStory();
+}catch(e){console.warn("Supabase load failed; showing local seed stories.",e);}})();
 </script>
 </body>
 </html>
