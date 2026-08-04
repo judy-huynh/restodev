@@ -1029,6 +1029,7 @@
             <select id="eraSel" aria-label="Era"></select>
           </div>
           <div class="frow">
+            <select id="subSel" aria-label="What it is about"></select>
             <select id="campSel" aria-label="Event or campaign"></select>
           </div>
           <div class="activefilters" id="activeF"></div>
@@ -1179,12 +1180,48 @@ function hydrateIcons(root){(root||document).querySelectorAll("[data-ic]").forEa
    Story types, eras, campaigns, collection modes. KIND holds the colour and icon for each
    story type, so changing a card colour happens HERE, not in the stylesheet. */
 var PHOTO="media/";
+/* TWO things this map collects: what happened here, and what should grow here. Everything
+   else is detail, and detail is a subcategory a moderator assigns, not a decision asked of
+   somebody standing in a room holding a phone. STORY-70.
+
+   `lineage` and `culture` are NOT offered any more and are NOT deleted. Live rows carry
+   them in `answers.kind` and have to keep rendering: rowToStory maps them to `memory` plus
+   the subcategory they actually meant, so nothing is lost, and these entries stay as the
+   backstop for anything that slips through unmapped.
+
+   `legacy:true` is what keeps them out of the intake screen, the category chips and the
+   moderator's dropdown, in one place instead of three. */
 var KIND={
-  memory:{label:"Memory of a place",short:"Memory",icon:"pin",color:"#FF477E",sub:"Something that happened here"},
-  lineage:{label:"Family & lineage",short:"Family",icon:"sprout",color:"#17C3B2",sub:"Who came before, who came after"},
-  culture:{label:"Music, art & worship",short:"Music",icon:"audio",color:"#8338EC",sub:"The sound and soul of the place"},
-  future:{label:"A vision: what should grow",short:"Vision",icon:"star",color:"#3A86FF",sub:"What you want next"}
+  memory:{label:"A memory of this place",short:"Memory",icon:"pin",color:"#FF477E",sub:"Something that happened here"},
+  future:{label:"Plant an idea",short:"Idea",icon:"sprout",color:"#17C3B2",sub:"What should grow here"},
+  lineage:{label:"Family & lineage",short:"Family",icon:"sprout",color:"#17C3B2",sub:"Who came before, who came after",legacy:true},
+  culture:{label:"Music, art & worship",short:"Music",icon:"audio",color:"#8338EC",sub:"The sound and soul of the place",legacy:true}
 };
+/* The kinds anybody is offered. Everything that draws a chooser reads this, so retiring a
+   kind is one `legacy:true` rather than an edit in the form, the chips and the desk. */
+function kindKeys(){return Object.keys(KIND).filter(function(k){return !KIND[k].legacy;});}
+/* What a retired kind becomes on the way in. The kind itself collapses to Memory and the
+   thing it was actually saying survives as a subcategory, which is the only reason
+   collapsing four into two does not lose information. */
+var LEGACY_KIND={lineage:"memory",culture:"memory"};
+var LEGACY_SUB={lineage:"Family",culture:"Music"};
+/* Subcategories, assigned by a moderator at approval and filtered on by readers. The
+   contributor never sees this list: that split is the whole point of STORY-70, the reader
+   gets the benefit and nobody at an event pays for it.
+   Expect the room to change these. They are words about Memphis, not a schema. */
+var SUBCATS={
+  memory:["Civil Rights","Family","Music","Faith","Food","Work","Love","Place"],
+  future:["Memphis 2068","Food and Land","Housing","Youth","Safety","Culture"]
+};
+function subcatsFor(k){return SUBCATS[k]||SUBCATS[LEGACY_KIND[k]]||[];}
+/* The choices for one story: the list for its kind, plus whatever it already carries.
+   Without that second half, renaming a word in SUBCATS would make every story holding the
+   old word quietly lose it the next time a moderator opened the editor and saved. */
+function subcatOptions(s){
+  var list=subcatsFor(s.kind).slice();
+  if(s.subcategory&&list.indexOf(s.subcategory)<0)list.push(s.subcategory);
+  return list;
+}
 var PLACE={church:{l:"Church & Worship"},music:{l:"Music Venue"},food:{l:"Food & Gathering"},school:{l:"School"},business:{l:"Black-owned Business"},street:{l:"Street & Park"}};
 var ERAS=[["before1960","Before 1960"],["civilrights","1960s–70s"],["eighties","1980s–90s"],["recent","2000s–10s"],["today","Today"],["tomorrow","Tomorrow"],["future2065","Memphis 2068"]];
 var CAMPAIGNS={
@@ -1407,8 +1444,16 @@ var CONSENT2VIS={full_name:"full",first_name:"first",anonymous:"anon",advocacy_o
    workflow/value/note layer (its own table, never public), and media (uploaded, not
    typed). Those have their own save calls in saveStoryEdits. */
 var DESK_FIELDS=[
+  /* A retired kind is translated on the way in, never on the way out: what is stored stays
+     stored until a moderator saves that story, at which point it is written back as the
+     kind it now is. So the collapse from four kinds to two needs no migration and no
+     Supabase change, and an unmigrated row is indistinguishable from a migrated one. */
   {id:"mKind",  prop:"kind",    to:"answers",key:"kind",
-   read:function(r,a){return a.kind||"memory";}},
+   read:function(r,a){return LEGACY_KIND[a.kind]||a.kind||"memory";}},
+  {id:"mSub",   prop:"subcategory", to:"answers",key:"subcategory",
+   write:function(s){return s.subcategory||null;},
+   // A row that predates subcategories still has one if its old kind implied it.
+   read:function(r,a){return a.subcategory||LEGACY_SUB[a.kind]||"";}},
   {id:null,     prop:"place",   to:"answers",key:"place_type",
    write:function(s){return s.place||null;}, read:function(r,a){return a.place_type||"";}},
   {id:"mEra",   prop:"era",     to:"answers",key:"era",
@@ -1813,6 +1858,23 @@ var FILTERS=[
      return '<option value="all">All eras</option>'+ERAS.map(function(e){return '<option value="'+e[0]+'"'+(F.era===e[0]?" selected":"")+'>'+esc(e[1])+'</option>';}).join("");
    },
    fromParam:function(r){return ERAS.some(function(e){return e[0]===r;})?r:undefined;}},
+
+  /* What a story is about, assigned by a moderator rather than asked at intake. The whole
+     trade in STORY-70: readers get to filter on it and nobody standing in a room with a
+     phone had to answer for it.
+     The options are built from the subcategories actually present on public stories, not
+     from the full SUBCATS list, so the dropdown never offers a choice that returns
+     nothing. A word retired from SUBCATS keeps working here for as long as a story
+     carries it, which is the honest behaviour when the room renames something. */
+  {key:"subcat",type:"select",label:"About",counts:true,el:"subSel",param:"sub",
+   passes:function(s,v){return s.subcategory===v;},
+   options:function(){
+     var counts={};publicStories().forEach(function(s){if(s.subcategory)counts[s.subcategory]=(counts[s.subcategory]||0)+1;});
+     var names=Object.keys(counts).sort();
+     return '<option value="all">Anything it is about</option>'+names.map(function(n){
+       return '<option value="'+esc(n)+'"'+(F.subcat===n?" selected":"")+'>'+esc(n)+" ("+counts[n]+")"+'</option>';
+     }).join("");
+   }},
 
   /* The parameter is `collected`, NOT `campaign`. ?campaign= already means something else
      on this page: the campaign a NEW story gets tagged with when the form is opened at an
@@ -2655,7 +2717,7 @@ function renderMeta(){
 }
 function renderKChips(){
   var counts={};publicStories().forEach(function(s){counts[s.kind]=(counts[s.kind]||0)+1;});
-  $("kchips").innerHTML=Object.keys(KIND).map(function(k){
+  $("kchips").innerHTML=kindKeys().map(function(k){
     var on=F.kinds.has(k);
     return '<button class="kchip'+(on?" on":"")+'" data-k="'+k+'" style="'+(on?"background:"+KIND[k].color:"")+'"><span class="kd" style="background:'+(on?"#fff":KIND[k].color)+'"></span> '+esc(KIND[k].short)+' <span class="kn">'+(counts[k]||0)+'</span></button>';
   }).join("");
@@ -3095,6 +3157,10 @@ function renderCards(){
           '<button class="cchip" data-chip="hood" data-v="'+esc(s.hood)+'"><span class="csw" style="background:'+hoodColor(s.hood)+'"></span>'+esc(s.hood)+'</button>'+
           '<button class="cchip" data-chip="era" data-v="'+esc(s.era)+'">'+storyWhen(s)+'</button>'+
           '<button class="cchip" data-chip="kinds" data-v="'+esc(s.kind)+'">'+kindMark(s,11)+'</button>'+
+          // The subcategory rides on the card, not on the pin. Past about seven hues a map
+          // stops reading as a map and starts reading as a legend, so colour stays with the
+          // two kinds and the detail is a word you can click.
+          (s.subcategory?'<button class="cchip" data-chip="subcat" data-v="'+esc(s.subcategory)+'">'+esc(s.subcategory)+'</button>':'')+
         '</div>'+
         '<div class="cfoot">'+
           storyBadges(s)+
@@ -3301,7 +3367,7 @@ function openDetail(s){
   // The first item of each pair is a key in JS SECTION: FILTER REGISTRY, and the click
   // handler below sets that filter. A tag naming something that is not a filter would do
   // nothing, quietly, so keep these two in step.
-  var tags=[['kinds',ic(k.icon,13)+" "+esc(k.label),s.kind],['place',PLACE[s.place]?esc(PLACE[s.place].l):null,s.place],['hood',ic("pin",13)+" "+esc(s.hood),s.hood],['era',esc(eraLabel(s.era)),s.era]].filter(function(t){return t[1];});
+  var tags=[['kinds',ic(k.icon,13)+" "+esc(k.label),s.kind],['subcat',s.subcategory?esc(s.subcategory):null,s.subcategory],['place',PLACE[s.place]?esc(PLACE[s.place].l):null,s.place],['hood',ic("pin",13)+" "+esc(s.hood),s.hood],['era',esc(eraLabel(s.era)),s.era]].filter(function(t){return t[1];});
   $("detail").innerHTML=hero+
     '<button class="d-close" id="dClose">←</button>'+
     '<span class="d-ktag" style="background:'+k.color+'">'+ic(k.icon,13)+' '+esc(k.label)+'</span></div>'+
@@ -3714,7 +3780,7 @@ var CAPTURE_STEPS=[
   {key:"kind",skip:function(d){return !!d.kind;},
    render:function(b){
     b.innerHTML='<h2 class="q">What are you sharing?</h2><p class="qsub">This sets the color of your dot on the map.</p><div class="opts" id="ko"></div>';
-    $("ko").innerHTML=Object.keys(KIND).map(function(k){return '<button class="opt" data-k="'+k+'"><span class="em" style="color:'+KIND[k].color+'">'+ic(KIND[k].icon,22)+'</span><span>'+esc(KIND[k].label)+'<small>'+esc(KIND[k].sub)+'</small></span></button>';}).join("");
+    $("ko").innerHTML=kindKeys().map(function(k){return '<button class="opt" data-k="'+k+'"><span class="em" style="color:'+KIND[k].color+'">'+ic(KIND[k].icon,22)+'</span><span>'+esc(KIND[k].label)+'<small>'+esc(KIND[k].sub)+'</small></span></button>';}).join("");
     b.querySelectorAll("[data-k]").forEach(function(el){el.addEventListener("click",function(){draft.kind=el.dataset.k;if(draft.kind==="future")draft.era="tomorrow";goNext();});});
    }},
 
@@ -4267,7 +4333,7 @@ function modFilterOptions(){
   };
   mk("mfHood",NEIGHBORHOODS.map(function(n){return '<option>'+esc(n.n)+'</option>';}).join(""),modFilters.hood);
   mk("mfEra",ERAS.map(function(e){return '<option value="'+e[0]+'">'+esc(e[1])+'</option>';}).join(""),modFilters.era);
-  mk("mfKind",Object.keys(KIND).map(function(k){return '<option value="'+k+'">'+esc(KIND[k].label)+'</option>';}).join(""),modFilters.kind);
+  mk("mfKind",kindKeys().map(function(k){return '<option value="'+k+'">'+esc(KIND[k].label)+'</option>';}).join(""),modFilters.kind);
   mk("mfFlag",MOD_WORKFLOW.concat(MOD_VALUE).map(function(t){return '<option>'+esc(t)+'</option>';}).join(""),modFilters.flag);
 }
 function modVisible(){
@@ -4404,7 +4470,19 @@ function renderEditor(){
       '<div><label class="efl" for="mEra">Era</label><select class="ti" id="mEra">'+
         ERAS.map(function(e){return '<option value="'+e[0]+'"'+(e[0]===s.era?" selected":"")+'>'+esc(e[1])+'</option>';}).join("")+'</select></div>'+
       '<div><label class="efl" for="mKind">Story type</label><select class="ti" id="mKind">'+
-        Object.keys(KIND).map(function(x){return '<option value="'+x+'"'+(x===s.kind?" selected":"")+'>'+esc(KIND[x].label)+'</option>';}).join("")+'</select></div>'+
+        kindKeys().map(function(x){return '<option value="'+x+'"'+(x===s.kind?" selected":"")+'>'+esc(KIND[x].label)+'</option>';}).join("")+'</select></div>'+
+    '</div>'+
+    /* The subcategory. This is the moderator's half of STORY-70: the contributor picks
+       one of two, somebody who knows Memphis says what it is really about, and the reader
+       filters on that. The list follows the story type, and a word that is on the story
+       but no longer in SUBCATS is kept as an option so opening the editor cannot silently
+       drop it. */
+    '<div class="egrid2 mt9">'+
+      '<div><label class="efl" for="mSub">What it is about</label><select class="ti" id="mSub">'+
+        '<option value="">Not set yet</option>'+
+        subcatOptions(s).map(function(n){return '<option'+(n===s.subcategory?" selected":"")+'>'+esc(n)+'</option>';}).join("")+
+      '</select></div>'+
+      '<div><p class="ehint mt9">Readers filter by this. Nobody is asked for it at intake.</p></div>'+
     '</div>'+
     '<div class="egrid2 mt9">'+
       '<div><label class="efl" for="mCorner">Corner, as they said it</label><input class="ti" id="mCorner" value="'+esc(s.corner)+'"></div>'+
@@ -4493,7 +4571,16 @@ function renderEditor(){
   });
   $("mHood").addEventListener("change",function(){s.hood=this.value;renderQueue();});
   $("mEra").addEventListener("change",function(){s.era=this.value;renderQueue();});
-  $("mKind").addEventListener("change",function(){s.kind=this.value;renderQueue();});
+  /* Changing the story type changes which subcategories make sense, so the list follows.
+     A subcategory that does not belong to the new type is dropped rather than left
+     showing a word from the other list, and the editor is redrawn so what is on screen is
+     what would be saved. */
+  $("mKind").addEventListener("change",function(){
+    s.kind=this.value;
+    if(s.subcategory&&subcatsFor(s.kind).indexOf(s.subcategory)<0)s.subcategory="";
+    renderQueue();renderEditor();
+  });
+  $("mSub").addEventListener("change",function(){s.subcategory=this.value;renderQueue();});
   $("mFeat").addEventListener("click",function(){s.featured=!s.featured;this.classList.toggle("on",s.featured);renderQueue();});
   var vv=modInternal[s.id]=modInternal[s.id]||{workflow:[],value:[],note:""};
   $("modEditor").querySelectorAll("[data-w]").forEach(function(b){b.addEventListener("click",function(){

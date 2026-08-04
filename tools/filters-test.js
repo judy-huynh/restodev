@@ -58,6 +58,20 @@ const fs = require('fs');
       match:/clearf/},
 */
 const EXPECTED_DIFFS = [
+  // STORY-70: `subcat` joined the registry, so what a story is about is filterable.
+  {check: 'syncUrl',       why: 'subcategory is filterable and linkable now',
+   match: /(^|&)sub=/,        state: /"subcat":"(?!all)/},
+  {check: 'bootParam',     why: '?sub= is read back now',
+   match: /"subcat":"(?!all)/, state: /sub=/},
+  {check: 'renderActiveF', why: 'Clear All appears for a subcategory too',
+   match: /clearf/,           state: /"subcat":"(?!all)/},
+  {check: 'activeFilterCount', why: 'a subcategory counts on the Filters badge',
+   state: /"subcat":"(?!all)/},
+  {check: 'renderSelects.subSel', why: 'the subcategory dropdown is new',
+   state: /./},
+  {check: 'passes',        why: 'a subcategory narrows the list',
+   state: /"subcat":"(?!all)/},
+
   // STORY-71: `story` joined the registry, so a story is linkable.
   {check: 'syncUrl',       why: 'a story is linkable now',
    match: /(^|&)story=/,      state: /"story":"[^"]/},
@@ -178,6 +192,7 @@ const AXES = {
   hood: ['all', 'Soulsville', 'Nowhere At All'],
   era: ['all', 'civilrights'],
   campaign: ['all', 'porch'],
+  subcat: ['all', 'Family'],
   place: [null, 'church'],
   site: [null, 'Clayborn Temple'],
   dc: [null, 'colossus1'],
@@ -228,6 +243,7 @@ const LINKS = [
   '?type=memory&type=future', '?place=street&site=Clayborn%20Temple',
   '?q=the+blues', '?era=tomorrow', '?hood=Downtown%20%2F%20Clayborn', '?dc=nonexistent',
   '?story=s3', '?story=', '?story=nonexistent', '?story=s3&hood=Soulsville',
+  '?sub=Family', '?sub=', '?sub=Civil%20Rights', '?sub=Nonsense', '?sub=Family&type=memory',
   '?mode=admin&story=s3', '?story=s1&type=culture&era=civilrights',
 ];
 
@@ -260,6 +276,8 @@ if (coverageGaps.length) {
   process.exit(1);
 }
 
+const SELECT_IDS = (B.filters || []).filter(f => f.type === 'select' && f.el).map(f => f.el);
+
 const stories = A.stories();
 if (!stories.length) { console.error('FAIL  no seed stories in the baseline, nothing to filter'); process.exit(1); }
 if (JSON.stringify(stories) !== JSON.stringify(B.stories())) {
@@ -280,7 +298,9 @@ for (const st of states()) {
 
   // 3. the dropdowns, character for character
   A.renderSelects(); B.renderSelects();
-  for (const id of ['hoodSel', 'eraSel', 'campSel']) cmp('renderSelects.' + id, tag, A.html[id], B.html[id]);
+  // The dropdown ids come from the registry, not a list written out here. Hardcoding them
+  // is how `subSel` was added to the app and silently never compared.
+  for (const id of SELECT_IDS) cmp('renderSelects.' + id, tag, A.html[id], B.html[id]);
 
   // 4. the active-filter row
   A.renderActiveF(); B.renderActiveF();
