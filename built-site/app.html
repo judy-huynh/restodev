@@ -1325,6 +1325,97 @@ var SUPA={url:"https://vhadxjbivhwfponuamrr.supabase.co",key:"sb_publishable_Vwq
 try{SUPA.session=JSON.parse(sessionStorage.getItem("mr_sess"))||null;}catch(e){}
 var VIS2CONSENT={full:"full_name",first:"first_name",anon:"anonymous",heritage:"advocacy_only"};
 var CONSENT2VIS={full_name:"full",first_name:"first",anonymous:"anon",advocacy_only:"heritage"};
+/* === JS SECTION: DESK FIELDS ======================================================
+   Every field the moderator desk can edit, declared once. This exists because a field
+   used to live in FIVE places: the markup in renderEditor, a listener in renderEditor,
+   the `answers` blob in saveStoryEdits, the PATCH body in supaSaveStory, and the way
+   back in rowToStory. Miss the fourth and the field renders, accepts typing and never
+   saves. Miss the fifth and it saves and never comes back. Neither says anything.
+
+   Now: add one entry here and the payload builders and the reader all pick it up.
+
+     id     the input's id in the editor, or null for a field the desk owns but does
+            not draw as a box (lat/lng, place type, institutional-sharing flag)
+     prop   the property on the in-memory story object
+     to     "row" for a column on `stories`, "answers" for a key inside the JSON blob
+     key    the column or answers key
+     write  value to send on save. Defaults to s[prop].
+     read   value to restore from a Supabase row. Defaults to r[key] / answers[key].
+
+   ORDER MATTERS and is deliberate: it is the order the keys appear in the JSON that
+   goes over the wire, kept identical to the hand-written objects this replaced so the
+   change could be diffed payload against payload.
+
+   NOT here, on purpose: contact details (their own table, D19), the moderator-only
+   workflow/value/note layer (its own table, never public), and media (uploaded, not
+   typed). Those have their own save calls in saveStoryEdits. */
+var DESK_FIELDS=[
+  {id:"mKind",  prop:"kind",    to:"answers",key:"kind",
+   read:function(r,a){return a.kind||"memory";}},
+  {id:null,     prop:"place",   to:"answers",key:"place_type",
+   write:function(s){return s.place||null;}, read:function(r,a){return a.place_type||"";}},
+  {id:"mEra",   prop:"era",     to:"answers",key:"era",
+   read:function(r,a){return a.era||"today";}},
+  {id:"mStory", prop:"story",   to:"answers",key:"story",
+   read:function(r,a){return a.story||"";}},
+  {id:"mCorner",prop:"corner",  to:"answers",key:"corner",
+   write:function(s){return s.corner||null;},
+   /* Falls back to the neighbourhood, because half the live rows hold a corner the
+      person typed and half hold nothing at all. STORY-57. */
+   read:function(r,a){return a.corner||r.location_label||"";}},
+  {id:null,     prop:"inst",    to:"answers",key:"inst",
+   write:function(s){return !!s.inst;}, read:function(r,a){return !!a.inst;}},
+
+  {id:"mHood",  prop:"hood",    to:"row",    key:"location_label",
+   read:function(r){return r.location_label||HOOD_OTHER;}},
+  {id:null,     prop:"lat",     to:"row",    key:"lat"},
+  {id:null,     prop:"lng",     to:"row",    key:"lng"},
+  {id:"mName",  prop:"name",    to:"row",    key:"display_name",
+   write:function(s){return s.name||null;}, read:function(r){return r.display_name;}},
+  /* The one field that overrides something a person chose about their own story.
+     See DECISIONS D27 for why it is editable at all. */
+  {id:"mVis",   prop:"vis",     to:"row",    key:"consent_level",
+   write:function(s){return VIS2CONSENT[s.vis]||"first_name";},
+   read:function(r){return CONSENT2VIS[r.consent_level]||"first";}},
+  {id:"mFeat",  prop:"featured",to:"row",    key:"featured",
+   write:function(s){return !!s.featured;}, read:function(r){return !!r.featured;}}
+];
+function deskWrite(f,s){return f.write?f.write(s):s[f.prop];}
+/* The JSON blob inside the story row. */
+function storyAnswers(s){
+  var o={};
+  DESK_FIELDS.forEach(function(f){if(f.to==="answers")o[f.key]=deskWrite(f,s);});
+  return o;
+}
+/* The whole PATCH body for a story row, answers included. Pure: builds the payload,
+   sends nothing. That is what makes it testable without a moderator session. */
+function storyRowPatch(s){
+  var o={};
+  DESK_FIELDS.forEach(function(f){if(f.to==="row")o[f.key]=deskWrite(f,s);});
+  o.answers=storyAnswers(s);
+  o.media=s.media||[];
+  return o;
+}
+/* Inputs inside the editor that are NOT story fields, so the check below does not
+   demand a DESK_FIELDS entry for them. Each one saves through its own path. */
+var DESK_NON_FIELDS=["mcName","mcEmail","mcPhone","mNote","mFiles"];
+/* Turns the silent failure loud. An input the editor draws but nobody declared will
+   never save, and used to say nothing about it; now it says so on every render. */
+function checkDeskFields(){
+  var root=$("modEditor"); if(!root)return;
+  var declared={};
+  DESK_FIELDS.forEach(function(f){if(f.id)declared[f.id]=1;});
+  DESK_NON_FIELDS.forEach(function(id){declared[id]=1;});
+  root.querySelectorAll("input[id],select[id],textarea[id]").forEach(function(el){
+    if(!declared[el.id])
+      console.warn("[desk] #"+el.id+" is in the editor but not in DESK_FIELDS, so it will never save.");
+  });
+  DESK_FIELDS.forEach(function(f){
+    if(f.id&&!root.querySelector("#"+f.id))
+      console.warn("[desk] DESK_FIELDS declares #"+f.id+" but the editor does not draw it.");
+  });
+}
+
 function supaHeaders(tok){return{apikey:SUPA.key,Authorization:"Bearer "+(tok||SUPA.key),"Content-Type":"application/json"};}
 function contactRow(c){
   if(!c||(!c.name&&!c.email&&!c.phone))return '<div class="contactrow"><span class="cr-lab">'+ic("lock",11)+' Contact</span><span class="none">none provided</span></div>';
@@ -1334,7 +1425,29 @@ function contactRow(c){
   if(c.phone)parts.push('<span>'+ic("phone",12)+' <a href="tel:'+esc((c.phone+"").replace(/[^0-9+]/g,""))+'">'+esc(c.phone)+'</a></span>');
   return '<div class="contactrow"><span class="cr-lab">'+ic("lock",11)+' Contact</span>'+parts.join("")+'</div>';
 }
-function rowToStory(r){var a=r.answers||{},photo=null,audio=null;var media=(r.media||[]).filter(function(m){return m&&m.url;});media.forEach(function(m){if(m.kind==="photo"&&!photo)photo=m.url;if(m.kind==="audio"&&!audio)audio=m.url;});var src=r.source||{};return{id:r.id,kind:a.kind||"memory",place:a.place_type||"",hood:r.location_label||HOOD_OTHER,corner:a.corner||r.location_label||"",era:a.era||"today",story:a.story||"",lat:r.lat,lng:r.lng,name:r.display_name,vis:CONSENT2VIS[r.consent_level]||"first",vis0:CONSENT2VIS[r.consent_level]||"first",inst:!!a.inst,contact:null,photo:photo,audio:audio,media:media,campaign:src.campaign||"web",mode:src.mode||"web",featured:!!r.featured,affirms:AFF[r.id]||0,at:r.submitted_at||null,status:r.status||"approved"};}
+/* A Supabase row becomes the story object the app works with. Everything the desk can
+   edit is read back through DESK_FIELDS, so a field cannot save one way and load
+   another. The rest below is not desk-editable: derived media, collection source,
+   affirmations and status. */
+function rowToStory(r){
+  var a=r.answers||{},photo=null,audio=null;
+  var media=(r.media||[]).filter(function(m){return m&&m.url;});
+  media.forEach(function(m){
+    if(m.kind==="photo"&&!photo)photo=m.url;
+    if(m.kind==="audio"&&!audio)audio=m.url;
+  });
+  var src=r.source||{},out={id:r.id};
+  DESK_FIELDS.forEach(function(f){
+    out[f.prop]=f.read?f.read(r,a):(f.to==="row"?r[f.key]:a[f.key]);
+  });
+  /* What they chose when they submitted it, kept so the desk can show that changing
+     consent overrides a person's own decision. */
+  out.vis0=out.vis;
+  out.contact=null; out.photo=photo; out.audio=audio; out.media=media;
+  out.campaign=src.campaign||"web"; out.mode=src.mode||"web";
+  out.affirms=AFF[r.id]||0; out.at=r.submitted_at||null; out.status=r.status||"approved";
+  return out;
+}
 async function supaFetchApproved(){var res=await fetch(SUPA.url+"/rest/v1/stories?tenant_id=eq."+SUPA.tid+"&status=eq.approved&select=id,status,display_name,consent_level,answers,lat,lng,location_label,media,source,submitted_at,featured&order=submitted_at.desc&limit=500",{headers:supaHeaders()});if(!res.ok)throw new Error("load "+res.status);return (await res.json()).map(rowToStory);}
 /* Same shape as the Rainproof uploader: one file in, {url,kind,name} out, the real
    extension preserved so a .mov stays a .mov and a PDF stays a PDF. Uploads as the
@@ -1399,14 +1512,13 @@ function supaLogout(){SUPA.session=null;try{sessionStorage.removeItem("mr_sess")
 async function supaAuthed(path,opts){opts=opts||{};var res=await fetch(SUPA.url+"/rest/v1/"+path,Object.assign({},opts,{headers:Object.assign(supaHeaders(SUPA.session&&SUPA.session.access_token),opts.headers||{})}));if(res.status===401){supaLogout();throw new Error("SESSION");}if(!res.ok)throw new Error((opts.method||"GET")+" "+res.status);var t=await res.text();return t?JSON.parse(t):null;}
 /* Editing a story from the moderator desk. Only the fields the desk owns are sent, so a
    save can never clobber media, consent or the submitted timestamp. */
-async function supaSaveStory(s,answers){
+async function supaSaveStory(s){
+  /* The payload comes from DESK_FIELDS via storyRowPatch(). consent_level used to be
+     left out of this body so a save could not clobber it, which also meant it could
+     never be corrected: the name box was editable and the thing that actually governs
+     the name was not. It is a declared field now. See D27. */
   return supaAuthed("stories?id=eq."+s.id,{method:"PATCH",headers:{Prefer:"return=minimal"},
-    body:JSON.stringify({location_label:s.hood,lat:s.lat,lng:s.lng,display_name:s.name||null,
-      // consent_level was deliberately left out so a save could not clobber it. That also
-      // meant it could never be corrected, which is the bug: the name box was editable and
-      // the thing that actually governs the name was not.
-      consent_level:VIS2CONSENT[s.vis]||"first_name",
-      featured:!!s.featured,answers:answers,media:s.media||[]})});
+    body:JSON.stringify(storyRowPatch(s))});
 }
 /* The moderator-only layer. A separate table with its own row-level rule, because anyone
    can read `stories` with the publishable key: a private tag kept there would be public
@@ -3790,15 +3902,15 @@ function renderEditor(){
     });
   });
   $("mSave").addEventListener("click",function(){saveStoryEdits(s,vv,this);});
+  checkDeskFields();
   var ap=$("mAppr");if(ap)ap.addEventListener("click",function(){modStory(s.id,"approved");});
   var rj=$("mRej");if(rj)rj.addEventListener("click",function(){modStory(s.id,"rejected");});
 }
 /* One save writes both halves: the public row, and the moderator layer beside it. */
 async function saveStoryEdits(s,v,btn){
   btn.disabled=true;btn.textContent="Saving…";
-  var answers={kind:s.kind,place_type:s.place||null,era:s.era,story:s.story,corner:s.corner||null,inst:!!s.inst};
   try{
-    await supaSaveStory(s,answers);
+    await supaSaveStory(s);
     await supaSaveInternal(s.id,v);
     await supaSaveContact(s.id,s.contact);
   }catch(e){
