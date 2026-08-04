@@ -3339,7 +3339,36 @@ function initPinMap(){
 async function submitDraft(){if(!draft)return;if(!draft.hood)draft.hood=HOOD_OTHER;var d=draft;var btn=$("submitBtn");if(btn){btn.disabled=true;btn.textContent="Sending…";}try{await supaSubmit(d);}catch(e){toast("Couldn't send, "+((e&&e.message)||"try again"));if(btn){btn.disabled=false;btn.textContent="Root this "+(d.kind==="future"?"vision":"memory");}console.warn(e);return;}draft=null;renderThanks(d);showView("thanks");}
 function renderThanks(s){var isV=s.kind==="future";
   var na=isV?publicStories().filter(function(x){return x.kind==="future"&&x.hood===s.hood&&x.id!==s.id;}).length:0;
-  $("thanksInner").innerHTML='<div class="thanks"><div class="big" style="color:var(--accent)">'+ic("sprout",44)+'</div><h2>'+(isV?"Vision":"Memory")+' rooted!</h2><p>Thank you'+(s.name?", "+esc(s.name.split(" ")[0]):"")+'. The Big We will review it before it joins the public map. The collection stays in the community\'s hands.'+((s.email||s.phone)?' We\'ll '+(s.phone?"text":"email")+' you when it is published.':"")+'</p>'+(na>0?'<div class="notalone">'+ic("star",14)+' You\'re not alone, '+na+' neighbor'+(na===1?'':'s')+' already dream near '+esc(s.hood)+'. This is how a shared future becomes visible.</div>':"")+'<div class="thanksmap" id="thanksmap"></div><div class="cardmini"><div style="font-size:12px;font-weight:700;color:'+KIND[s.kind].color+'">'+ic(KIND[s.kind].icon,13)+' '+esc(KIND[s.kind].label)+'</div><div style="font-size:14px;margin:6px 0">'+esc(s.story)+'</div>'+(s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+'<div style="font-size:12px;color:var(--muted)">'+esc(s.corner)+' · '+esc(eraLabel(s.era))+'</div></div><div class="row" style="justify-content:center"><button class="btn ghost" id="tMap">See the Map</button><button class="btn prim" id="tAgain" style="flex:none;padding:14px 22px">Add Another</button></div><p style="margin-top:20px;font-size:12px">Want to watch it go live? Open <b>Moderate</b> and approve it.</p></div>';
+  $("thanksInner").innerHTML=
+    '<div class="thanks">'+
+      '<div class="big" style="color:var(--accent)">'+ic("sprout",44)+'</div>'+
+      '<h2>'+(isV?"Vision":"Memory")+' rooted!</h2>'+
+      '<p>Thank you'+(s.name?", "+esc(s.name.split(" ")[0]):"")+
+        '. The Big We will review it before it joins the public map. '+
+        'The collection stays in the community\'s hands.'+
+        ((s.email||s.phone)?' We\'ll '+(s.phone?"text":"email")+' you when it is published.':"")+
+      '</p>'+
+      /* Only shown when someone else has already dreamed nearby. The count is the point:
+         a vision is easier to give when it is not the first one on the map. */
+      (na>0?'<div class="notalone">'+ic("star",14)+' You\'re not alone, '+na+
+            ' neighbor'+(na===1?'':'s')+' already dream near '+esc(s.hood)+
+            '. This is how a shared future becomes visible.</div>':"")+
+      '<div class="thanksmap" id="thanksmap"></div>'+
+      '<div class="cardmini">'+
+        '<div style="font-size:12px;font-weight:700;color:'+KIND[s.kind].color+'">'+
+          ic(KIND[s.kind].icon,13)+' '+esc(KIND[s.kind].label)+
+        '</div>'+
+        '<div style="font-size:14px;margin:6px 0">'+esc(s.story)+'</div>'+
+        (s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+
+        '<div style="font-size:12px;color:var(--muted)">'+esc(s.corner)+' · '+esc(eraLabel(s.era))+'</div>'+
+      '</div>'+
+      '<div class="row" style="justify-content:center">'+
+        '<button class="btn ghost" id="tMap">See the Map</button>'+
+        '<button class="btn prim" id="tAgain" style="flex:none;padding:14px 22px">Add Another</button>'+
+      '</div>'+
+      '<p style="margin-top:20px;font-size:12px">Want to watch it go live? '+
+        'Open <b>Moderate</b> and approve it.</p>'+
+    '</div>';
   $("tMap").addEventListener("click",function(){showView("explore");apply();});$("tAgain").addEventListener("click",function(){startCapture();});
   setTimeout(function(){if(thanksMap){thanksMap.remove();thanksMap=null;}thanksMap=L.map("thanksmap",{zoomControl:false,dragging:false,scrollWheelZoom:false}).setView([s.lat,s.lng],15);baseTiles().addTo(thanksMap);L.marker([s.lat,s.lng],{icon:mkIcon(KIND[s.kind].color)}).addTo(thanksMap);setTimeout(function(){thanksMap.invalidateSize();},80);},60);
 }
@@ -3660,7 +3689,42 @@ async function renderAdmin(){
   renderQueue();renderEditor();
 }
 async function modStory(id,st){try{await supaSetStatus(id,st);}catch(e){if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;}toast(e.message);return;}toast(st==="approved"?"Approved, now live on the map":"Story rejected");await refreshStories();renderAdmin();}
-function renderLogin(msg){$("adminList").innerHTML='<div style="max-width:360px;margin:8px auto 0;background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px"><h3 style="margin:0 0 4px;font-family:var(--display)">Moderator Sign-in</h3><p style="font-size:13px;color:var(--muted);margin:0 0 16px">Sign in with your Ground Truth moderator account to review and approve community stories.</p><input type="email" class="ti" id="mEmail" placeholder="Email" autocomplete="username" style="margin-bottom:10px"><input type="password" class="ti" id="mPass" placeholder="Password" autocomplete="current-password" style="margin-bottom:6px"><div id="mErr" style="color:#B42318;font-size:12.5px;min-height:17px">'+(msg?esc(msg):"")+'</div><button class="btn prim" id="mLogin" style="width:100%;margin-top:8px">Sign in</button></div>';$("mLogin").addEventListener("click",async function(){var em=$("mEmail").value.trim(),pw=$("mPass").value;if(!em||!pw)return;$("mErr").textContent="";this.disabled=true;this.textContent="Signing in…";try{await supaLogin(em,pw);}catch(err){$("mErr").textContent=err.message;this.disabled=false;this.textContent="Sign in";return;}renderAdmin();});$("mPass").addEventListener("keydown",function(e){if(e.key==="Enter")$("mLogin").click();});}
+/* The sign-in card. Deliberately plain: a moderator who cannot get in has no other
+   route to the queue, so nothing here depends on a style that might not have loaded.
+   The inline styles are a known wart, kept for now because moving them into the
+   stylesheet is a change to how it looks, and this commit changes only how it reads. */
+function renderLogin(msg){
+  $("adminList").innerHTML=
+    '<div style="max-width:360px;margin:8px auto 0;background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px">'+
+      '<h3 style="margin:0 0 4px;font-family:var(--display)">Moderator Sign-in</h3>'+
+      '<p style="font-size:13px;color:var(--muted);margin:0 0 16px">'+
+        'Sign in with your Ground Truth moderator account to review and approve community stories.</p>'+
+      '<input type="email" class="ti" id="mEmail" placeholder="Email" autocomplete="username" style="margin-bottom:10px">'+
+      '<input type="password" class="ti" id="mPass" placeholder="Password" autocomplete="current-password" style="margin-bottom:6px">'+
+      /* min-height holds the row open so the card does not jump when an error arrives. */
+      '<div id="mErr" style="color:#B42318;font-size:12.5px;min-height:17px">'+(msg?esc(msg):"")+'</div>'+
+      '<button class="btn prim" id="mLogin" style="width:100%;margin-top:8px">Sign in</button>'+
+    '</div>';
+
+  $("mLogin").addEventListener("click",async function(){
+    var em=$("mEmail").value.trim(),pw=$("mPass").value;
+    if(!em||!pw)return;
+    $("mErr").textContent="";
+    this.disabled=true; this.textContent="Signing in…";
+    try{
+      await supaLogin(em,pw);
+    }catch(err){
+      /* Put the button back before returning, or a failed attempt leaves the only
+         way in disabled and the moderator has to reload the page. */
+      $("mErr").textContent=err.message;
+      this.disabled=false; this.textContent="Sign in";
+      return;
+    }
+    renderAdmin();
+  });
+
+  $("mPass").addEventListener("keydown",function(e){if(e.key==="Enter")$("mLogin").click();});
+}
 $("reseed").addEventListener("click",async function(){await refreshStories();toast("Reloaded stories from Supabase");});
 $("signout").addEventListener("click",function(){supaLogout();toast("Signed out");renderAdmin();});
 
