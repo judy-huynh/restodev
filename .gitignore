@@ -17,6 +17,9 @@ LAYERS.md
 RESTORE.md
 FIX-CONTACTS-403.sql
 
+# Internal tooling, not part of the site
+tools/
+
 # Working data drops at the repo root (xlsx, scratch exports). NOT built-site/data/,
 # which is the live map data and IS tracked. Leading slash anchors this to the root.
 /data/
