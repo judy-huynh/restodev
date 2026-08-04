@@ -106,6 +106,7 @@
      VIEW SWITCHING
      CITY DATA MODAL
      BOOT AND TOP-LEVEL WIRING
+     CAPTURE STEPS
      CAPTURE FLOW (the public form)
      LEGACY ADMIN TABS
      MODERATOR DESK
@@ -3586,51 +3587,48 @@ $("navMap").addEventListener("click",function(){showView("explore");});
 $("panel").addEventListener("click",function(e){if(e.target===this||e.target.classList.contains("p-head")){this.classList.toggle("up");}});
 
 
-/* === JS SECTION: CAPTURE FLOW (the public form) ======================================
-   The whole add-a-memory flow. renderStep() draws whichever step stepIdx points at;
-   STEPS decides the order. Uploads happen on submit, so abandoning leaves nothing behind. */
-var draft=null,stepIdx=0,STEPS=[],mediaRec,chunks=[],pinMap,pinMarker,thanksMap;
-var campaignParam="web",eventParam="",captureMode="web";
-function startCapture(kind){
-  var defEra=kind==="future"?(campaignParam==="reimagine2065"?"future2065":"tomorrow"):"";
-  // locSource records where the coordinate actually came from. "unset" means the
-  // person never placed it, and a story must not submit that way: an unplaced pin
-  // used to silently file the story at Clayborn.
-  draft={id:uid(),kind:kind||null,place:"",hood:"",hoodPicked:false,story:"",corner:"",era:defEra,lat:CLAYBORN[0],lng:CLAYBORN[1],locSource:"unset",photo:null,audio:null,files:[],name:"",email:"",phone:"",vis:"first",inst:false,status:"pending",campaign:campaignParam,mode:captureMode};
-  // What happened, where, and when are the record itself, so they are one screen.
-  // Media comes after, because a photo or a voice supports a story that already exists.
-  // This also removed a duplicate question: the flow used to ask where the story
-  // belonged, then ask again on a map three steps later.
-  STEPS=draft.kind?["story","media","consent"]:["kind","story","media","consent"];
-  stepIdx=0;showView("capture");renderBanner();renderStep();
-}
-/* The bar across the top of the form at an event: which campaign this is being
-   collected for, and how. Hidden entirely for an ordinary web submission. */
-function renderBanner(){
-  var el=$("capBanner"); if(!el)return;
-  var m=CAMPAIGNS[draft.campaign];
-  if(!(draft.campaign&&draft.campaign!=="web"&&m)){
-    el.className="capbanner hidden"; el.innerHTML=""; return;
-  }
-  el.className="capbanner";
-  el.innerHTML=
-    'Collecting for <b>'+esc(m.label)+'</b>'+
-    (eventParam?'<span class="ev">· '+esc(eventParam)+'</span>':'')+
-    '<span class="mode">· '+(MODES[draft.mode]||draft.mode)+'</span>';
-}
-function renderProg(){$("prog").innerHTML=STEPS.map(function(_,i){return '<i class="'+(i<stepIdx?"done":i===stepIdx?"now":"")+'"></i>';}).join("");}
-function goNext(){stepIdx++;if(stepIdx>=STEPS.length)submitDraft();else renderStep();}
-function goBack(){if(stepIdx>0){stepIdx--;renderStep();}else showView("explore");}
-function navRow(nd){return '<div class="row"><button class="btn ghost" id="backBtn">Back</button><button class="btn prim" id="nextBtn"'+(nd?" disabled":"")+'>Continue →</button></div>';}
-function wireNav(){$("backBtn").addEventListener("click",goBack);$("nextBtn").addEventListener("click",goNext);}
-function renderStep(){
-  renderProg();var step=STEPS[stepIdx],b=$("stepBody");
-  window.__suggestName=null;window.__refreshStep=null;   // rebound by the intake step only
-  if(step==="kind"){
+/* === JS SECTION: CAPTURE STEPS =======================================================
+   The public form, one entry per screen. This is the surface a community member actually
+   touches at an event, and the one where wording matters most, so it is also the one that
+   gets edited most often at short notice.
+
+   It used to be a 178-line if/else chain inside renderStep(), plus a hardcoded order with
+   a conditional in it:
+
+       STEPS = draft.kind ? ["story","media","consent"] : ["kind","story","media","consent"]
+
+   so reordering, adding a screen, or dropping one for a particular event meant editing
+   the chain and that array and keeping the two in step. The array said which screens
+   existed; the chain said what they were; nothing checked that they agreed. A key in one
+   and not the other renders a blank screen with a Continue button on it.
+
+   Now: one entry per screen, in the order they are asked.
+
+     key    the screen's name, and what STEPS holds
+     skip   this draft does not need this screen. Asked once, in startCapture(), NOT on
+            every render: the kind screen sets draft.kind, and a list recomputed after
+            that would drop the screen the person is standing on and shift every index
+            under them.
+     render draws it into the step body and wires it. Each one owns its own layout on
+            purpose. A picker, a long compound question, an uploader and a consent screen
+            are four different jobs, and one templating function with a flag per screen
+            would be worse than the four. See D29 on what a registry is NOT for.
+
+   NOT here: what happens on submit. submitDraft() and supaSubmit() own that, and a field
+   added to a screen still has to reach both. */
+var CAPTURE_STEPS=[
+
+  /* Skipped whenever the person has already said what they are sharing on the way in: a
+     Cultural District star, a right-click on the map, or a kiosk link carrying ?kind=. */
+  {key:"kind",skip:function(d){return !!d.kind;},
+   render:function(b){
     b.innerHTML='<h2 class="q">What are you sharing?</h2><p class="qsub">This sets the color of your dot on the map.</p><div class="opts" id="ko"></div>';
     $("ko").innerHTML=Object.keys(KIND).map(function(k){return '<button class="opt" data-k="'+k+'"><span class="em" style="color:'+KIND[k].color+'">'+ic(KIND[k].icon,22)+'</span><span>'+esc(KIND[k].label)+'<small>'+esc(KIND[k].sub)+'</small></span></button>';}).join("");
     b.querySelectorAll("[data-k]").forEach(function(el){el.addEventListener("click",function(){draft.kind=el.dataset.k;if(draft.kind==="future")draft.era="tomorrow";goNext();});});
-  } else if(step==="story"){
+   }},
+
+  {key:"story",
+   render:function(b){
     var isV=draft.kind==="future",is65=isV&&draft.campaign==="reimagine2065";
     var q=is65?"It's 2068. What does Memphis feel like?":isV?"What should grow here?":"Tell the story.";
     var sub=is65
@@ -3758,7 +3756,10 @@ function renderStep(){
       else{suggestName();}
     }
     refresh();
-  } else if(step==="media"){
+   }},
+
+  {key:"media",
+   render:function(b){
     // Same set the Rainproof form offers: as many photos as they have, a video, a voice.
     // The recorder is kept first because a voice is how a memory really travels.
     b.innerHTML='<h2 class="q">Add a voice, photos or a video.</h2>'+
@@ -3777,7 +3778,10 @@ function renderStep(){
       navRow(false)+'<div class="center"><button class="skip" id="skipMedia">Skip, No Media</button></div>';
     wireNav();$("nextBtn").disabled=false;$("skipMedia").addEventListener("click",goNext);
     wireRecorder();wireDraftMedia();
-  } else if(step==="consent"){
+   }},
+
+  {key:"consent",
+   render:function(b){
     b.innerHTML='<h2 class="q">You &amp; your consent.</h2><p class="qsub">These stories belong to Memphis. You choose how much of your name travels with yours.</p><input type="text" class="ti mb14" id="cname" placeholder="Your name (optional)" value="'+esc(draft.name)+'"><div id="visOpts"></div>'+
       '<div class="contactblock"><div class="cb-h"><span class="lock">'+ic("lock",15)+'</span> Stay in touch <span>private, The Big We only</span></div>'+
       '<p class="cb-note">So we can let you know when your story is published, or reach out if we need to. This never shows on the map.</p>'+
@@ -3800,7 +3804,60 @@ function renderStep(){
     $("cname").addEventListener("input",function(){draft.name=this.value;});$("instChk").addEventListener("change",function(){draft.inst=this.checked;});
     $("cemail").addEventListener("input",function(){draft.email=this.value;});$("cphone").addEventListener("input",function(){draft.phone=this.value;});
     $("backBtn").addEventListener("click",goBack);$("submitBtn").addEventListener("click",submitDraft);
+   }}
+];
+function stepByKey(k){for(var i=0;i<CAPTURE_STEPS.length;i++)if(CAPTURE_STEPS[i].key===k)return CAPTURE_STEPS[i];return null;}
+/* The screens this particular draft will walk. Derived with a function rather than kept
+   as an array built at load, which is the rule D29 came out of: a screen added to the
+   registry has to be visible to a draft started afterwards. */
+function captureStepsFor(d){
+  return CAPTURE_STEPS.filter(function(s){return !s.skip||!s.skip(d);}).map(function(s){return s.key;});
+}
+
+/* === JS SECTION: CAPTURE FLOW (the public form) ======================================
+   The whole add-a-memory flow. renderStep() draws whichever step stepIdx points at;
+   STEPS decides the order. Uploads happen on submit, so abandoning leaves nothing behind. */
+var draft=null,stepIdx=0,STEPS=[],mediaRec,chunks=[],pinMap,pinMarker,thanksMap;
+var campaignParam="web",eventParam="",captureMode="web";
+function startCapture(kind){
+  var defEra=kind==="future"?(campaignParam==="reimagine2065"?"future2065":"tomorrow"):"";
+  // locSource records where the coordinate actually came from. "unset" means the
+  // person never placed it, and a story must not submit that way: an unplaced pin
+  // used to silently file the story at Clayborn.
+  draft={id:uid(),kind:kind||null,place:"",hood:"",hoodPicked:false,story:"",corner:"",era:defEra,lat:CLAYBORN[0],lng:CLAYBORN[1],locSource:"unset",photo:null,audio:null,files:[],name:"",email:"",phone:"",vis:"first",inst:false,status:"pending",campaign:campaignParam,mode:captureMode};
+  // What happened, where, and when are the record itself, so they are one screen.
+  // Media comes after, because a photo or a voice supports a story that already exists.
+  // This also removed a duplicate question: the flow used to ask where the story
+  // belonged, then ask again on a map three steps later.
+  STEPS=captureStepsFor(draft);
+  stepIdx=0;showView("capture");renderBanner();renderStep();
+}
+/* The bar across the top of the form at an event: which campaign this is being
+   collected for, and how. Hidden entirely for an ordinary web submission. */
+function renderBanner(){
+  var el=$("capBanner"); if(!el)return;
+  var m=CAMPAIGNS[draft.campaign];
+  if(!(draft.campaign&&draft.campaign!=="web"&&m)){
+    el.className="capbanner hidden"; el.innerHTML=""; return;
   }
+  el.className="capbanner";
+  el.innerHTML=
+    'Collecting for <b>'+esc(m.label)+'</b>'+
+    (eventParam?'<span class="ev">· '+esc(eventParam)+'</span>':'')+
+    '<span class="mode">· '+(MODES[draft.mode]||draft.mode)+'</span>';
+}
+function renderProg(){$("prog").innerHTML=STEPS.map(function(_,i){return '<i class="'+(i<stepIdx?"done":i===stepIdx?"now":"")+'"></i>';}).join("");}
+function goNext(){stepIdx++;if(stepIdx>=STEPS.length)submitDraft();else renderStep();}
+function goBack(){if(stepIdx>0){stepIdx--;renderStep();}else showView("explore");}
+function navRow(nd){return '<div class="row"><button class="btn ghost" id="backBtn">Back</button><button class="btn prim" id="nextBtn"'+(nd?" disabled":"")+'>Continue →</button></div>';}
+function wireNav(){$("backBtn").addEventListener("click",goBack);$("nextBtn").addEventListener("click",goNext);}
+function renderStep(){
+  renderProg();var step=stepByKey(STEPS[stepIdx]),b=$("stepBody");
+  window.__suggestName=null;window.__refreshStep=null;   // rebound by the intake step only
+  /* A key in STEPS with no entry in CAPTURE_STEPS used to draw a blank screen with a
+     working Continue button under it. It says so now, and stops. */
+  if(!step){console.warn("[capture] no CAPTURE_STEPS entry for step \""+STEPS[stepIdx]+"\"");return;}
+  step.render(b);
 }
 function wireRecorder(){var btn=$("micBtn"),lbl=$("recLbl");if(draft.audio)$("audioPrev").innerHTML='<audio controls src="'+draft.audio+'"></audio>';
   btn.addEventListener("click",function(){
