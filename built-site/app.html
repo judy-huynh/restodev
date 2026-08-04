@@ -483,7 +483,7 @@
   .hp-note{font-size:11px;color:var(--muted);line-height:1.45;margin:9px 0 0}
   .hp-foot{margin:0;padding:11px 18px 13px;border-top:1px solid var(--line);background:var(--bg);font-size:10.5px;line-height:1.5;color:var(--faint)}
 
-  /* === SECTION: STORY CARD =======================================================
+/* === SECTION: STORY CARD =======================================================
      The card in the story list, in the order the markup builds it. Built by
      renderCards(). Cousins that must stay visually consistent: openDetail()
      (expanded), renderSpotlight() (featured), renderQueue() (moderator). */
@@ -2189,7 +2189,7 @@ function renderMarkers(){
   if(!map)return;
   Object.keys(markersById).forEach(function(id){map.removeLayer(markersById[id]);});markersById={};
   filtered().forEach(function(s){
-    var k=KIND[s.kind]||KIND.memory;
+    var k=storyKind(s);
     var m=L.marker([s.lat,s.lng],{icon:mkIcon(k.color,s.featured),zIndexOffset:s.featured?520:400}).addTo(map);
     m.on("click",function(){selectStory(s.id,false);});
     m.on("mouseover",function(){hiCard(s.id,true);});
@@ -2563,6 +2563,65 @@ function dcPage(id){
   '</div>';
 }
 
+/* === SECTION: STORY PRIMITIVES ====================================================
+   What a story IS, in one place. A story is drawn in four places and they are
+   deliberately NOT one component, because a moderator queue row and an expanded
+   story are different objects with different jobs:
+
+     renderCards()      the card in the story list      SECTION: STORY CARD
+     openDetail()       the expanded story              SECTION: STORY DETAIL AND LIGHTBOX
+     renderSpotlight()  the featured one over the map   SECTION: SPOTLIGHT
+     renderQueue()      the moderator queue row         SECTION: MODERATOR DESK
+
+   What they MUST agree on is what a story is called, who it belongs to, where and
+   when it happened, and what is attached to it. That is what lives here. Change the
+   meaning here and all four follow. Change the layout in the renderer that owns it.
+
+   If you find yourself writing KIND[s.kind] or esc(displayName(s)) in a renderer,
+   the helper you want is already below. */
+
+/* Never KIND[s.kind] directly. Three call sites did that without the fallback and
+   would throw on a story whose kind is missing or no longer in KIND, which is exactly
+   what an old row or a renamed type looks like. */
+function storyKind(s){return (s&&KIND[s.kind])||KIND.memory;}
+
+/* The type mark: icon plus name. The caller owns the wrapper and the colour, because
+   the card wears it as a chip, the detail as a solid tag and the spotlight as a
+   coloured square. `long` picks the full label over the short one. */
+function kindMark(s,size,long){var k=storyKind(s);return ic(k.icon,size||13)+' '+esc(long?k.label:k.short);}
+
+/* Who, where, when. publicName() decides whether a name is shown at all; going
+   through displayName() here means no renderer can accidentally bypass consent. */
+function storyWho(s){return esc(displayName(s));}
+function storyWhere(s){return esc(s.corner||s.hood);}
+function storyWhen(s){return esc(eraLabel(s.era));}
+
+/* Everything attached to a story, counted once. The card, the queue row and the
+   detail pane each used to re-derive this from s.media with their own filter. */
+function storyMedia(s){
+  var m=(s&&s.media)||[];
+  var photos=m.filter(function(x){return x.kind==="photo";});
+  return {photos:photos,videos:m.filter(function(x){return x.kind==="video";}),
+          files:m.filter(function(x){return x.kind==="file";}),
+          audio:!!(s&&s.audio),
+          extra:Math.max(0,photos.length-1)};
+}
+
+/* The little row of "what is attached" badges. One definition, so adding a badge is
+   one edit rather than a hunt through every renderer that shows them. */
+function storyBadges(s){
+  var m=storyMedia(s);
+  return (m.photos.length?'<span class="badge">'+ic("camera",11)+' '+m.photos.length+'</span>':'')+
+         (m.videos.length?'<span class="badge">'+ic("video",11)+' Video</span>':'')+
+         (m.audio?'<span class="badge">'+ic("audio",11)+' Voice</span>':'');
+}
+
+/* The words. `max` truncates for the spotlight, which has one line to work with. */
+function storyText(s,max){
+  var t=(s&&s.story)||"";
+  return max&&t.length>max?esc(t.slice(0,max))+'…':esc(t);
+}
+
 /* === SECTION: STORY CARD ==========================================================
    THE card in the story list. To change how a story looks you may need FOUR places:
      renderCards()      <- here, the list card
@@ -2575,30 +2634,25 @@ function renderCards(){
   // A building is the more specific answer, so it wins over its neighbourhood.
   var head=F.dc?dcPage(F.dc):(f?sitePage(f):(F.hood!=="all"?hoodPage(F.hood):""));
   var body=list.length?list.map(function(s){
-    var k=KIND[s.kind]||KIND.memory,src=photoSrc(s.photo);
-    var photos=(s.media||[]).filter(function(m){return m.kind==="photo";});
-    var vids=(s.media||[]).filter(function(m){return m.kind==="video";});
-    var extra=Math.max(0,photos.length-1);
+    var k=storyKind(s),src=photoSrc(s.photo),md=storyMedia(s);
     // The photograph leads, because a face or a building is what stops a scroll.
     var hero=src?'<div class="chero"><img src="'+src+'" alt="" loading="lazy">'+
-      (extra?'<span class="cmore">+'+extra+'</span>':'')+
+      (md.extra?'<span class="cmore">+'+md.extra+'</span>':'')+
       (s.featured?'<span class="cfeat">'+ic("star",11)+' Featured</span>':'')+'</div>':'';
     return '<article class="card'+(s.featured?" is-feat":"")+'" data-id="'+s.id+'" tabindex="0">'+hero+
       '<div class="cbody">'+
         '<div class="ctop"><span class="cdot" style="background:'+k.color+'"></span>'+
-          '<span class="cwho">'+esc(displayName(s))+'</span>'+
-          '<span class="cwhere">'+esc(s.corner||s.hood)+'</span></div>'+
+          '<span class="cwho">'+storyWho(s)+'</span>'+
+          '<span class="cwhere">'+storyWhere(s)+'</span></div>'+
         (!src&&s.featured?'<span class="feattag">'+ic("star",11)+' Featured</span>':'')+
-        '<p class="snip">'+esc(s.story)+'</p>'+
+        '<p class="snip">'+storyText(s)+'</p>'+
         '<div class="cchips">'+
           '<button class="cchip" data-chip="hood" data-v="'+esc(s.hood)+'"><span class="csw" style="background:'+hoodColor(s.hood)+'"></span>'+esc(s.hood)+'</button>'+
-          '<button class="cchip" data-chip="era" data-v="'+esc(s.era)+'">'+esc(eraLabel(s.era))+'</button>'+
-          '<button class="cchip" data-chip="kind" data-v="'+esc(s.kind)+'">'+ic(k.icon,11)+' '+esc(k.short)+'</button>'+
+          '<button class="cchip" data-chip="era" data-v="'+esc(s.era)+'">'+storyWhen(s)+'</button>'+
+          '<button class="cchip" data-chip="kind" data-v="'+esc(s.kind)+'">'+kindMark(s,11)+'</button>'+
         '</div>'+
         '<div class="cfoot">'+
-          (photos.length?'<span class="badge">'+ic("camera",11)+' '+photos.length+'</span>':'')+
-          (vids.length?'<span class="badge">'+ic("video",11)+' Video</span>':'')+
-          (s.audio?'<span class="badge">'+ic("audio",11)+' Voice</span>':'')+
+          storyBadges(s)+
           '<span class="cdate">'+esc(storyDate(s))+'</span>'+
         '</div>'+
       '</div></article>';
@@ -2761,7 +2815,7 @@ function storyPhotos(s){
   return out;
 }
 function openDetail(s){
-  var k=KIND[s.kind]||KIND.memory,src=photoSrc(s.photo);
+  var k=storyKind(s),src=photoSrc(s.photo);
   // The hero carries data-lb like every other photo, so one handler covers all of them
   // and the hero can never quietly fall out of the set again.
   var hero=src?'<div class="d-hero"><img src="'+src+'" data-lb="'+esc(s.photo)+'" tabindex="0" role="button" aria-label="Open this photo" alt=""><div class="dscrim"></div>':'<div class="d-hero noimg" style="background:'+k.color+'22;color:'+k.color+'">'+ic(k.icon,46)+'<div class="dscrim"></div>';
@@ -2769,16 +2823,16 @@ function openDetail(s){
   $("detail").innerHTML=hero+
     '<button class="d-close" id="dClose">←</button>'+
     '<span class="d-ktag" style="background:'+k.color+'">'+ic(k.icon,13)+' '+esc(k.label)+'</span></div>'+
-    '<div class="d-body"><p class="quote">"'+esc(s.story)+'"</p>'+
+    '<div class="d-body"><p class="quote">"'+storyText(s)+'"</p>'+
     (s.audio?'<div class="d-sect">'+ic("mic",13)+' Voice recording</div><audio controls src="'+s.audio+'"></audio>':"")+
     storyMediaHtml(s)+
     (s.kind==="future"?dreamBox(s):"")+
     '<div class="d-tags">'+tags.map(function(t){return '<span class="t" data-tag="'+t[0]+'">'+t[1]+'</span>';}).join("")+'</div>'+
     '<div class="d-meta">'+
-      '<div class="r"><span>Shared by</span><b>'+esc(displayName(s))+'</b></div>'+
+      '<div class="r"><span>Shared by</span><b>'+storyWho(s)+'</b></div>'+
       '<div class="r"><span>Neighborhood</span><b>'+esc(s.hood)+'</b></div>'+
       '<div class="r"><span>Corner</span><b>'+esc(s.corner)+'</b></div>'+
-      '<div class="r"><span>Era</span><b>'+esc(eraLabel(s.era))+'</b></div>'+
+      '<div class="r"><span>Era</span><b>'+storyWhen(s)+'</b></div>'+
       (s.campaign&&CAMPAIGNS[s.campaign]&&s.campaign!=="web"?'<div class="r"><span>Collected at</span><b>'+esc(CAMPAIGNS[s.campaign].label)+'</b></div>':"")+
     '</div>'+
     '<button class="d-locate" id="dLocate">'+ic("pin",14)+' Show on the Map</button></div>';
@@ -3409,7 +3463,7 @@ function initPinMap(){
   var known=draft.locSource!=="unset";
   pinMap=L.map("pinmap").setView([draft.lat,draft.lng],known?16:13);
   baseTiles().addTo(pinMap);
-  pinMarker=L.marker([draft.lat,draft.lng],{draggable:true,icon:mkIcon(KIND[draft.kind].color)}).addTo(pinMap);
+  pinMarker=L.marker([draft.lat,draft.lng],{draggable:true,icon:mkIcon(storyKind(draft).color)}).addTo(pinMap);
   function moved(lat,lng){
     setDraftLoc(lat,lng,"manual");
     // Offer a name for the new spot, unless the person already typed one themselves.
@@ -3438,8 +3492,8 @@ function renderThanks(s){var isV=s.kind==="future";
             '. This is how a shared future becomes visible.</div>':"")+
       '<div class="thanksmap" id="thanksmap"></div>'+
       '<div class="cardmini">'+
-        '<div style="font-size:12px;font-weight:700;color:'+KIND[s.kind].color+'">'+
-          ic(KIND[s.kind].icon,13)+' '+esc(KIND[s.kind].label)+
+        '<div style="font-size:12px;font-weight:700;color:'+storyKind(s).color+'">'+
+          kindMark(s,13,true)+
         '</div>'+
         '<div style="font-size:14px;margin:6px 0">'+esc(s.story)+'</div>'+
         (s.audio?'<audio controls src="'+s.audio+'"></audio>':"")+
@@ -3453,7 +3507,7 @@ function renderThanks(s){var isV=s.kind==="future";
         'Open <b>Moderate</b> and approve it.</p>'+
     '</div>';
   $("tMap").addEventListener("click",function(){showView("explore");apply();});$("tAgain").addEventListener("click",function(){startCapture();});
-  setTimeout(function(){if(thanksMap){thanksMap.remove();thanksMap=null;}thanksMap=L.map("thanksmap",{zoomControl:false,dragging:false,scrollWheelZoom:false}).setView([s.lat,s.lng],15);baseTiles().addTo(thanksMap);L.marker([s.lat,s.lng],{icon:mkIcon(KIND[s.kind].color)}).addTo(thanksMap);setTimeout(function(){thanksMap.invalidateSize();},80);},60);
+  setTimeout(function(){if(thanksMap){thanksMap.remove();thanksMap=null;}thanksMap=L.map("thanksmap",{zoomControl:false,dragging:false,scrollWheelZoom:false}).setView([s.lat,s.lng],15);baseTiles().addTo(thanksMap);L.marker([s.lat,s.lng],{icon:mkIcon(storyKind(s).color)}).addTo(thanksMap);setTimeout(function(){thanksMap.invalidateSize();},80);},60);
 }
 
 /* === SECTION: LEGACY ADMIN TABS ===================================================
@@ -3505,11 +3559,11 @@ function modVisible(){
 function renderQueue(){
   var list=modVisible();
   $("adminList").innerHTML=list.length?list.map(function(s){
-    var k=KIND[s.kind]||KIND.memory,v=modInternal[s.id]||{},flags=(v.workflow||[]).length+(v.value||[]).length;
+    var k=storyKind(s),v=modInternal[s.id]||{},flags=(v.workflow||[]).length+(v.value||[]).length;
     return '<button type="button" class="qrow'+(s.id===modSel?" on":"")+'" data-q="'+s.id+'">'+
       '<span class="qdot" style="background:'+hoodColor(s.hood)+'"></span>'+
-      '<span class="qd"><span class="qt">'+esc(s.story)+'</span>'+
-      '<span class="qm"><b style="color:'+k.color+'">'+esc(k.short)+'</b> · '+esc(s.hood)+' · '+esc(eraLabel(s.era))+
+      '<span class="qd"><span class="qt">'+storyText(s)+'</span>'+
+      '<span class="qm"><b style="color:'+k.color+'">'+esc(k.short)+'</b> · '+esc(s.hood)+' · '+storyWhen(s)+
         (s.audio?' · voice':'')+(s.featured?' · featured':'')+
         (flags?'<span class="qflag" title="'+flags+' moderator tags"></span>':'')+'</span></span></button>';
   }).join(""):'<div class="empty">'+(modRows.length?"Nothing here with those filters.":"Nothing in this queue.")+'</div>';
@@ -3595,7 +3649,7 @@ function wireMedia(s){
 function renderEditor(){
   var s=modRows.find(function(x){return x.id===modSel;});
   if(!s){$("modEditor").innerHTML='<div class="empty">Pick a story from the queue.</div>';return;}
-  var k=KIND[s.kind]||KIND.memory,v=modInternal[s.id]||{workflow:[],value:[],note:""};
+  var k=storyKind(s),v=modInternal[s.id]||{workflow:[],value:[],note:""};
   $("modEditor").innerHTML=
     '<div class="ehead"><div><h3>'+esc(displayName(s))+'</h3>'+
       '<p class="eid">'+esc(s.id.slice(0,8))+' · '+esc((CAMPAIGNS[s.campaign]||{label:s.campaign}).label)+' · '+
@@ -3868,11 +3922,11 @@ function renderSpotlight(){
   var el=$("spotlight");if(!el)return;
   var feat=featuredStories();
   if(!feat.length||spotDismissed){el.classList.add("hidden");el.innerHTML="";if(spotTimer){clearInterval(spotTimer);spotTimer=null;}return;}
-  var s=feat[spotIdx%feat.length],src=photoSrc(s.photo),k=KIND[s.kind]||KIND.memory;
+  var s=feat[spotIdx%feat.length],src=photoSrc(s.photo),k=storyKind(s);
   el.innerHTML=(src?'<img src="'+src+'" alt="">':'<span class="sph" style="background:'+k.color+'22;color:'+k.color+'">'+ic(k.icon,20)+'</span>')+
     '<div class="stx"><div class="slabel">'+ic("star",11)+' Featured'+(feat.length>1?' &middot; '+((spotIdx%feat.length)+1)+' of '+feat.length:'')+'</div>'+
-    '<div class="stitle">'+esc(s.story.slice(0,72))+(s.story.length>72?'\u2026':'')+'</div>'+
-    '<div class="swho">'+esc(displayName(s))+' &middot; '+esc(s.hood)+'</div></div>'+
+    '<div class="stitle">'+storyText(s,72)+'</div>'+
+    '<div class="swho">'+storyWho(s)+' &middot; '+esc(s.hood)+'</div></div>'+
     '<button class="sclose" id="spotClose" aria-label="Hide featured story">'+ic("x",13)+'</button>';
   el.classList.remove("hidden");
   el.onclick=function(){selectStory(s.id,true);};
