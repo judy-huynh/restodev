@@ -575,13 +575,22 @@
   .msclear{position:absolute;right:8px;top:8px;width:20px;height:20px;border:0;background:none;color:var(--muted);font-size:17px;line-height:1;cursor:pointer}
   .mk-found{width:18px;height:18px;border-radius:50%;background:var(--cta,#FFC300);border:3px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.18)}
   /* "Add a Memory Here" popup, used by both the map click and a search result */
-  .addpop .leaflet-popup-content-wrapper{border-radius:14px;padding:0;overflow:hidden}
-  .addpop .leaflet-popup-content{margin:0!important;width:auto!important;min-width:198px;max-width:236px}
+  .addpop .leaflet-popup-content-wrapper{border-radius:12px;padding:0;overflow:hidden}
+  /* padding:0 is the important part. The generic popup rule sets 10px 13px, .addpop never
+     reset it, and .pop adds its own on top, so the box was carrying two sets of padding
+     and looked twice the size it needed to be. */
+  .addpop .leaflet-popup-content{margin:0!important;padding:0!important;width:auto!important;
+    min-width:186px;max-width:224px}
   .addpop .leaflet-popup-tip{box-shadow:none}
-  .pop{padding:13px 14px 12px}
-  .pop .pname{font-size:14px;font-weight:700;line-height:1.3;margin:0 0 3px;color:var(--text)}
-  .pop .paddr{font-size:11.5px;color:var(--muted);line-height:1.45;margin:0 0 11px}
-  .addhere{display:block;width:100%;background:var(--primary);color:#fff;border:0;border-radius:10px;padding:10px 14px;font:inherit;font-weight:700;font-size:13px;line-height:1.2;cursor:pointer;text-align:center}
+  /* Leaflet's own close button, restyled rather than replaced, so Escape and the close
+     behaviour it already ships with keep working. */
+  .addpop .leaflet-popup-close-button{width:24px;height:24px;top:4px;right:4px;font:inherit;
+    font-size:17px;line-height:24px;color:var(--faint);text-align:center;padding:0;border-radius:7px}
+  .addpop .leaflet-popup-close-button:hover{background:var(--bg);color:var(--text)}
+  .pop{padding:10px 11px 11px}
+  .pop .pname{font-size:13.5px;font-weight:700;line-height:1.3;margin:0 26px 2px 0;color:var(--text)}
+  .pop .paddr{font-size:11.5px;color:var(--muted);line-height:1.4;margin:0 0 9px}
+  .addhere{display:block;width:100%;background:var(--primary);color:#fff;border:0;border-radius:9px;padding:9px 13px;font:inherit;font-weight:700;font-size:12.5px;line-height:1.2;cursor:pointer;text-align:center}
   .addhere:hover{background:var(--primaryDark)}
   @media(max-width:860px){.mapsearch{width:calc(100% - 24px)}.mapwrap .leaflet-top.leaflet-left{top:106px}}
   .consent-opt{display:flex;gap:11px;align-items:flex-start;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:13.5px;background:#fff;cursor:pointer}
@@ -1696,11 +1705,10 @@ function bindLongPressAdd(){
 }
 function openAddHere(latlng,src,label,corner){
   var ll=L.latLng(latlng);
-  L.popup({closeButton:false,className:"addpop"})
+  L.popup({closeButton:true,className:"addpop"})
     .setLatLng(ll)
     .setContent('<div class="pop"><p class="pname">'+esc(label||"This spot")+'</p><p class="paddr">'+
-      (corner?"The place is already named for you. The next steps ask for your story."
-             :"You can name the corner and fine-tune the pin in the next steps.")+
+      "What happened here? Tell it in your own words."+
       '</p><button type="button" class="addhere" id="addHereBtn">Add a Memory Here</button></div>')
     .openOn(map);
   var btn=document.getElementById("addHereBtn");
@@ -2566,7 +2574,7 @@ $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMe
     // corner would say the map does not know its own anchors.
     if(f.site&&siteByName(f.site)){selectSite(f.site);return;}
     foundMarker=L.marker([f.lat,f.lng],{icon:L.divIcon({className:"",html:'<div class="mk-found"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(map);
-    foundMarker.bindPopup('<div class="pop"><p class="pname">'+esc(f.short)+'</p><p class="paddr">'+esc(f.name)+'</p><button type="button" class="addhere" id="addFoundBtn">Add a Memory Here</button></div>',{className:"addpop",closeButton:false}).openPopup();
+    foundMarker.bindPopup('<div class="pop"><p class="pname">'+esc(f.short)+'</p><p class="paddr">'+esc(f.name)+'</p><button type="button" class="addhere" id="addFoundBtn">Add a Memory Here</button></div>',{className:"addpop",closeButton:true}).openPopup();
     var btn=document.getElementById("addFoundBtn");
     if(btn)btn.addEventListener("click",function(){
       map.closePopup();startCapture(null);
