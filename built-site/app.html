@@ -48,9 +48,8 @@
      MEDIA UPLOAD
      LIGHTBOX
      STORY MEDIA IN THE DETAIL PANE
-     STORY CARD, PART 1 OF 2  <-- SPLIT, SEE NOTE
+     STORY CARD
      NEIGHBORHOOD AND DATA CENTRE PROFILE
-     STORY CARD, PART 2 OF 2
      MAP SHELL AND LAYER PANEL
      SPOTLIGHT AND MOBILE FAB
      MAP MARKERS
@@ -409,16 +408,6 @@
   .d-file:hover{border-color:var(--primary)}
   .d-hero img{cursor:zoom-in}
 
-  /* === SECTION: STORY CARD, PART 1 OF 2  <-- SPLIT, SEE NOTE ======================
-     The chips and the Featured tag. The REST of the card is further down, in
-     SECTION: STORY CARD, PART 2 OF 2. These two blocks should be merged; they are
-     left apart for now so this pass changes comments only. Edit both. */
-  .card .feattag{display:inline-flex;align-items:center;gap:4px;margin-left:6px;font-size:9.5px;font-weight:800;letter-spacing:.02em;color:var(--gold)}
-  .cchips{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0 6px}
-  .cchip{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:10.5px;font-weight:650;padding:3px 8px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer}
-  .cchip:hover{border-color:var(--primary);color:var(--text)}
-  .cchip .csw{width:7px;height:7px;border-radius:2px;transform:rotate(45deg);flex:none}
-  /* neighborhood profile, at the top of the story column */
 
   /* === SECTION: NEIGHBORHOOD AND DATA CENTRE PROFILE ==============================
      The .hp-* profile block and the .dc* data centre block, above the cards in the same column.
@@ -494,10 +483,10 @@
   .hp-note{font-size:11px;color:var(--muted);line-height:1.45;margin:9px 0 0}
   .hp-foot{margin:0;padding:11px 18px 13px;border-top:1px solid var(--line);background:var(--bg);font-size:10.5px;line-height:1.5;color:var(--faint)}
 
-  /* === SECTION: STORY CARD, PART 2 OF 2 ===========================================
-     The card in the story list. Built by renderCards().
-     Cousins that must stay visually consistent: openDetail() (expanded), renderSpotlight()
-     (featured), renderQueue() (moderator). Also see SECTION: STORY CARD, PART 1 OF 2 above. */
+  /* === SECTION: STORY CARD =======================================================
+     The card in the story list, in the order the markup builds it. Built by
+     renderCards(). Cousins that must stay visually consistent: openDetail()
+     (expanded), renderSpotlight() (featured), renderQueue() (moderator). */
   .cards{flex:1;overflow:auto;padding:10px 12px 26px;min-height:0}
   /* The card, laid out the way Rainproof lays one out: the photograph leads, then who
      and where, then the words, then how it is filed and what else is attached. */
@@ -515,11 +504,15 @@
   .ctop .cdot{width:8px;height:8px;border-radius:50%;flex:none}
   .ctop .cwho{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ctop .cwhere{font-size:11px;color:var(--faint);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52%}
+  .card .feattag{display:inline-flex;align-items:center;gap:4px;margin-left:6px;font-size:9.5px;font-weight:800;letter-spacing:.02em;color:var(--gold)}
   .card .snip{font-size:13px;color:var(--text);margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
+  .cchips{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0 6px}
+  .cchip{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:10.5px;font-weight:650;padding:3px 8px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer}
+  .cchip:hover{border-color:var(--primary);color:var(--text)}
+  .cchip .csw{width:7px;height:7px;border-radius:2px;transform:rotate(45deg);flex:none}
   .card .cfoot{font-size:11px;color:var(--faint);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .card .cfoot .cdate{margin-left:auto;white-space:nowrap}
   .card .badge{display:inline-flex;align-items:center;gap:3px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-weight:600;color:var(--muted)}
-  .card .thumb{display:none}
   .cards .empty{text-align:center;color:var(--muted);padding:44px 20px;font-size:13.5px}
   .cards .empty .em{font-size:30px;display:block;margin-bottom:8px}
 
@@ -2471,7 +2464,7 @@ function dcPage(id){
      openDetail()       <- the expanded story
      renderSpotlight()  <- the featured one over the map
      renderQueue()      <- the moderator queue row
-   Styles are split across SECTION: STORY CARD PART 1 and PART 2 in the stylesheet. */
+   Styles are split across SECTION: STORY CARD in the stylesheet. */
 function renderCards(){
   var list=filtered(),f=F.site?siteByName(F.site):null;
   // A building is the more specific answer, so it wins over its neighbourhood.
