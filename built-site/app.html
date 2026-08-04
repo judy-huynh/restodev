@@ -32,8 +32,8 @@
      2. The moderator editor and the code that SAVES it are ~2,000 lines
         apart (SECTION: MODERATOR DESK vs SECTION: SUPABASE). A field added
         to one and not the other renders, accepts typing, and never saves.
-     3. There are TWO @media(max-width:860px) blocks and .addbtn is set
-        in both. The later rule wins.
+     3. Responsive rules are grouped one @media block per breakpoint.
+        Add to the group, not to the end, or duplicates creep back.
 
      ---- STYLESHEET SECTIONS, in order ----
      DESIGN TOKENS AND BASE
@@ -572,7 +572,8 @@
   .spotlight .swho{font-size:10.5px;color:var(--faint);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .spotlight .sclose{position:absolute;top:6px;right:6px;width:22px;height:22px;border:0;border-radius:50%;background:none;color:var(--faint);display:grid;place-items:center;cursor:pointer}
   .spotlight .sclose:hover{background:var(--bg);color:var(--text)}
-  @media(max-width:860px){.spotlight{max-width:calc(100% - 88px)}}
+  /* No 860px rule for .spotlight: it is display:none below that width.
+     See SECTION: RESPONSIVE. */
 
   /* leaflet marker */
 
@@ -889,28 +890,33 @@
 
 
   /* === SECTION: RESPONSIVE ========================================================
-     Mobile and small-screen overrides. WARNING: there are TWO @media(max-width:860px)
-     blocks below and .addbtn is set in both of them. The later rule wins.
-     Merge them before trusting anything you change here. */
+     Mobile and small-screen overrides. ONE @media block per breakpoint, grouped by
+     what it changes. If you add a rule, put it in the group it belongs to rather
+     than at the end, or this becomes two blocks again.
+     Not everything responsive is here: .mapsearch keeps its own 860px rule next to
+     its component, which is fine. What is NOT fine is a second copy of a rule that
+     already exists in this block, which is what these two used to be. */
   @media(max-width:860px){
+    /* app bar: tighter, and the strapline goes */
+    .appbar{gap:6px;padding:0 10px;height:54px}
+    .bk{display:none}
+    .mainnav{gap:0}
+    .nav{padding:7px 9px;font-size:12.5px}
+    .addbtn{padding:9px 13px;font-size:13px;margin-left:4px}
+    .addtail{display:none}
+
+    /* the story panel stops being a column and becomes a bottom drawer */
     .explore{grid-template-columns:1fr}
     .panel{position:absolute;left:0;right:0;bottom:0;top:auto;max-height:62%;border-right:none;border-top:1px solid var(--border);border-radius:20px 20px 0 0;box-shadow:0 -14px 40px -20px rgba(36,28,59,.5);transform:translateY(calc(100% - 132px));transition:transform .3s;z-index:800}
     .panel.up{transform:translateY(0)}
     .panel::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:40px;height:4px;border-radius:3px;background:#D9CEDA}
     .p-head{padding-top:20px}
+    .p-head h1{font-size:17px}
+
+    /* map furniture gets out of the way */
+    .maptools{top:10px;right:10px;width:210px}
     .spotlight{display:none}
     .detail{border-radius:20px 20px 0 0}
-  }
-  @media(max-width:860px){
-    .appbar{gap:6px;padding:0 10px;height:54px}
-    .bk{display:none}
-    .mainnav{gap:0}
-    .nav{padding:7px 9px;font-size:12.5px}
-    .addbtn{padding:9px 12px;font-size:13px;margin-left:4px}
-    .maptools{top:10px;right:10px;width:210px}
-    .addbtn{padding:9px 13px;font-size:13px}
-    .addtail{display:none}
-    .p-head h1{font-size:17px}
   }
 </style>
 </head>
