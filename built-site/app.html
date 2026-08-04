@@ -28,12 +28,12 @@
      THE THREE THINGS THAT BITE PEOPLE HERE
      1. A story is drawn in FOUR places: renderCards (list), openDetail
         (expanded), renderSpotlight (featured), renderQueue (moderator).
-        Changing one changes one. cardThumb() is dead and fools people.
+        Changing one changes one.
      2. The moderator editor and the code that SAVES it are ~2,000 lines
         apart (SECTION: MODERATOR DESK vs SECTION: SUPABASE). A field added
         to one and not the other renders, accepts typing, and never saves.
-     3. There are TWO @media(max-width:860px) blocks and they contradict
-        each other (.fab, .addbtn set twice). The later rule wins.
+     3. There are TWO @media(max-width:860px) blocks and .addbtn is set
+        in both. The later rule wins.
 
      ---- STYLESHEET SECTIONS, in order ----
      DESIGN TOKENS AND BASE
@@ -559,9 +559,9 @@
   .lrow.on .sw::after{left:16px}
 
   /* === SECTION: SPOTLIGHT AND MOBILE FAB ==========================================
-     WARNING: .fab is display:none at every size. It is set to grid at 860px then back to
-     none 13 lines later in SECTION: RESPONSIVE. #fabAdd still exists in the DOM and still
-     has a click handler. Decide whether it lives or dies; do not just change a value here. */
+     The floating action button that used to live here is gone: it was display:none at
+     every width, so no user could ever reach it. The add affordance on small screens is
+     the "+ Share" button in the app bar (#navAdd), plus press-and-hold on the map (D28). */
   .spotlight{position:absolute;left:16px;bottom:16px;z-index:500;max-width:330px;background:var(--panel);border:1px solid var(--gold);border-radius:14px;padding:11px 12px;box-shadow:var(--shadow);display:flex;gap:11px;align-items:center;cursor:pointer;transition:.2s}
   .spotlight:hover{transform:translateY(-2px);box-shadow:0 22px 46px -22px rgba(36,28,59,.6)}
   .spotlight img{width:54px;height:54px;border-radius:10px;object-fit:cover;flex:none}
@@ -573,7 +573,6 @@
   .spotlight .sclose{position:absolute;top:6px;right:6px;width:22px;height:22px;border:0;border-radius:50%;background:none;color:var(--faint);display:grid;place-items:center;cursor:pointer}
   .spotlight .sclose:hover{background:var(--bg);color:var(--text)}
   @media(max-width:860px){.spotlight{max-width:calc(100% - 88px)}}
-  .fab{position:absolute;right:16px;bottom:16px;z-index:600;width:56px;height:56px;border-radius:50%;background:var(--text);color:#fff;font-size:26px;box-shadow:var(--shadow);display:none;place-items:center}
 
   /* leaflet marker */
 
@@ -871,7 +870,8 @@
 
   /* === SECTION: INTEGRATIONS: CLAIM A SPACE, SHARED DREAMS ========================
      Jayne Engle's commons work. NOTE: the moderation path for space proposals is dead code
-     (wireProps is never called), so approving a proposal is not currently possible. */
+     dead and has been removed, so approving a proposal is not currently possible at all.
+     Building it back means a moderation path on the desk, not a revert. */
   .mk-space{width:15px;height:15px;background:var(--gold);border:2px dashed #A9791B;border-radius:3px;opacity:.96;box-shadow:0 2px 6px rgba(0,0,0,.35)}
   .mk-wrap.shared .mk{filter:drop-shadow(0 0 2px rgba(58,134,255,.95)) drop-shadow(0 0 5px rgba(58,134,255,.7)) drop-shadow(0 3px 5px rgba(36,28,59,.5))}
   .prophead{font-size:11px;font-weight:700;color:var(--faint);letter-spacing:.02em;margin:6px 0 12px}
@@ -890,15 +890,14 @@
 
   /* === SECTION: RESPONSIVE ========================================================
      Mobile and small-screen overrides. WARNING: there are TWO @media(max-width:860px)
-     blocks below and they contradict each other (.fab, .addbtn are each set twice).
-     The later rule wins. Merge them before trusting anything you change here. */
+     blocks below and .addbtn is set in both of them. The later rule wins.
+     Merge them before trusting anything you change here. */
   @media(max-width:860px){
     .explore{grid-template-columns:1fr}
     .panel{position:absolute;left:0;right:0;bottom:0;top:auto;max-height:62%;border-right:none;border-top:1px solid var(--border);border-radius:20px 20px 0 0;box-shadow:0 -14px 40px -20px rgba(36,28,59,.5);transform:translateY(calc(100% - 132px));transition:transform .3s;z-index:800}
     .panel.up{transform:translateY(0)}
     .panel::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:40px;height:4px;border-radius:3px;background:#D9CEDA}
     .p-head{padding-top:20px}
-    .fab{display:grid}
     .spotlight{display:none}
     .detail{border-radius:20px 20px 0 0}
   }
@@ -911,7 +910,6 @@
     .maptools{top:10px;right:10px;width:210px}
     .addbtn{padding:9px 13px;font-size:13px}
     .addtail{display:none}
-    .fab{display:none}
     .p-head h1{font-size:17px}
   }
 </style>
@@ -1009,7 +1007,6 @@
           </div>
         </div>
         <div class="spotlight hidden" id="spotlight"></div>
-        <button class="fab" id="fabAdd">+</button>
       </div>
     </div>
   </section>
@@ -2178,8 +2175,6 @@ function initFilterToggle(){
   });
   renderFCount();
 }
-function cardThumb(s){var src=photoSrc(s.photo);var k=KIND[s.kind]||KIND.memory;
-  return src?'<img class="thumb" src="'+src+'" alt="" loading="lazy">':'<div class="thumb ph" style="background:'+k.color+'22;color:'+k.color+'">'+ic(k.icon,24)+'</div>';}
 /* The page for one Cultural District site. It sits at the top of the same scrolling
    column as the story cards, so a building can be given as much history and as many
    photos as it deserves without squeezing the memories underneath it. The map stays
@@ -2470,8 +2465,7 @@ function dcPage(id){
      openDetail()       <- the expanded story
      renderSpotlight()  <- the featured one over the map
      renderQueue()      <- the moderator queue row
-   Styles are split across SECTION: STORY CARD PART 1 and PART 2 in the stylesheet.
-   cardThumb() further up is DEAD CODE and is not called by any of them. */
+   Styles are split across SECTION: STORY CARD PART 1 and PART 2 in the stylesheet. */
 function renderCards(){
   var list=filtered(),f=F.site?siteByName(F.site):null;
   // A building is the more specific answer, so it wins over its neighbourhood.
@@ -2916,7 +2910,6 @@ $("dataModal").addEventListener("click",function(e){if(e.target===this)closeData
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeData();});
 $("navMod").addEventListener("click",function(){showView("admin");});
 $("navAdd").addEventListener("click",function(){startCapture();});
-$("fabAdd").addEventListener("click",function(){startCapture();});
 $("backExplore").addEventListener("click",function(){showView("explore");});
 $("capX").addEventListener("click",function(){showView("explore");});
 $("anchorToggle").addEventListener("click",function(){anchorsOn=!anchorsOn;this.classList.toggle("on",anchorsOn);if(anchorsOn)anchorLayer.addTo(map);else map.removeLayer(anchorLayer);});
@@ -3667,11 +3660,8 @@ async function renderAdmin(){
   if(!modRows.some(function(s){return s.id===modSel;}))modSel=modRows.length?modRows[0].id:null;
   renderQueue();renderEditor();
 }
-function wireProps(){$("adminList").querySelectorAll("[data-approveprop]").forEach(function(b){b.addEventListener("click",function(){var a=b.dataset.approveprop.split("~");setPropStatus(a[0],a[1],"approved");});});$("adminList").querySelectorAll("[data-rejectprop]").forEach(function(b){b.addEventListener("click",function(){var a=b.dataset.rejectprop.split("~");setPropStatus(a[0],a[1],"rejected");});});}
 async function modStory(id,st){try{await supaSetStatus(id,st);}catch(e){if(e.message==="SESSION"){renderLogin("Session expired. Please sign in again.");return;}toast(e.message);return;}toast(st==="approved"?"Approved, now live on the map":"Story rejected");await refreshStories();renderAdmin();}
 function renderLogin(msg){$("adminList").innerHTML='<div style="max-width:360px;margin:8px auto 0;background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px"><h3 style="margin:0 0 4px;font-family:var(--display)">Moderator Sign-in</h3><p style="font-size:13px;color:var(--muted);margin:0 0 16px">Sign in with your Ground Truth moderator account to review and approve community stories.</p><input type="email" class="ti" id="mEmail" placeholder="Email" autocomplete="username" style="margin-bottom:10px"><input type="password" class="ti" id="mPass" placeholder="Password" autocomplete="current-password" style="margin-bottom:6px"><div id="mErr" style="color:#B42318;font-size:12.5px;min-height:17px">'+(msg?esc(msg):"")+'</div><button class="btn prim" id="mLogin" style="width:100%;margin-top:8px">Sign in</button></div>';$("mLogin").addEventListener("click",async function(){var em=$("mEmail").value.trim(),pw=$("mPass").value;if(!em||!pw)return;$("mErr").textContent="";this.disabled=true;this.textContent="Signing in…";try{await supaLogin(em,pw);}catch(err){$("mErr").textContent=err.message;this.disabled=false;this.textContent="Sign in";return;}renderAdmin();});$("mPass").addEventListener("keydown",function(e){if(e.key==="Enter")$("mLogin").click();});}
-function setPropStatus(sid,pid,st){var sp=SPACES.find(function(x){return x.id===sid;});if(!sp)return;var p=(sp.proposals||[]).find(function(x){return x.id===pid;});if(!p)return;p.status=st;saveSpaces();renderAdmin();toast(st==="approved"?"Space idea approved, now on the commons":"Space idea rejected");}
-function setStatus(id,st){var s=STORIES.find(function(x){return x.id===id;});if(!s)return;s.status=st;save();renderAdmin();apply();toast(st==="approved"?(s.vis==="heritage"?"Approved, added to the private heritage record":"Approved, now live on the map"):"Story hidden from the map");}
 $("reseed").addEventListener("click",async function(){await refreshStories();toast("Reloaded stories from Supabase");});
 $("signout").addEventListener("click",function(){supaLogout();toast("Signed out");renderAdmin();});
 
