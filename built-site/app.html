@@ -688,7 +688,12 @@
   .capmodal{position:absolute;inset:0;background:var(--bg);z-index:1500;overflow:auto}
   .cap-wrap{max-width:600px;margin:0 auto;padding:26px 20px 60px}
   .cap-x{position:absolute;top:16px;right:18px;width:38px;height:38px;border-radius:50%;background:#fff;border:1px solid var(--border);display:grid;place-items:center;font-size:18px;z-index:2}
-  .prog{display:flex;gap:5px;margin-bottom:22px}
+  .prog{display:flex;gap:5px;margin-bottom:7px}
+  /* Dots say where you are; only words say how much is left and what it is called. */
+  .proglabel{margin:0 0 18px;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.01em}
+  .proglabel .opt{font-weight:500;color:var(--accent)}
+  /* The time it takes, said once, on the first screen. */
+  .timecost{margin:-6px 0 16px;font-size:12.5px;color:var(--muted)}
   .prog i{height:5px;border-radius:3px;flex:1;background:var(--line)}
   .prog i.done{background:var(--accent)}.prog i.now{background:var(--primary)}
   .q{font-family:var(--display);font-weight:700;font-size:clamp(1.25rem,3.2vw,1.65rem);line-height:1.14;margin:0 0 6px;letter-spacing:-.01em}
@@ -697,6 +702,13 @@
   .opt{display:flex;align-items:center;gap:13px;border:1.5px solid var(--border);background:#fff;border-radius:14px;padding:15px 16px;text-align:left;font-size:15px;font-weight:600;transition:.14s}
   .opt:hover{border-color:var(--primary);transform:translateY(-1px);box-shadow:var(--shadow-sm)}
   .opt .em{font-size:22px}.opt small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;margin-top:2px}
+  /* The category, folded into the first screen as one row. A compact cousin of .opt:
+     two choices side by side rather than a screen of four stacked ones. */
+  .kindrow{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+  .kindopt{display:flex;align-items:center;gap:9px;border:1.5px solid var(--border);background:#fff;border-radius:13px;padding:11px 12px;text-align:left;font-size:13.5px;font-weight:600;transition:.14s}
+  .kindopt:hover{border-color:var(--primary)}
+  .kindopt.on{border-color:var(--primary);background:var(--primaryLight)}
+  .kindopt small{display:block;font-weight:400;color:var(--muted);font-size:11.5px;margin-top:1px}
   textarea,.ti{width:100%;border:1.5px solid var(--border);border-radius:13px;padding:14px;font-family:inherit;font-size:15px;color:var(--text);background:#fff;resize:vertical}
   textarea:focus,.ti:focus{outline:none;border-color:var(--primary)}
   .chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -1029,6 +1041,7 @@
             <select id="eraSel" aria-label="Era"></select>
           </div>
           <div class="frow">
+            <select id="subSel" aria-label="What it is about"></select>
             <select id="campSel" aria-label="Event or campaign"></select>
           </div>
           <div class="activefilters" id="activeF"></div>
@@ -1070,7 +1083,7 @@
   <section class="view hidden" id="v-capture">
     <div class="capmodal">
       <button class="cap-x" id="capX" aria-label="Close"><span class="ic" data-ic="x" data-s="17"></span></button>
-      <div class="cap-wrap"><div id="capBanner" class="capbanner hidden"></div><div class="prog" id="prog"></div><div id="stepBody"></div></div>
+      <div class="cap-wrap"><div id="capBanner" class="capbanner hidden"></div><div class="prog" id="prog"></div><p class="proglabel" id="progLabel"></p><div id="stepBody"></div></div>
     </div>
   </section>
 
@@ -1179,12 +1192,48 @@ function hydrateIcons(root){(root||document).querySelectorAll("[data-ic]").forEa
    Story types, eras, campaigns, collection modes. KIND holds the colour and icon for each
    story type, so changing a card colour happens HERE, not in the stylesheet. */
 var PHOTO="media/";
+/* TWO things this map collects: what happened here, and what should grow here. Everything
+   else is detail, and detail is a subcategory a moderator assigns, not a decision asked of
+   somebody standing in a room holding a phone. STORY-70.
+
+   `lineage` and `culture` are NOT offered any more and are NOT deleted. Live rows carry
+   them in `answers.kind` and have to keep rendering: rowToStory maps them to `memory` plus
+   the subcategory they actually meant, so nothing is lost, and these entries stay as the
+   backstop for anything that slips through unmapped.
+
+   `legacy:true` is what keeps them out of the intake screen, the category chips and the
+   moderator's dropdown, in one place instead of three. */
 var KIND={
-  memory:{label:"Memory of a place",short:"Memory",icon:"pin",color:"#FF477E",sub:"Something that happened here"},
-  lineage:{label:"Family & lineage",short:"Family",icon:"sprout",color:"#17C3B2",sub:"Who came before, who came after"},
-  culture:{label:"Music, art & worship",short:"Music",icon:"audio",color:"#8338EC",sub:"The sound and soul of the place"},
-  future:{label:"A vision: what should grow",short:"Vision",icon:"star",color:"#3A86FF",sub:"What you want next"}
+  memory:{label:"A memory of this place",short:"Memory",icon:"pin",color:"#FF477E",sub:"Something that happened here"},
+  future:{label:"Plant an idea",short:"Idea",icon:"sprout",color:"#17C3B2",sub:"What should grow here"},
+  lineage:{label:"Family & lineage",short:"Family",icon:"sprout",color:"#17C3B2",sub:"Who came before, who came after",legacy:true},
+  culture:{label:"Music, art & worship",short:"Music",icon:"audio",color:"#8338EC",sub:"The sound and soul of the place",legacy:true}
 };
+/* The kinds anybody is offered. Everything that draws a chooser reads this, so retiring a
+   kind is one `legacy:true` rather than an edit in the form, the chips and the desk. */
+function kindKeys(){return Object.keys(KIND).filter(function(k){return !KIND[k].legacy;});}
+/* What a retired kind becomes on the way in. The kind itself collapses to Memory and the
+   thing it was actually saying survives as a subcategory, which is the only reason
+   collapsing four into two does not lose information. */
+var LEGACY_KIND={lineage:"memory",culture:"memory"};
+var LEGACY_SUB={lineage:"Family",culture:"Music"};
+/* Subcategories, assigned by a moderator at approval and filtered on by readers. The
+   contributor never sees this list: that split is the whole point of STORY-70, the reader
+   gets the benefit and nobody at an event pays for it.
+   Expect the room to change these. They are words about Memphis, not a schema. */
+var SUBCATS={
+  memory:["Civil Rights","Family","Music","Faith","Food","Work","Love","Place"],
+  future:["Memphis 2068","Food and Land","Housing","Youth","Safety","Culture"]
+};
+function subcatsFor(k){return SUBCATS[k]||SUBCATS[LEGACY_KIND[k]]||[];}
+/* The choices for one story: the list for its kind, plus whatever it already carries.
+   Without that second half, renaming a word in SUBCATS would make every story holding the
+   old word quietly lose it the next time a moderator opened the editor and saved. */
+function subcatOptions(s){
+  var list=subcatsFor(s.kind).slice();
+  if(s.subcategory&&list.indexOf(s.subcategory)<0)list.push(s.subcategory);
+  return list;
+}
 var PLACE={church:{l:"Church & Worship"},music:{l:"Music Venue"},food:{l:"Food & Gathering"},school:{l:"School"},business:{l:"Black-owned Business"},street:{l:"Street & Park"}};
 var ERAS=[["before1960","Before 1960"],["civilrights","1960s–70s"],["eighties","1980s–90s"],["recent","2000s–10s"],["today","Today"],["tomorrow","Tomorrow"],["future2065","Memphis 2068"]];
 var CAMPAIGNS={
@@ -1407,8 +1456,16 @@ var CONSENT2VIS={full_name:"full",first_name:"first",anonymous:"anon",advocacy_o
    workflow/value/note layer (its own table, never public), and media (uploaded, not
    typed). Those have their own save calls in saveStoryEdits. */
 var DESK_FIELDS=[
+  /* A retired kind is translated on the way in, never on the way out: what is stored stays
+     stored until a moderator saves that story, at which point it is written back as the
+     kind it now is. So the collapse from four kinds to two needs no migration and no
+     Supabase change, and an unmigrated row is indistinguishable from a migrated one. */
   {id:"mKind",  prop:"kind",    to:"answers",key:"kind",
-   read:function(r,a){return a.kind||"memory";}},
+   read:function(r,a){return LEGACY_KIND[a.kind]||a.kind||"memory";}},
+  {id:"mSub",   prop:"subcategory", to:"answers",key:"subcategory",
+   write:function(s){return s.subcategory||null;},
+   // A row that predates subcategories still has one if its old kind implied it.
+   read:function(r,a){return a.subcategory||LEGACY_SUB[a.kind]||"";}},
   {id:null,     prop:"place",   to:"answers",key:"place_type",
    write:function(s){return s.place||null;}, read:function(r,a){return a.place_type||"";}},
   {id:"mEra",   prop:"era",     to:"answers",key:"era",
@@ -1532,6 +1589,15 @@ var MEDIA_MAX=52428800;   // 50MB; past this the browser upload is the wrong too
    storyMin exists so "test" does not reach the moderation queue.
    videoSec is 60 because above that the upload fails on venue wifi before it fails on
    any policy, and a limit the room hits by accident is worse than one it is told about. */
+/* What this form costs, said on the first screen before anybody has invested anything.
+   A dishonest "under a minute" costs more trust than a longer honest number.
+
+   RE-MEASURE THIS whenever the steps change: time yourself through it twice and put the
+   real number here. The figure below is a reasoned estimate rather than a stopwatch:
+   the mechanical part, three screens and the taps and the map, was measured at well under
+   a minute, and everything else is the writing, which is the whole cost and varies by
+   person. Judy should re-time it and correct this one string. */
+var TIME_COST="About 3 minutes. You can skip the middle step.";
 var LIMITS={
   storyMin:20, storyMax:4000,
   audioSec:300, audioWarnSec:270,
@@ -1813,6 +1879,23 @@ var FILTERS=[
      return '<option value="all">All eras</option>'+ERAS.map(function(e){return '<option value="'+e[0]+'"'+(F.era===e[0]?" selected":"")+'>'+esc(e[1])+'</option>';}).join("");
    },
    fromParam:function(r){return ERAS.some(function(e){return e[0]===r;})?r:undefined;}},
+
+  /* What a story is about, assigned by a moderator rather than asked at intake. The whole
+     trade in STORY-70: readers get to filter on it and nobody standing in a room with a
+     phone had to answer for it.
+     The options are built from the subcategories actually present on public stories, not
+     from the full SUBCATS list, so the dropdown never offers a choice that returns
+     nothing. A word retired from SUBCATS keeps working here for as long as a story
+     carries it, which is the honest behaviour when the room renames something. */
+  {key:"subcat",type:"select",label:"About",counts:true,el:"subSel",param:"sub",
+   passes:function(s,v){return s.subcategory===v;},
+   options:function(){
+     var counts={};publicStories().forEach(function(s){if(s.subcategory)counts[s.subcategory]=(counts[s.subcategory]||0)+1;});
+     var names=Object.keys(counts).sort();
+     return '<option value="all">Anything it is about</option>'+names.map(function(n){
+       return '<option value="'+esc(n)+'"'+(F.subcat===n?" selected":"")+'>'+esc(n)+" ("+counts[n]+")"+'</option>';
+     }).join("");
+   }},
 
   /* The parameter is `collected`, NOT `campaign`. ?campaign= already means something else
      on this page: the campaign a NEW story gets tagged with when the form is opened at an
@@ -2655,7 +2738,7 @@ function renderMeta(){
 }
 function renderKChips(){
   var counts={};publicStories().forEach(function(s){counts[s.kind]=(counts[s.kind]||0)+1;});
-  $("kchips").innerHTML=Object.keys(KIND).map(function(k){
+  $("kchips").innerHTML=kindKeys().map(function(k){
     var on=F.kinds.has(k);
     return '<button class="kchip'+(on?" on":"")+'" data-k="'+k+'" style="'+(on?"background:"+KIND[k].color:"")+'"><span class="kd" style="background:'+(on?"#fff":KIND[k].color)+'"></span> '+esc(KIND[k].short)+' <span class="kn">'+(counts[k]||0)+'</span></button>';
   }).join("");
@@ -3095,6 +3178,10 @@ function renderCards(){
           '<button class="cchip" data-chip="hood" data-v="'+esc(s.hood)+'"><span class="csw" style="background:'+hoodColor(s.hood)+'"></span>'+esc(s.hood)+'</button>'+
           '<button class="cchip" data-chip="era" data-v="'+esc(s.era)+'">'+storyWhen(s)+'</button>'+
           '<button class="cchip" data-chip="kinds" data-v="'+esc(s.kind)+'">'+kindMark(s,11)+'</button>'+
+          // The subcategory rides on the card, not on the pin. Past about seven hues a map
+          // stops reading as a map and starts reading as a legend, so colour stays with the
+          // two kinds and the detail is a word you can click.
+          (s.subcategory?'<button class="cchip" data-chip="subcat" data-v="'+esc(s.subcategory)+'">'+esc(s.subcategory)+'</button>':'')+
         '</div>'+
         '<div class="cfoot">'+
           storyBadges(s)+
@@ -3301,7 +3388,7 @@ function openDetail(s){
   // The first item of each pair is a key in JS SECTION: FILTER REGISTRY, and the click
   // handler below sets that filter. A tag naming something that is not a filter would do
   // nothing, quietly, so keep these two in step.
-  var tags=[['kinds',ic(k.icon,13)+" "+esc(k.label),s.kind],['place',PLACE[s.place]?esc(PLACE[s.place].l):null,s.place],['hood',ic("pin",13)+" "+esc(s.hood),s.hood],['era',esc(eraLabel(s.era)),s.era]].filter(function(t){return t[1];});
+  var tags=[['kinds',ic(k.icon,13)+" "+esc(k.label),s.kind],['subcat',s.subcategory?esc(s.subcategory):null,s.subcategory],['place',PLACE[s.place]?esc(PLACE[s.place].l):null,s.place],['hood',ic("pin",13)+" "+esc(s.hood),s.hood],['era',esc(eraLabel(s.era)),s.era]].filter(function(t){return t[1];});
   $("detail").innerHTML=hero+
     '<button class="d-close" id="dClose">←</button>'+
     '<span class="d-ktag" style="background:'+k.color+'">'+ic(k.icon,13)+' '+esc(k.label)+'</span></div>'+
@@ -3693,32 +3780,33 @@ $("panel").addEventListener("click",function(e){if(e.target===this||e.target.cla
    existed; the chain said what they were; nothing checked that they agreed. A key in one
    and not the other renders a blank screen with a Continue button on it.
 
-   Now: one entry per screen, in the order they are asked.
+   THREE screens now, not four. The category question moved into the first screen rather
+   than standing on its own: Judy asked to "condense the category of the story to tell the
+   story so it's all one line", and with two categories instead of four it is a single row
+   of two buttons, not a screen's worth of decision. STORY-70 and STORY-73.
 
-     key    the screen's name, and what STEPS holds
-     skip   this draft does not need this screen. Asked once, in startCapture(), NOT on
-            every render: the kind screen sets draft.kind, and a list recomputed after
-            that would drop the screen the person is standing on and shift every index
-            under them.
-     render draws it into the step body and wires it. Each one owns its own layout on
-            purpose. A picker, a long compound question, an uploader and a consent screen
-            are four different jobs, and one templating function with a flag per screen
-            would be worse than the four. See D29 on what a registry is NOT for.
+   One entry per screen, in the order they are asked.
+
+     key      the screen's name, and what STEPS holds
+     title    what it is called out loud, in "Step 2 of 3 · Add to it". A screen with no
+              name is a dot, and a dot cannot say how much is left.
+     optional said so on the label, because most people will skip step 2 and should know
+              they can before they start reading it
+     skip     this draft does not need this screen. Asked once, in startCapture(), NOT on
+              every render, so a screen cannot vanish from under somebody standing on it.
+              Nothing uses it now that the category question moved; it stays because
+              dropping a screen for a particular event is a thing this form will be asked
+              to do, and this is where it belongs.
+     render   draws it into the step body and wires it. Each one owns its own layout on
+              purpose. A long compound question, an uploader and a consent screen are three
+              different jobs, and one templating function with a flag per screen would be
+              worse than the three. See D29 on what a registry is NOT for.
 
    NOT here: what happens on submit. submitDraft() and supaSubmit() own that, and a field
    added to a screen still has to reach both. */
 var CAPTURE_STEPS=[
 
-  /* Skipped whenever the person has already said what they are sharing on the way in: a
-     Cultural District star, a right-click on the map, or a kiosk link carrying ?kind=. */
-  {key:"kind",skip:function(d){return !!d.kind;},
-   render:function(b){
-    b.innerHTML='<h2 class="q">What are you sharing?</h2><p class="qsub">This sets the color of your dot on the map.</p><div class="opts" id="ko"></div>';
-    $("ko").innerHTML=Object.keys(KIND).map(function(k){return '<button class="opt" data-k="'+k+'"><span class="em" style="color:'+KIND[k].color+'">'+ic(KIND[k].icon,22)+'</span><span>'+esc(KIND[k].label)+'<small>'+esc(KIND[k].sub)+'</small></span></button>';}).join("");
-    b.querySelectorAll("[data-k]").forEach(function(el){el.addEventListener("click",function(){draft.kind=el.dataset.k;if(draft.kind==="future")draft.era="tomorrow";goNext();});});
-   }},
-
-  {key:"story",
+  {key:"story",title:"Tell it",
    render:function(b){
     var isV=draft.kind==="future",is65=isV&&draft.campaign==="reimagine2065";
     var q=is65?"It's 2068. What does Memphis feel like?":isV?"What should grow here?":"Tell the story.";
@@ -3729,7 +3817,14 @@ var CAPTURE_STEPS=[
       : isV
       ? "In five years, when you walk past this place, what do you want to see, hear, or feel?"
       : "What happened here? Who was there? What did this place mean, and what should it mean next?";
-    b.innerHTML='<h2 class="q">'+q+'</h2><p class="qsub">'+sub+'</p>'
+    b.innerHTML=
+      /* The category, on the same screen as the story rather than in front of it. Two
+         choices fit on one row; four needed a screen of their own. Preselected and still
+         changeable when a star, a right-click or a ?kind= link already answered it, so
+         the person can see what was assumed on their behalf and disagree with it. */
+      '<div class="kindrow" id="ko" role="group" aria-label="What are you sharing"></div>'
+      +'<p class="timecost" id="timeCost"></p>'
+      +'<h2 class="q">'+q+'</h2><p class="qsub">'+sub+'</p>'
       +'<textarea id="story" rows="6" placeholder="'+(isV?"I want to see…":"Take your time…")+'">'+esc(draft.story)+'</textarea>'
       /* A count that turns up as you get near the limit, not a rejection after four
          minutes of typing. Silent for most of the box, which is most people. */
@@ -3752,6 +3847,23 @@ var CAPTURE_STEPS=[
       +'</div>'
       +'<p class="whyoff" id="whyOff"></p>'+navRow(true);
     wireNav();
+    /* The category row. Changing it changes the question above it and the placeholder in
+       the box, so the screen is redrawn; draft.story is already written on every keystroke,
+       so nothing typed is lost. */
+    $("ko").innerHTML=kindKeys().map(function(k){
+      return '<button type="button" class="kindopt'+(draft.kind===k?" on":"")+'" data-k="'+k+'" aria-pressed="'+(draft.kind===k)+'">'+
+        '<span class="em" style="color:'+KIND[k].color+'">'+ic(KIND[k].icon,18)+'</span>'+
+        '<span><b>'+esc(KIND[k].label)+'</b><small>'+esc(KIND[k].sub)+'</small></span></button>';
+    }).join("");
+    $("ko").querySelectorAll("[data-k]").forEach(function(el){el.addEventListener("click",function(){
+      if(draft.kind===el.dataset.k)return;
+      draft.kind=el.dataset.k;
+      // An idea is about a time that has not happened yet, so the era default follows.
+      if(draft.kind==="future"&&(!draft.era||draft.era==="today"))draft.era=draft.campaign==="reimagine2065"?"future2065":"tomorrow";
+      renderStep();
+    });});
+    // Said once, on the first screen, before anybody has invested anything.
+    $("timeCost").textContent=TIME_COST;
     var ta=$("story"),ci=$("corner"),hint=$("cornerHint"),why=$("whyOff"),hp=$("hoodPick"),hh=$("hoodHint");
     ta.focus();
 
@@ -3777,9 +3889,10 @@ var CAPTURE_STEPS=[
 
     function refresh(){
       var n=draft.story.trim().length;
+      var hasKind=!!draft.kind;
       var hasStory=n>=LIMITS.storyMin,tooLong=n>LIMITS.storyMax;
       var hasPlace=draft.locSource!=="unset",hasWhen=!!draft.era;
-      $("nextBtn").disabled=!(hasStory&&!tooLong&&hasPlace&&hasWhen);
+      $("nextBtn").disabled=!(hasKind&&hasStory&&!tooLong&&hasPlace&&hasWhen);
       // The count is silent until it is useful: near the ceiling, or under the floor
       // once somebody has actually started typing.
       var c=$("storyCount");
@@ -3792,7 +3905,8 @@ var CAPTURE_STEPS=[
         c.classList.toggle("over",tooLong);
       }
       // Never leave a disabled button unexplained. Name the one thing still missing.
-      why.textContent=hasStory&&!tooLong&&hasPlace&&hasWhen?""
+      why.textContent=hasKind&&hasStory&&!tooLong&&hasPlace&&hasWhen?""
+        :!hasKind?"Start by picking one of the two above."
         :tooLong?"Your story is a little long. Trim it and you can continue."
         :!hasStory?"Write your story above to continue."
         :!hasPlace?"Now tell us where it is: type a name, point to it on the map, or use where you are."
@@ -3805,9 +3919,13 @@ var CAPTURE_STEPS=[
     }
     // Name a point without ever overwriting what the person typed themselves.
     function suggestName(){
-      if(draft.cornerTyped)return;
+      /* Guarded on `draft` at BOTH ends, not just the first. The geocode is a network
+         round trip, and a person who submits or backs out while it is in flight leaves
+         this callback holding a draft that no longer exists. It threw, silently, into
+         the console of somebody who had already finished. */
+      if(!draft||draft.cornerTyped)return;
       nameForPoint(draft.lat,draft.lng).then(function(n){
-        if(!n||draft.cornerTyped)return;
+        if(!n||!draft||draft.cornerTyped)return;
         draft.corner=n;ci.value=n;
         hint.textContent="We think this is "+n+". Change it if you call it something else.";
         refresh();
@@ -3866,7 +3984,7 @@ var CAPTURE_STEPS=[
     refresh();
    }},
 
-  {key:"media",
+  {key:"media",title:"Add to it",optional:true,
    render:function(b){
     // Same set the Rainproof form offers: as many photos as they have, a video, a voice.
     // The recorder is kept first because a voice is how a memory really travels.
@@ -3888,7 +4006,7 @@ var CAPTURE_STEPS=[
     wireRecorder();wireDraftMedia();
    }},
 
-  {key:"consent",
+  {key:"consent",title:"How to credit you",
    render:function(b){
     b.innerHTML='<h2 class="q">You &amp; your consent.</h2><p class="qsub">These stories belong to Memphis. You choose how much of your name travels with yours.</p><input type="text" class="ti mb14" id="cname" placeholder="Your name (optional)" value="'+esc(draft.name)+'"><div id="visOpts"></div>'+
       '<div class="contactblock"><div class="cb-h"><span class="lock">'+ic("lock",15)+'</span> Stay in touch <span>private, The Big We only</span></div>'+
@@ -3954,7 +4072,16 @@ function renderBanner(){
     (eventParam?'<span class="ev">· '+esc(eventParam)+'</span>':'')+
     '<span class="mode">· '+(MODES[draft.mode]||draft.mode)+'</span>';
 }
-function renderProg(){$("prog").innerHTML=STEPS.map(function(_,i){return '<i class="'+(i<stepIdx?"done":i===stepIdx?"now":"")+'"></i>';}).join("");}
+/* Dots say where you are. Only words say how many are left, what this one is called, and
+   whether it can be skipped, which is what Judy asked for: people should be clear on the
+   time commitment before they are three screens into it. */
+function renderProg(){
+  $("prog").innerHTML=STEPS.map(function(_,i){return '<i class="'+(i<stepIdx?"done":i===stepIdx?"now":"")+'"></i>';}).join("");
+  var lab=$("progLabel");if(!lab)return;
+  var st=stepByKey(STEPS[stepIdx]);
+  lab.innerHTML="Step "+(stepIdx+1)+" of "+STEPS.length+(st&&st.title?" · "+esc(st.title):"")+
+    (st&&st.optional?' <span class="opt">· optional</span>':"");
+}
 function goNext(){stepIdx++;if(stepIdx>=STEPS.length)submitDraft();else renderStep();}
 function goBack(){if(stepIdx>0){stepIdx--;renderStep();}else showView("explore");}
 function navRow(nd){return '<div class="row"><button class="btn ghost" id="backBtn">Back</button><button class="btn prim" id="nextBtn"'+(nd?" disabled":"")+'>Continue →</button></div>';}
@@ -4140,6 +4267,7 @@ function wireDraftMedia(){
 /* Any deliberate placement flows through here so locSource always reflects reality
    and Continue unlocks the moment the person has actually chosen a spot. */
 function setDraftLoc(lat,lng,src){
+  if(!draft)return;          // a pin dragged as the form is closing
   draft.lat=lat;draft.lng=lng;draft.locSource=src;
   // Suggest the neighborhood from where the pin landed, but only ever as a default.
   // Once the person has answered for themselves, the map stops arguing with them.
@@ -4154,6 +4282,8 @@ function setDraftLoc(lat,lng,src){
 }
 function initPinMap(){
   if(pinMap){pinMap.remove();pinMap=null;}
+  // Queued on a timeout from the place step, so the draft can be gone by the time it runs.
+  if(!draft)return;
   // Zoom in when we already know the block; stay wide when the person still has to find it.
   var known=draft.locSource!=="unset";
   pinMap=L.map("pinmap").setView([draft.lat,draft.lng],known?16:13);
@@ -4267,7 +4397,7 @@ function modFilterOptions(){
   };
   mk("mfHood",NEIGHBORHOODS.map(function(n){return '<option>'+esc(n.n)+'</option>';}).join(""),modFilters.hood);
   mk("mfEra",ERAS.map(function(e){return '<option value="'+e[0]+'">'+esc(e[1])+'</option>';}).join(""),modFilters.era);
-  mk("mfKind",Object.keys(KIND).map(function(k){return '<option value="'+k+'">'+esc(KIND[k].label)+'</option>';}).join(""),modFilters.kind);
+  mk("mfKind",kindKeys().map(function(k){return '<option value="'+k+'">'+esc(KIND[k].label)+'</option>';}).join(""),modFilters.kind);
   mk("mfFlag",MOD_WORKFLOW.concat(MOD_VALUE).map(function(t){return '<option>'+esc(t)+'</option>';}).join(""),modFilters.flag);
 }
 function modVisible(){
@@ -4404,7 +4534,19 @@ function renderEditor(){
       '<div><label class="efl" for="mEra">Era</label><select class="ti" id="mEra">'+
         ERAS.map(function(e){return '<option value="'+e[0]+'"'+(e[0]===s.era?" selected":"")+'>'+esc(e[1])+'</option>';}).join("")+'</select></div>'+
       '<div><label class="efl" for="mKind">Story type</label><select class="ti" id="mKind">'+
-        Object.keys(KIND).map(function(x){return '<option value="'+x+'"'+(x===s.kind?" selected":"")+'>'+esc(KIND[x].label)+'</option>';}).join("")+'</select></div>'+
+        kindKeys().map(function(x){return '<option value="'+x+'"'+(x===s.kind?" selected":"")+'>'+esc(KIND[x].label)+'</option>';}).join("")+'</select></div>'+
+    '</div>'+
+    /* The subcategory. This is the moderator's half of STORY-70: the contributor picks
+       one of two, somebody who knows Memphis says what it is really about, and the reader
+       filters on that. The list follows the story type, and a word that is on the story
+       but no longer in SUBCATS is kept as an option so opening the editor cannot silently
+       drop it. */
+    '<div class="egrid2 mt9">'+
+      '<div><label class="efl" for="mSub">What it is about</label><select class="ti" id="mSub">'+
+        '<option value="">Not set yet</option>'+
+        subcatOptions(s).map(function(n){return '<option'+(n===s.subcategory?" selected":"")+'>'+esc(n)+'</option>';}).join("")+
+      '</select></div>'+
+      '<div><p class="ehint mt9">Readers filter by this. Nobody is asked for it at intake.</p></div>'+
     '</div>'+
     '<div class="egrid2 mt9">'+
       '<div><label class="efl" for="mCorner">Corner, as they said it</label><input class="ti" id="mCorner" value="'+esc(s.corner)+'"></div>'+
@@ -4493,7 +4635,16 @@ function renderEditor(){
   });
   $("mHood").addEventListener("change",function(){s.hood=this.value;renderQueue();});
   $("mEra").addEventListener("change",function(){s.era=this.value;renderQueue();});
-  $("mKind").addEventListener("change",function(){s.kind=this.value;renderQueue();});
+  /* Changing the story type changes which subcategories make sense, so the list follows.
+     A subcategory that does not belong to the new type is dropped rather than left
+     showing a word from the other list, and the editor is redrawn so what is on screen is
+     what would be saved. */
+  $("mKind").addEventListener("change",function(){
+    s.kind=this.value;
+    if(s.subcategory&&subcatsFor(s.kind).indexOf(s.subcategory)<0)s.subcategory="";
+    renderQueue();renderEditor();
+  });
+  $("mSub").addEventListener("change",function(){s.subcategory=this.value;renderQueue();});
   $("mFeat").addEventListener("click",function(){s.featured=!s.featured;this.classList.toggle("on",s.featured);renderQueue();});
   var vv=modInternal[s.id]=modInternal[s.id]||{workflow:[],value:[],note:""};
   $("modEditor").querySelectorAll("[data-w]").forEach(function(b){b.addEventListener("click",function(){
