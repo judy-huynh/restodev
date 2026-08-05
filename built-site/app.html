@@ -311,6 +311,10 @@
   .kchip:hover{transform:translateY(-1px)}
   .frow{display:flex;gap:8px}
   .frow select{flex:1;border:1.5px solid var(--border);border-radius:10px;padding:9px 10px;font-size:12.5px;font-weight:600;color:var(--text);background:var(--bg) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236E6A80' stroke-width='2.5'><path d='M6 9l6 6 6-6'/></svg>") no-repeat right 10px center;-webkit-appearance:none;appearance:none;padding-right:28px}
+  /* Two of these share a panel that is 272px wide at its narrowest, so "All events &
+     campaigns" was being cut off mid-word and reading as a rendering fault rather than
+     as a label that is longer than its box. */
+  .frow select{text-overflow:ellipsis}
   .frow select:focus{outline:none;border-color:var(--primary)}
   .activefilters{display:flex;flex-wrap:wrap;gap:6px}
   .fpill{display:inline-flex;align-items:center;gap:6px;background:var(--primaryLight);color:var(--primaryDark);border-radius:999px;padding:5px 10px;font-size:11.5px;font-weight:700}
@@ -895,7 +899,7 @@
   .mapsearch{position:absolute;top:12px;left:12px;z-index:1100;width:min(310px,calc(100% - 24px))}
   /* Clears the search box AND the hint under it. 60px cleared the box alone, so adding
      the hint put it straight over the zoom buttons. The number here is only a fallback:
-     the hint wraps to one or two lines depending on width, so fitZoomControl() measures
+     the hint wraps to one or two lines depending on width, so fitMapFurniture() measures
      the real block and sets this at runtime. */
   .mapwrap .leaflet-top.leaflet-left{top:108px}
   .mapsearch input{width:100%;border:1.5px solid var(--border);border-radius:11px;padding:10px 30px 10px 34px;font-size:13.5px;background:#fff;box-shadow:0 3px 14px rgba(0,0,0,.11)}
@@ -932,7 +936,7 @@
   .addhere:hover{background:var(--primaryDark)}
   /* On a phone the 310px cap is the only thing between the search box and the width of
      the screen, so it goes. The Leaflet zoom offset that used to be doubled here is
-     gone: fitZoomControl() measures it at runtime and the 108px above is only the
+     gone: fitMapFurniture() measures it at runtime and the 108px above is only the
      fallback for the moment before that runs, so a second hardcoded 106px was a copy
      of a value neither of them uses. */
   @media(max-width:560px){.mapsearch{width:calc(100% - 24px)}}
@@ -1130,8 +1134,10 @@
     /* Nine layer rows run down a screen as well as across it. On an iPad in portrait
        that put the panel over 30% of the map; capped and scrolling, it is under 20%
        and the map underneath stays a map. The cap is on the BODY, so the header and
-       its collapse control are never the thing that scrolls away. */
-    .lp-body{max-height:30vh;overflow:auto}
+       its collapse control are never the thing that scrolls away.
+       overscroll-behavior stops a flick that reaches the end of the layer list from
+       carrying on into the map underneath and moving Memphis. */
+    .lp-body{max-height:30vh;overflow:auto;overscroll-behavior:contain}
   }
 
   /* ---- TABLET: 561 – 1024 ---------------------------------------------------------
@@ -4881,21 +4887,44 @@ $("searchIn").addEventListener("input",function(){F.q=this.value.trim();renderMe
   if(mh)mh.innerHTML=(window.matchMedia&&window.matchMedia("(pointer: coarse)").matches)
     ? 'Search a place above, or <b>press and hold</b> the map to add a memory there.'
     : 'Search a place above, or <b>right-click</b> the map to add a memory there.';
-  /* The zoom buttons sit under the search block, and the search block changes height
-     because the hint wraps to one or two lines depending on how wide the map is. A fixed
-     offset is wrong at some width by definition, so measure it. The CSS value is the
-     fallback for the moment before this runs. */
-  function fitZoomControl(){
+  /* Everything anchored to the top of the map has to get out of the search block's way,
+     and the search block changes height because the hint wraps to one or two lines
+     depending on how wide the map is. A fixed offset is wrong at some width by
+     definition, so measure it. The CSS values are the fallback for the moment before
+     this runs.
+
+     TWO things sit under it, not one. The zoom buttons always did. The Map Layers panel
+     is the new half, and it is the reason this function was renamed: on a phone the
+     search box spans the width of the map, so it was painting straight over the layer
+     panel's header. While the panel was expanded that only hid its title; once
+     STORY-92 collapsed it by default, the header WAS the panel, and the control was
+     176px wide, 44px tall and completely invisible. Every size measurement said it was
+     fine, because being covered is not a size.
+
+     WHETHER THEY COLLIDE IS MEASURED, NOT ASSUMED. At 1440 the search box and the
+     layer panel sit comfortably side by side and moving the panel down would be wrong;
+     at 768 and below they overlap. That is a question about how wide the map is right
+     now, which is exactly the kind of question a breakpoint answers badly. */
+  function fitMapFurniture(){
     var box=document.querySelector(".mapsearch"),
-        zc=document.querySelector(".mapwrap .leaflet-top.leaflet-left");
-    if(!box||!zc)return;
-    zc.style.top=(box.offsetTop+box.offsetHeight+10)+"px";
+        zc=document.querySelector(".mapwrap .leaflet-top.leaflet-left"),
+        mt=document.querySelector(".maptools");
+    if(!box)return;
+    var below=box.offsetTop+box.offsetHeight+10;
+    if(zc)zc.style.top=below+"px";
+    if(mt){
+      /* Put it back where the stylesheet wants it before asking where that is, or the
+         answer is wherever this function last moved it and it can never come back up. */
+      mt.style.top="";
+      var b=box.getBoundingClientRect(),r=mt.getBoundingClientRect();
+      if(b.right+8>r.left&&b.bottom>r.top)mt.style.top=below+"px";
+    }
   }
-  fitZoomControl();
-  window.addEventListener("resize",fitZoomControl);
+  fitMapFurniture();
+  window.addEventListener("resize",fitMapFurniture);
   // The hint disappears while the autocomplete is open, which changes the height too.
   if(mh&&window.MutationObserver)
-    new MutationObserver(fitZoomControl).observe($("placeAc"),{attributes:true,attributeFilter:["class"]});
+    new MutationObserver(fitMapFurniture).observe($("placeAc"),{attributes:true,attributeFilter:["class"]});
   // Same accessible autocomplete as the intake form: arrow keys, Enter, listbox roles.
   var acx=wireAutocomplete(pi,pac,goTo);
   pi.addEventListener("input",function(){pclr.classList.toggle("hidden",!this.value);});

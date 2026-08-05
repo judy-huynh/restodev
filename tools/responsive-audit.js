@@ -78,6 +78,10 @@ const BUDGET = {
   // STORY-91: an iPad in portrait is a tablet, not a big phone. No percentage
   // catches this one; the drawer at 768 was wrong even when its numbers were fine.
   layout:       { phone: "drawer", tablet: "columns", laptop: "columns" },
+  // Nothing important may be sitting underneath something else. Added after the
+  // Map Layers header spent a deploy hidden behind the map search box while every
+  // other number in this table said it was fine.
+  nothingCovered: true,
 };
 
 /* ---------------------------------------------------------------- the browser side
@@ -168,6 +172,29 @@ const PROBE = function () {
   const layersCollapsed = !!(
     $("#layerPanel") && $("#layerPanel").classList.contains("collapsed")
   );
+
+  // VISIBLE IS NOT THE SAME AS REACHABLE, and this check exists because every size
+  // measurement above passed while the Map Layers header sat underneath the full-width
+  // map search box. 176px wide, 44px tall, correctly collapsed, and completely
+  // unavailable: a screenshot found it, no number did. Ask the document what is
+  // actually at the point, rather than whether something has a size.
+  // Sampled ACROSS the control, not at its centre. One point in the middle said the
+  // layer header was fine at 768 while its left third and its whole label sat under
+  // the search box: a control that is one third unreachable and unreadable is broken,
+  // and a check that only asks about the middle would have shipped it.
+  const covered = (el) => {
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1) return null;
+    const y = r.top + Math.min(12, r.height / 2);
+    return [0.12, 0.5, 0.88].some((f) => {
+      const hit = document.elementFromPoint(r.left + r.width * f, y);
+      return !(hit && (el === hit || el.contains(hit) || hit.contains(el)));
+    });
+  };
+  const layersCovered = covered($("#lpHead"));
+  const searchCovered = covered($("#searchIn"));
+  const addCovered = covered($("#navAdd"));
   const layersRowsShown = Array.from(document.querySelectorAll(".lrow")).filter(vis).length;
 
   // Everything a finger is meant to hit. The selector list is the one from STORY-93
@@ -232,6 +259,9 @@ const PROBE = function () {
     layersPct,
     layersW,
     layersCollapsed,
+    layersCovered,
+    searchCovered,
+    addCovered,
     layersRowsShown,
     smallCount: small.length,
     smallByKind: byKind,
@@ -444,6 +474,11 @@ async function main() {
       const want = BUDGET.layout[k], got = r.drawer ? "drawer" : "columns";
       if (want && got !== want)
         fails.push(`${r.w}px is a ${k} and got the ${got} layout (STORY-91)`);
+      if (BUDGET.nothingCovered) {
+        if (r.layersCovered) fails.push(`${r.w}px the Map Layers control is underneath something else (STORY-92)`);
+        if (r.searchCovered) fails.push(`${r.w}px the story search box is underneath something else`);
+        if (r.addCovered) fails.push(`${r.w}px the Share button is underneath something else`);
+      }
     }
     if (fails.length) {
       console.error("\n  FAIL\n" + fails.map((f) => "   · " + f).join("\n") + "\n");
