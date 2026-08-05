@@ -17,6 +17,8 @@ LAYERS.md
 RESTORE.md
 FIX-CONTACTS-403.sql
 ADD-STORY-AFFIRMS.sql
+NOTES-2026-08-05.md
+NEXT-SESSION-PROMPT.md
 
 # tools/ IS tracked. It holds the checks that run against built-site/app.html before a
 # commit, and they are no use to anyone if they live on one laptop: the biggest gap in
