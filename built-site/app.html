@@ -323,6 +323,24 @@
      as the real thing sitting at the top of the page. */
   .sp-hero.aerial{filter:saturate(.85) contrast(.95)}
   .sp-credit b{color:var(--text);font-weight:700}
+  /* WALK MODE */
+  .walknum{width:24px;height:24px;border-radius:50%;background:#8338EC;color:#fff;border:2px solid #fff;
+    display:grid;place-items:center;font-size:11.5px;font-weight:800;box-shadow:0 2px 6px rgba(36,28,59,.45)}
+  .walknum.on{background:var(--primary);transform:scale(1.18)}
+  .walkbar{background:#F6F0FF;border:1px solid #E2D3FA;border-radius:14px;padding:13px 14px;margin:0 0 12px}
+  .walkdraft{margin:0 0 9px;font-size:11px;font-weight:700;color:#6D28D9;background:#EDE0FF;
+    border-radius:8px;padding:6px 9px;line-height:1.45}
+  .walkhead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:9px}
+  .walkn{font-size:13px;font-weight:800;color:#5B21B6}
+  .walkname{font-size:11.5px;color:var(--muted)}
+  .walknav{display:flex;gap:6px;align-items:stretch}
+  .walkbtn{flex:1;font:inherit;font-size:12px;font-weight:700;padding:8px 6px;border-radius:9px;
+    border:1px solid #DCCBF5;background:#fff;color:#5B21B6;cursor:pointer;text-align:center;text-decoration:none}
+  .walkbtn:hover:not(:disabled){border-color:#8338EC;background:#F3EAFF}
+  .walkbtn:disabled{opacity:.42;cursor:default}
+  .walkbtn.go{background:#8338EC;border-color:#8338EC;color:#fff;display:grid;place-items:center}
+  .walkbtn.end{width:100%;margin-top:8px;color:var(--muted);border-color:var(--border)}
+  .walkleg{margin:9px 0 0;font-size:11.5px;color:var(--muted);line-height:1.5}
   .sp-nrhp{margin:10px 0 0;font-size:12px;line-height:1.5;color:var(--muted)}
   .sp-nrhp b{color:var(--text);font-weight:700}
   .sp-nrhp a{color:var(--primaryDark);text-decoration:underline}
@@ -2855,6 +2873,16 @@ var LAYERS=[
      else map.removeLayer(hoodLayer);
    }},
 
+  /* A MODE, not a data layer, which is why it has no files: the stars are already on the
+     map and this changes what they mean. Off by default, so nothing is numbered until
+     somebody asks for a walk. */
+  {key:"walk",group:"Community",name:"Culture Walk",
+   note:"15 Numbered Stops &middot; Draft Route",on:false,files:[],
+   toggle:function(btn){
+     if(walkOn){stopWalk();btn.classList.remove("on");}
+     else{startWalk();btn.classList.add("on");}
+   }},
+
   {key:"dc",group:"Community",name:"Data Centers",
    note:"xAI Colossus &middot; 1 and 5 Mile Rings",on:false,
    files:[{f:"datacenters.geojson",name:"Data Centers",
@@ -3552,6 +3580,127 @@ function dcPage(id){
   '</div>';
 }
 
+/* === JS SECTION: WALK MODE ===========================================================
+   The Cultural District as something you walk, not something you look at.
+
+   THE 24 SITES ARE NOT ONE WALK, and the data says so plainly: 15 of them sit within a
+   kilometre of Clayborn and the other 9 do not, with Stax and Royal Studios about three
+   kilometres south. Numbering all 24 would promise a route that does not exist, and a
+   number on a star that is not a stop teaches the wrong thing. So walk mode carries
+   CURATED stops, and the rest of the district keeps its unnumbered stars.
+
+   THE ORDER BELOW IS A DRAFT AND THE APP SAYS SO ON SCREEN. Which stops, in which order,
+   is a decision for Bertram and the community, not one to make alone at a keyboard. This
+   is a nearest-neighbour path through the downtown cluster: walkable, sensible, and not
+   yet anybody's idea of the right story. `draft:true` is what puts the warning on the
+   page, and removing it is the sign-off.
+
+   The other thing this is still waiting on: `history` is empty on all 24 sites. A numbered
+   walk with one sentence per stop is a list of addresses, not a walk. That is STORY-60 and
+   it remains the real blocker on this being any good. */
+var WALKS=[
+  {key:"downtown",
+   name:"The Downtown Loop",
+   draft:true,
+   blurb:"Clayborn, Beale and the Lorraine, on foot.",
+   stops:["Historic Clayborn Temple","R.S. Lewis Funeral Home","Robert R. Church Home",
+          "Grigg's Business and Practical Arts College","Cornelia Crenshaw Memorial Library",
+          "AMEC Building","NAACP Memphis Headquarters","Universal Life Building",
+          "Robert R. Church Auditorium","First Baptist Beale (Ida B. Wells Office)",
+          "Withers Collection Museum & Gallery","Old Daisy Theater",
+          "Rock 'n' Soul Museum + Hall of Fame","Orpheum Theatre Balcony Project",
+          "Lorraine Motel / National Civil Rights Museum"]}
+];
+var walkOn=false,walkKey="downtown",walkIdx=0,walkLine=null;
+function currentWalk(){for(var i=0;i<WALKS.length;i++)if(WALKS[i].key===walkKey)return WALKS[i];return WALKS[0];}
+/* The stops that actually resolve to a site. A name that no longer matches the geojson is
+   dropped rather than drawn as a gap in the route. */
+function walkStops(){
+  return currentWalk().stops.map(siteByName).filter(Boolean);
+}
+/* Roughly 80 metres a minute, which is an ordinary pace on a pavement, not a stride. */
+function walkMins(m){return Math.max(1,Math.round(m/80));}
+function legText(a,b){
+  if(!a||!b)return "";
+  var m=metresBetween([a.geometry.coordinates[1],a.geometry.coordinates[0]],
+                      [b.geometry.coordinates[1],b.geometry.coordinates[0]]);
+  return (m<950?Math.round(m)+" m":(m/1000).toFixed(1)+" km")+" · about "+walkMins(m)+" min";
+}
+/* A DASHED line, deliberately. It joins the stops in order and does NOT follow the streets,
+   and a solid line between two points across a block reads as a shortcut that is not there.
+   Dashes say schematic. Turn-by-turn is Google's job and every stop links out to it. */
+function drawWalkRoute(){
+  if(walkLine){map.removeLayer(walkLine);walkLine=null;}
+  if(!walkOn||!map)return;
+  var pts=walkStops().map(function(f){return [f.geometry.coordinates[1],f.geometry.coordinates[0]];});
+  if(pts.length<2)return;
+  walkLine=L.polyline(pts,{pane:"ctx",color:"#8338EC",weight:3,opacity:.75,dashArray:"7 8"}).addTo(map);
+}
+/* Numbers ride on a layer of their own rather than being drawn into the stars. The stars
+   are built once when cultural.geojson lands, and rewriting that loop to know about walks
+   would tie two things together that have no reason to know about each other. Add a layer,
+   remove a layer. */
+var walkNumLayer=null;
+function renderWalkNumbers(){
+  if(walkNumLayer){map.removeLayer(walkNumLayer);walkNumLayer=null;}
+  if(!walkOn||!map)return;
+  walkNumLayer=L.layerGroup();
+  walkStops().forEach(function(f,i){
+    var c=f.geometry.coordinates,here=(i===walkIdx);
+    L.marker([c[1],c[0]],{
+      icon:L.divIcon({className:"",html:'<div class="walknum'+(here?" on":"")+'">'+(i+1)+'</div>',
+        iconSize:[24,24],iconAnchor:[12,26]}),
+      zIndexOffset:850,interactive:false
+    }).addTo(walkNumLayer);
+  });
+  walkNumLayer.addTo(map);
+}
+function walkGoto(i){
+  var st=walkStops();if(!st.length)return;
+  walkIdx=Math.max(0,Math.min(st.length-1,i));
+  var f=st[walkIdx];
+  // The pane follows the walk, and the story list narrows to that stop.
+  F.site=f.properties.name;F.dc=null;F.ring=null;closeDetail();apply();
+  if(map)map.setView([f.geometry.coordinates[1],f.geometry.coordinates[0]],17,{animate:false});
+  renderWalkNumbers();
+}
+function startWalk(){
+  walkOn=true;walkIdx=0;
+  drawWalkRoute();renderWalkNumbers();
+  /* ASK FOR LOCATION NOW, not on load. D11 says this map never requests a position
+     unprompted, because an unexplained permission dialog is the fastest way to be told no.
+     Starting a walk is the one moment where asking makes sense: the person has just said
+     they are going to walk somewhere. And the walk works perfectly well if they decline. */
+  var btn=$("locBtn");
+  if(btn&&!meWatching&&navigator.geolocation){toast("Turning on your location for the walk. Say no and the walk still works.");btn.click();}
+  walkGoto(0);
+}
+function stopWalk(){
+  walkOn=false;
+  if(walkLine){map.removeLayer(walkLine);walkLine=null;}
+  F.site=null;apply();renderWalkNumbers();
+}
+/* The walk chrome above the stop's own page: where you are, how far to the next one, and
+   the two controls that matter. */
+function walkBar(){
+  var w=currentWalk(),st=walkStops(),f=st[walkIdx];
+  if(!f)return "";
+  var next=st[walkIdx+1];
+  return '<div class="walkbar">'+
+    (w.draft?'<p class="walkdraft">Draft route. The stops and their order still need Bertram and the community.</p>':'')+
+    '<div class="walkhead"><span class="walkn">Stop '+(walkIdx+1)+' of '+st.length+'</span>'+
+      '<span class="walkname">'+esc(w.name)+'</span></div>'+
+    '<div class="walknav">'+
+      '<button type="button" class="walkbtn" id="walkPrev"'+(walkIdx===0?" disabled":"")+'>&larr; Back</button>'+
+      '<a class="walkbtn go" href="'+esc(directionsUrl(f))+'" target="_blank" rel="noopener">Walk me there</a>'+
+      '<button type="button" class="walkbtn" id="walkNext"'+(walkIdx>=st.length-1?" disabled":"")+'>Next &rarr;</button>'+
+    '</div>'+
+    (next?'<p class="walkleg">Next: '+esc(next.properties.name)+' &middot; '+legText(f,next)+'</p>'
+         :'<p class="walkleg">Last stop. '+esc(w.name)+' ends here.</p>')+
+    '<button type="button" class="walkbtn end" id="walkEnd">End the walk</button>'+
+  '</div>';
+}
+
 /* === JS SECTION: STORY PRIMITIVES ====================================================
    What a story IS, in one place. A story is drawn in four places and they are
    deliberately NOT one component, because a moderator queue row and an expanded
@@ -3639,6 +3788,8 @@ function renderCards(keepScroll){
   var list=filtered(),f=F.site?siteByName(F.site):null;
   // A building is the more specific answer, so it wins over its neighborhood.
   var head=F.dc?dcPage(F.dc):(f?sitePage(f):(F.hood!=="all"?hoodPage(F.hood):""));
+  // In walk mode the stop's own page keeps its place and the walk chrome sits above it.
+  if(walkOn)head=walkBar()+head;
   var body=list.length?list.map(function(s){
     var k=storyKind(s),src=photoSrc(s.photo),md=storyMedia(s);
     // The photograph leads, because a face or a building is what stops a scroll.
@@ -3683,6 +3834,9 @@ function renderCards(keepScroll){
      the site header, which read as "the button did nothing". The button always worked. */
   $("cards").scrollTop=keepScroll?was:0;
   var sc=$("siteClear");if(sc)sc.addEventListener("click",function(){F.site=null;apply();});
+  var wp=$("walkPrev");if(wp)wp.addEventListener("click",function(){walkGoto(walkIdx-1);});
+  var wn=$("walkNext");if(wn)wn.addEventListener("click",function(){walkGoto(walkIdx+1);});
+  var we=$("walkEnd");if(we)we.addEventListener("click",stopWalk);
   var sa=$("siteAdd");if(sa)sa.addEventListener("click",function(){addMemoryAtSite(f);});
   var dcc=$("dcClear");if(dcc)dcc.addEventListener("click",function(){F.dc=null;F.ring=null;apply();highlightRings();});
   var dcl=$("dcLink");if(dcl)dcl.addEventListener("click",copyLink);
