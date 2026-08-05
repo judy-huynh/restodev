@@ -72,7 +72,14 @@
     "description": "Historic Beale Street church that housed the newspaper office of journalist and anti-lynching crusader Ida B. Wells.",
     "photo": "media/cultural/first-baptist-beale-ida-b-wells-office.jpg",
     "photoCredit": "John Phelan, CC BY-SA 4.0, via Wikimedia Commons",
-    "photoSource": "https://commons.wikimedia.org/wiki/File:First_Baptist_Church,_Beale_St,_Memphis_TN.jpg"
+    "photoSource": "https://commons.wikimedia.org/wiki/File:First_Baptist_Church,_Beale_St,_Memphis_TN.jpg",
+    "nrhp": {
+     "status": "listed",
+     "listed": "1971-02-11",
+     "ref": "71000833",
+     "note": "Listed as Beale Street Baptist Church.",
+     "source": "https://en.wikipedia.org/wiki/National_Register_of_Historic_Places_listings_in_Shelby_County,_Tennessee"
+    }
    }
   },
   {
@@ -112,7 +119,16 @@
     "description": "Rallying point and headquarters for the 1968 sanitation workers' strike, birthplace of the 'I AM A MAN' banners.",
     "photo": "media/cultural/historic-clayborn-temple.jpg",
     "photoCredit": "Jayhedges24, CC BY-SA 4.0, via Wikimedia Commons",
-    "photoSource": "https://commons.wikimedia.org/wiki/File:Clayborn_Temple_from_Pontotoc_Ave..jpg"
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Clayborn_Temple_from_Pontotoc_Ave..jpg",
+    "nrhp": {
+     "status": "listed",
+     "listed": "1979-09-04",
+     "ref": "79002478",
+     "note": "Listed as Second Presbyterian Church; raised to national significance under the name Clayborn Temple in 2017.",
+     "source": "https://en.wikipedia.org/wiki/Clayborn_Temple"
+    },
+    "link": "https://en.wikipedia.org/wiki/Clayborn_Temple",
+    "linkLabel": "Clayborn Temple on Wikipedia"
    }
   },
   {
@@ -152,7 +168,16 @@
     "description": "Site of Dr. Martin Luther King Jr.'s assassination in 1968, now the National Civil Rights Museum.",
     "photo": "media/cultural/lorraine-motel-national-civil-rights-museum.jpg",
     "photoCredit": "Matthew T Rader, CC BY-SA 4.0, via Wikimedia Commons",
-    "photoSource": "https://commons.wikimedia.org/wiki/File:Lorraine_Motel,_Memphis,_Tennessee.jpg"
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Lorraine_Motel,_Memphis,_Tennessee.jpg",
+    "nrhp": {
+     "status": "listed",
+     "listed": "1982",
+     "ref": "82004054",
+     "note": "Listed as a contributing property of the South Main Street Historic District, not on its own.",
+     "source": "https://en.wikipedia.org/wiki/National_Civil_Rights_Museum"
+    },
+    "link": "https://en.wikipedia.org/wiki/National_Civil_Rights_Museum",
+    "linkLabel": "The museum on Wikipedia"
    }
   },
   {
@@ -172,7 +197,9 @@
     "description": "World headquarters of the Church of God in Christ, where Dr. King gave his final 'Mountaintop' speech in 1968.",
     "photo": "media/cultural/mason-temple.jpg",
     "photoCredit": "Jim Roberts, CC BY-SA 4.0, via Wikimedia Commons",
-    "photoSource": "https://commons.wikimedia.org/wiki/File:Mason_Temple,_Church_of_God_in_Christ_Memphis,_Tennessee.jpg"
+    "photoSource": "https://commons.wikimedia.org/wiki/File:Mason_Temple,_Church_of_God_in_Christ_Memphis,_Tennessee.jpg",
+    "link": "https://en.wikipedia.org/wiki/Mason_Temple",
+    "linkLabel": "Mason Temple on Wikipedia"
    }
   },
   {
