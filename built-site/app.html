@@ -3102,7 +3102,13 @@ function ctxCircle(color,r){return {radius:r||5,fillColor:color,color:"#fff",wei
      key    unique id, used for the pane layer and the toggle
      group  which panel heading it sits under
      name   what the panel calls it
-     note   the small grey line under the name
+     note   OPTIONAL second line under the name, and NO LAYER USES IT.
+            Judy's call, 2026-08-05: the panel is a list of switches, and every layer
+            that had one was either naming its publisher or repeating something the
+            Methodology page says properly, with a source and a pull date. The
+            "Where this data comes from" button at the foot of the panel is the way
+            there. Adding one back is a decision, not a default: it makes the panel
+            taller on the screen where that costs most, and the row already scrolls.
      on     drawn on first load
      files  one row per file in the City Data table. `f` is the filename under
             data/, the rest is what that table prints. A layer with two files
@@ -3112,8 +3118,7 @@ function ctxCircle(color,r){return {radius:r||5,fillColor:color,color:"#fff",wei
      toggle (the three layers that own their own Leaflet object and load eagerly)
             handles its own on/off. If `toggle` is present, `build` is not used. */
 var LAYERS=[
-  {key:"cultural",group:"Community",name:"Cultural District",
-   note:"24 Sites, Clayborn at the Center",on:true,
+  {key:"cultural",group:"Community",name:"Cultural District",on:true,
    files:[{f:"cultural.geojson",name:"Cultural District",
            what:"Sites in the district anchored on Clayborn Temple",src:"RestoDev Framework"}],
    toggle:function(btn){
@@ -3121,8 +3126,7 @@ var LAYERS=[
      if(anchorsOn)anchorLayer.addTo(map); else map.removeLayer(anchorLayer);
    }},
 
-  {key:"hood",group:"Community",name:"Neighborhoods",
-   note:"City Tract Lines, Community Names",on:true,
+  {key:"hood",group:"Community",name:"Neighborhoods",on:true,
    files:[{f:"neighborhoods.geojson",name:"Neighborhoods",
            what:"City tract lines grouped into the names this map uses",src:"City of Memphis"}],
    toggle:function(btn){
@@ -3140,15 +3144,14 @@ var LAYERS=[
      and the site histories are not written, so it is not ready to be found by a visitor.
      Everything it needs is in JS SECTION: WALK MODE. Delete `hidden:true` to bring the
      switch back; nothing else has to change. */
-  {key:"walk",hidden:true,group:"Community",name:"Culture Walk",
-   note:"15 Numbered Stops &middot; Draft Route",on:false,files:[],
+  {key:"walk",hidden:true,group:"Community",name:"Culture Walk",on:false,files:[],
    toggle:function(btn){
      if(walkOn){stopWalk();btn.classList.remove("on");}
      else{startWalk();btn.classList.add("on");}
    }},
 
   {key:"dc",group:"Community",name:"Data Centers",
-   note:"xAI Colossus &middot; 1 and 5 Mile Rings",on:false,
+   on:false,
    files:[{f:"datacenters.geojson",name:"Data Centers",
            what:"xAI Colossus sites, with 1 and 5 mile rings",src:"Reporting and permits"}],
    toggle:function(btn){
@@ -3170,7 +3173,7 @@ var LAYERS=[
      rather than assumed (0.01 km2 of intersection across the whole city), which is what
      lets the profile add the two together. */
   {key:"flood",group:"City Data · Context",name:"Flood Risk",
-   note:"1 in 100 and 1 in 500 Odds",on:false,
+   on:false,
    files:[{f:"flood500.geojson",name:"Land that floods less often",
            what:"About a 1 in 500 chance in any year",src:"FEMA"},
           {f:"flood.geojson",name:"Land that can flood",
@@ -3189,7 +3192,7 @@ var LAYERS=[
      A place this project holds itself is drawn larger and ringed, because those are the
      ones the crowd-sourced map does not know about and the difference is worth seeing. */
   {key:"faith",group:"City Data · Context",name:"Churches and Faith",
-   note:"1,117 Named",on:false,
+   on:false,
    files:[{f:"faith.geojson",name:"Churches and Faith",
            what:"Named places of worship",src:"OpenStreetMap"}],
    build:function(d){return L.geoJSON(d,{pane:"ctx",
@@ -3200,8 +3203,7 @@ var LAYERS=[
      onEachFeature:function(f,l){var p=f.properties;
        l.bindPopup(pop(p.name,p.street||"",p.note||(p.src==="local"?"Held by this project":"OpenStreetMap")));}});}},
 
-  {key:"food",group:"City Data · Context",name:"Food Access",
-   note:"",on:false,
+  {key:"food",group:"City Data · Context",name:"Food Access",on:false,
    files:[{f:"food.geojson",name:"Food Access",
            what:"Shops that take SNAP, city-wide",src:"USDA SNAP"}],
    build:function(d){return L.geoJSON(d,{pane:"ctx",
@@ -3209,19 +3211,19 @@ var LAYERS=[
      onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Food retailer",f.properties.type||"",
        FULL_FOOD[f.properties.type]?"Full-service · USDA SNAP":"USDA SNAP"));}});}},
 
-  {key:"parks",group:"City Data · Context",name:"Parks",note:"",on:false,
+  {key:"parks",group:"City Data · Context",name:"Parks",on:false,
    files:[{f:"parks.geojson",name:"Parks",what:"City parks",src:"City of Memphis"}],
    build:function(d){return L.geoJSON(d,{pane:"ctx",
      pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#17C3B2",4));},
      onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Park","","City of Memphis park"));}});}},
 
-  {key:"comm",group:"City Data · Context",name:"Community Centers",note:"",on:false,
+  {key:"comm",group:"City Data · Context",name:"Community Centers",on:false,
    files:[{f:"community.geojson",name:"Community Centers",what:"City-run centers",src:"City of Memphis"}],
    build:function(d){return L.geoJSON(d,{pane:"ctx",
      pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#8338EC",6));},
      onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Community center",f.properties.street||"","City of Memphis"));}});}},
 
-  {key:"lib",group:"City Data · Context",name:"Libraries",note:"",on:false,
+  {key:"lib",group:"City Data · Context",name:"Libraries",on:false,
    files:[{f:"libraries.geojson",name:"Libraries",what:"Public library branches",src:"Memphis Public Libraries"}],
    build:function(d){return L.geoJSON(d,{pane:"ctx",
      pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#3A86FF",6));},
