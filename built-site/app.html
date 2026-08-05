@@ -1145,18 +1145,54 @@
     .addbtn{padding:9px 13px;font-size:13px;margin-left:4px}
     .addtail{display:none}
 
-    /* the drawer */
+    /* the drawer.
+       --peek is how much of it shows before anybody touches it, and it is a variable
+       because it is a BUDGET, not a measurement: head, then one whole story card, and
+       nothing spare. It was 132px, which is one pixel more than the head, so what the
+       drawer showed of the thing it exists to show was nothing at all. */
+    .panel{--peek:326px;
+      position:absolute;left:0;right:0;bottom:0;top:auto;max-height:70%;border-right:none;border-top:1px solid var(--border);border-radius:20px 20px 0 0;box-shadow:0 -14px 40px -20px rgba(36,28,59,.5);transform:translateY(calc(100% - var(--peek)));transition:transform .3s;z-index:800}
     .explore{grid-template-columns:1fr}
-    .panel{position:absolute;left:0;right:0;bottom:0;top:auto;max-height:62%;border-right:none;border-top:1px solid var(--border);border-radius:20px 20px 0 0;box-shadow:0 -14px 40px -20px rgba(36,28,59,.5);transform:translateY(calc(100% - 132px));transition:transform .3s;z-index:800}
     .panel.up{transform:translateY(0)}
     .panel::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:40px;height:4px;border-radius:3px;background:#D9CEDA}
     .p-head{padding-top:20px}
     .p-head h1{font-size:17px}
+    /* The mission line is the most cuttable thing on a phone: it is a sentence about
+       the project sitting inside the controls for the stories. It is on the landing
+       page, in About, and on the Methodology screen. */
+    .p-mission{display:none}
+    /* A card that has to fit inside a peek. The photograph still leads, it just does
+       not lead with 130px of a 390px-wide screen, and the snippet gives up its fourth
+       line. Together that is ~50px, which is the difference between a card you can
+       see and a card you have to know is there. */
+    .chero img{height:104px}
+    .card .snip{-webkit-line-clamp:3}
 
     /* map furniture gets out of the way */
     .maptools{top:10px;right:10px;width:210px}
     .spotlight{display:none}
     .detail{border-radius:20px 20px 0 0}
+  }
+
+  /* ---- SHORT: anything under 620px tall -------------------------------------------
+     The one block here keyed to HEIGHT, and it is here because the other three cannot
+     see the case it is for. A phone held sideways is 844px wide and 390px tall: every
+     width test in this stylesheet calls it a tablet and hands it two columns, which is
+     right, and then the panel it gets is 304px tall while head plus filters want 340.
+     Chrome came out at 112% of the panel, which is a way of saying the stories had
+     negative room.
+
+     Height is what the panel actually spends. Width decides the LAYOUT; height decides
+     how much of it can be chrome. Both are needed and they are not the same question.
+
+     The matching half of this is in initFilterToggle(), which defaults the filter
+     block shut under the same condition. */
+  @media(max-height:620px){
+    .p-mission{display:none}
+    .p-head{padding:8px 14px 9px}
+    .search{margin-top:7px}
+    .search input{padding:9px 12px 9px 36px}
+    .filters{padding:9px 14px 10px;gap:7px}
   }
 </style>
 </head>
@@ -3255,9 +3291,28 @@ function initFilterToggle(){
   var t=$("fToggle");if(!t)return;
   var saved=null;
   try{saved=localStorage.getItem("mr_filters_open");}catch(e){}
-  setFiltersOpen(saved===null?true:saved==="1",false);
+  /* The default is OPEN where the panel can afford it and SHUT where it cannot.
+     On a 390px phone the filter block is 215px of a 464px drawer, so defaulting it
+     open spent the panel's whole budget on the controls and left 124px for the
+     stories those controls are for: less than one card. What made shutting it safe
+     is that the count badge keeps working while it is shut, so a filtered map can
+     never look like an empty one.
+
+     BY HEIGHT AS WELL AS WIDTH. A phone held sideways is 844px wide, which every
+     width test calls a tablet, and 390px tall, where head plus filters are TALLER
+     than the whole panel. Height is what the panel actually spends.
+
+     Once a person opens or shuts it themselves that is remembered, and this never
+     runs again for them. */
+  var tight=!!(window.matchMedia&&window.matchMedia("(max-width:560px),(max-height:620px)").matches);
+  setFiltersOpen(saved===null?!tight:saved==="1",false);
   t.addEventListener("click",function(){
-    setFiltersOpen(this.getAttribute("aria-expanded")!=="true",true);
+    var open=this.getAttribute("aria-expanded")!=="true";
+    setFiltersOpen(open,true);
+    /* Opening the filters while the drawer sits at its peek would put them below the
+       fold, so the one thing you just asked to see would be the one thing you cannot.
+       Raise the drawer with them. */
+    if(open&&isDrawer())$("panel").classList.add("up");
   });
   renderFCount();
 }

@@ -293,6 +293,13 @@ async function main() {
   const arg = (n, d) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : d; };
   const json = argv.includes("--json");
   const gate = argv.includes("--gate");
+  /* The filter block defaults SHUT where the panel cannot afford it, so the default
+     run measures a panel with no filters in it. --filters-open opens them first and
+     measures the worst case a person can actually reach: they asked to see the
+     filters, and now the filters are most of the panel. It is not gated, because at
+     that moment the panel IS the filters and that is what was asked for. It is here
+     so the number is checkable instead of argued. */
+  const filtersOpen = argv.includes("--filters-open");
   const only = arg("--widths", null);
   const devices = only
     ? DEVICES.filter((d) => only.split(",").map(Number).includes(d.w))
@@ -352,7 +359,9 @@ async function main() {
       const asOpened = await probe();
       await S("Runtime.evaluate", {
         expression: `(function(){var p=document.getElementById('panel');
-          if(p&&getComputedStyle(p).position==='absolute')p.classList.add('up');})()`,
+          if(p&&getComputedStyle(p).position==='absolute')p.classList.add('up');
+          ${filtersOpen ? `var t=document.getElementById('fToggle');
+            if(t&&t.getAttribute('aria-expanded')!=='true')t.click();` : ""}})()`,
       });
       await new Promise((r) => setTimeout(r, 450));
       const dragged = await probe();
