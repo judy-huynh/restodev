@@ -2089,6 +2089,30 @@ var FILTERS=[
      no count and no pill: its own profile carries the way back. */
   {key:"dc",type:"value",label:"Data center",param:"dc"},
 
+  /* THE RING. Click the 5-mile circle around a data centre and the story list becomes the
+     people inside it. That is the whole argument of this map in one interaction: the
+     profile beside it asserts that 26,725 people live in Colossus 1's five-mile ring, 95%
+     Black, a third in poverty, half the ground in the flood plain and not one library.
+     Clicking turns that from a statistic into "these are the people, and here is what
+     they said".
+     Held as "<data centre id>:<miles>" so one value carries both halves and a link can
+     name a specific ring. It is a distance test, not point-in-polygon: a circle drawn on
+     the ground is exactly the set of points within N miles of the site. */
+  {key:"ring",type:"value",label:"Data centre ring",counts:true,param:"ring",
+   passes:function(s,v){
+     var r=ringOf(v);if(!r)return true;
+     return metresBetween([s.lat,s.lng],r.center)<=r.metres;
+   },
+   say:function(v){var r=ringOf(v);return r?r.words:v;},
+   pill:function(v){var r=ringOf(v);return r?r.words:v;},
+   /* SHAPE only, not "does this site exist". The boot block runs before
+      datacenters.geojson has loaded, so ringOf() cannot resolve anything yet and checking
+      against it here threw away every valid ?ring= link. Same trap as ?story=, which is
+      why that one is acted on after the fetch rather than during boot.
+      An id that turns out not to exist is harmless: ringOf() returns null later, passes()
+      lets everything through, and the map shows all of Memphis rather than nothing. */
+   fromParam:function(v){return /^[A-Za-z0-9_-]+:\d+$/.test(v)?v:undefined;}},
+
   /* The open story. Like `dc` it chooses what is shown rather than narrowing the list, so
      no passes(), no count, no pill. Its control is the story itself: selectStory() sets
      it, closeDetail() clears it.
@@ -2495,12 +2519,27 @@ function loadDataCenters(){
   fetch("data/datacenters.geojson",{cache:"no-cache"}).then(function(r){return r.json();}).then(function(d){
     DATACENTERS=(d.features||[]).filter(function(f){return f.geometry&&f.geometry.type==="Point";});
     dcLayer=L.layerGroup();
-    var radii=d.radiiMiles||[1,5];
+    // Sorted big to small: Leaflet stacks later shapes on top, and a click inside the
+    // one-mile ring should mean one mile.
+    var radii=(d.radiiMiles||[1,5]).slice().sort(function(a,b){return b-a;});
     DATACENTERS.forEach(function(f){
       var p=f.properties,c=f.geometry.coordinates,col=dcColor(p.operator);
       radii.forEach(function(mi){
-        L.circle([c[1],c[0]],{radius:mi*1609.344,pane:"ctx",color:col,weight:1.6,opacity:.75,
-          fillColor:col,fillOpacity:mi===1?.10:.045,dashArray:"3 6",interactive:false}).addTo(dcLayer);
+        /* interactive now, where it used to be inert. The ring was the argument and you
+           could not do anything with it. The bigger ring is added FIRST so the smaller one
+           sits on top of it and a click inside a mile selects a mile, not five. */
+        var key=p.id+":"+mi;
+        var circle=L.circle([c[1],c[0]],{radius:mi*1609.344,pane:"ctx",color:col,weight:1.6,opacity:.75,
+          fillColor:col,fillOpacity:mi===1?.10:.045,dashArray:"3 6",interactive:true,
+          __col:col,__mi:mi}).addTo(dcLayer);
+        circle.bindTooltip("The people within "+mi+" mile"+(mi===1?"":"s")+" of "+esc(p.operator+" "+p.name),
+          {sticky:true,className:"startip"});
+        circle.on("click",function(e){
+          // or Leaflet passes the click through to the map, which offers "add a memory here"
+          if(e.originalEvent)L.DomEvent.stopPropagation(e);
+          selectRing(p.id,String(mi));
+        });
+        dcRingLayers[key]=circle;
       });
       var m=L.marker([c[1],c[0]],{
         /* iconSize null lets Leaflet measure the badge instead of assuming 46px, and the
@@ -2513,15 +2552,52 @@ function loadDataCenters(){
       m.on("click",function(){selectDataCenter(p.id);});
     });
     if(dcOn)dcLayer.addTo(map);
-    if(F.dc)renderCards();
+    /* A ?ring= link arrives before this file does, so the ring cannot be drawn as selected
+       until now, and the story list was filtered against a ring that could not be resolved
+       yet. Both are settled here. */
+    highlightRings();
+    if(F.ring){dcOn=true;dcLayer.addTo(map);renderLayerPanel();apply();}
+    else if(F.dc)renderCards();
   }).catch(function(e){console.warn("data centers failed:",e);});
 }
 function dcById(id){for(var i=0;i<DATACENTERS.length;i++)if(DATACENTERS[i].properties.id===id)return DATACENTERS[i];return null;}
+/* "colossus-1:5" -> everything the filter and the pane need to say what it is. Returns
+   null for anything that does not name a real site and a real radius, which is what makes
+   a hand-typed ?ring= safe to ignore rather than something that empties the map. */
+function ringOf(v){
+  if(!v)return null;
+  var bits=String(v).split(":"),f=dcById(bits[0]),mi=bits[1];
+  if(!f||!mi||!/^\d+$/.test(mi))return null;
+  var c=f.geometry.coordinates;
+  return {id:bits[0],mi:mi,center:[c[1],c[0]],metres:Number(mi)*1609.344,
+          name:f.properties.operator+" "+f.properties.name,
+          words:"within "+mi+" mile"+(mi==="1"?"":"s")+" of "+f.properties.operator+" "+f.properties.name};
+}
+/* Every drawn circle, so the selected one can be shown as selected. Keyed the same way the
+   filter is, which is what keeps the two from disagreeing about which ring is which. */
+var dcRingLayers={};
+function highlightRings(){
+  Object.keys(dcRingLayers).forEach(function(k){
+    var on=F.ring===k,c=dcRingLayers[k],col=c.options.__col,mi=c.options.__mi;
+    c.setStyle({weight:on?3:1.6,opacity:on?1:.75,dashArray:on?null:"3 6",
+      fillOpacity:on?(mi===1?.18:.10):(mi===1?.10:.045),color:col,fillColor:col});
+  });
+}
 function selectDataCenter(id){
-  if(F.dc===id)return;
-  F.dc=id;F.site=null;closeDetail();apply();
+  if(F.dc===id&&!F.ring)return;
+  // Opening the profile from the badge is a different act from filtering to a ring, so
+  // it clears any ring: you asked to look at the site, not at the people inside a circle.
+  F.dc=id;F.ring=null;F.site=null;closeDetail();apply();highlightRings();
   var f=dcById(id);
   if(f&&map)map.setView([f.geometry.coordinates[1],f.geometry.coordinates[0]],12);
+}
+/* Click a ring: show the site's profile AND narrow the stories to the people inside that
+   circle. Both, because the number and the voices belong on screen together. */
+function selectRing(id,mi){
+  var key=id+":"+mi;
+  if(F.ring===key){F.ring=null;}      // clicking the selected ring again lets it go
+  else {F.ring=key;dcRadius=mi;}      // and the profile follows to the radius you picked
+  F.dc=id;F.site=null;closeDetail();apply();highlightRings();
 }
 /* The Cultural District: 24 sites from data/cultural.geojson, each a star.
    Clayborn carries a name on the map because it is the anchor everything else is
@@ -2756,7 +2832,10 @@ var LAYERS=[
      /* Turning the layer off has to clear a data centre filter too, or the story
         list stays filtered by something the map no longer shows. */
      if(dcOn)dcLayer.addTo(map);
-     else {map.removeLayer(dcLayer); if(F.dc){F.dc=null;apply();}}
+     else {map.removeLayer(dcLayer);
+       /* A ring filter with the layer switched off is the worst of both: the list is
+          narrowed by a circle that is no longer on screen. */
+       if(F.dc||F.ring){F.dc=null;F.ring=null;apply();}}
    }},
 
   /* Two bands, drawn as one layer because they answer one question. The 500-year goes on
@@ -3485,8 +3564,9 @@ function renderCards(keepScroll){
         '</div>'+
       '</div></article>';
   }).join("")
-  // With a site selected the empty state is about that place, not about the filters.
-  :(f?'<div class="empty"><span class="em">'+ic("sprout",26)+'</span>Nobody has told a story about this place yet.<br>The button above starts the first one.</div>'
+  // An empty list is about whatever narrowed it, not about "filters" in the abstract.
+  :(F.ring?ringEmpty()
+   :f?'<div class="empty"><span class="em">'+ic("sprout",26)+'</span>Nobody has told a story about this place yet.<br>The button above starts the first one.</div>'
      :'<div class="empty"><span class="em">'+ic("search",26)+'</span>No stories match these filters yet.<br>Try clearing a filter.</div>');
   $("cards").innerHTML=head+body;
   /* Back to the top by default, because a changed filter means a different list and you
@@ -3496,7 +3576,7 @@ function renderCards(keepScroll){
   $("cards").scrollTop=keepScroll?was:0;
   var sc=$("siteClear");if(sc)sc.addEventListener("click",function(){F.site=null;apply();});
   var sa=$("siteAdd");if(sa)sa.addEventListener("click",function(){addMemoryAtSite(f);});
-  var dcc=$("dcClear");if(dcc)dcc.addEventListener("click",function(){F.dc=null;apply();});
+  var dcc=$("dcClear");if(dcc)dcc.addEventListener("click",function(){F.dc=null;F.ring=null;apply();highlightRings();});
   var dcl=$("dcLink");if(dcl)dcl.addEventListener("click",copyLink);
   $("cards").querySelectorAll("[data-dcr]").forEach(function(b){b.addEventListener("click",function(){
     dcRadius=b.dataset.dcr;
@@ -3534,6 +3614,21 @@ function renderCards(keepScroll){
     c.addEventListener("mouseenter",function(){hiMarker(c.dataset.id,true);});
     c.addEventListener("mouseleave",function(){hiMarker(c.dataset.id,false);});
   });
+}
+/* An empty ring is the finding, not a dead end. Colossus 1 has 26,725 people inside five
+   miles and not one of them has told this map anything. "No stories match these filters,
+   try clearing a filter" throws that away and blames the reader for looking. Saying how
+   many people are in there and that none of them has been asked is the entire argument
+   for going and asking. */
+function ringEmpty(){
+  var r=ringOf(F.ring);
+  if(!r)return '<div class="empty"><span class="em">'+ic("search",26)+'</span>No stories in this ring yet.</div>';
+  var prof=((dcById(r.id)||{properties:{}}).properties.profile||{})[r.mi]||{};
+  var pop=prof.population;
+  return '<div class="empty"><span class="em">'+ic("sprout",26)+'</span>'+
+    'No stories from inside this ring yet.'+
+    (pop?'<br><b>'+num(pop)+' people</b> live within '+r.mi+' mile'+(r.mi==="1"?"":"s")+' of '+esc(r.name)+'.':'')+
+    '<br>Nobody in here has been asked yet.</div>';
 }
 function hiCard(id,on){var c=$("cards").querySelector('.card[data-id="'+id+'"]');if(c){c.classList.toggle("sel",on);if(on)c.scrollIntoView({block:"nearest",behavior:"smooth"});}}
 /* A filtered map should be sendable, so the address bar carries every filter that
