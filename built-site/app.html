@@ -468,7 +468,23 @@
      The .hp-* profile block and the .dc* data centre block, above the cards in the same column.
      Built by hoodPage() and dcPage(). The numbers come from data/neighborhood-profiles.json. */
   .hoodpage{margin:-10px -12px 14px;border-bottom:1px solid var(--line)}
-  .dc-badge{display:grid;place-items:center;width:46px;height:22px;border-radius:6px;color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.02em;border:2px solid #fff;box-shadow:0 2px 6px rgba(36,28,59,.45)}
+  /* Sized to the word, not to a guess. It was a fixed 46px, which fits "xAI" and spills
+     "Anthropic" straight out of the coloured box. A lettered badge should still be a
+     badge when the company has nine letters in its name, so the box grows and the text
+     never wraps. D22. */
+  .dc-badge{display:inline-grid;place-items:center;min-width:46px;height:22px;padding:0 8px;
+    box-sizing:border-box;white-space:nowrap;border-radius:6px;color:#fff;font-size:10.5px;
+    font-weight:800;letter-spacing:.02em;border:2px solid #fff;box-shadow:0 2px 6px rgba(36,28,59,.45)}
+  /* The marker wrapper. Width comes from the badge, since a fixed iconSize cannot know
+     how long a company name is.
+     The re-centring goes on the BADGE, not on this wrapper: Leaflet writes its own
+     `transform: translate3d(...)` inline on the wrapper to position the marker, and an
+     inline style beats a stylesheet rule, so a transform here is silently thrown away.
+     That is exactly what happened first time round and it left every badge sitting half
+     its own width to the right of the site it names. Measured, not assumed: Anthropic was
+     35px off and xAI 23px, which is half of 71 and half of 46. */
+  .dc-pin{width:max-content!important;height:auto!important}
+  .dc-pin .dc-badge{transform:translateX(-50%)}
   .dcmeta{display:flex;flex-wrap:wrap;gap:14px;margin:8px 0 10px}
   .dcmeta span{display:flex;flex-direction:column;font-size:12.5px;color:var(--text)}
   .dcmeta b{font-size:9.5px;font-weight:800;letter-spacing:.02em;color:var(--faint)}
@@ -2487,8 +2503,11 @@ function loadDataCenters(){
           fillColor:col,fillOpacity:mi===1?.10:.045,dashArray:"3 6",interactive:false}).addTo(dcLayer);
       });
       var m=L.marker([c[1],c[0]],{
-        icon:L.divIcon({className:"",html:'<div class="dc-badge" style="background:'+col+'">'+esc(p.short||p.operator||"DC")+'</div>',
-                        iconSize:[46,22],iconAnchor:[23,11]}),
+        /* iconSize null lets Leaflet measure the badge instead of assuming 46px, and the
+           wrapper centres whatever width it turns out to be on the actual site. A fixed
+           size here put a wide badge off to one side of the point it marks. */
+        icon:L.divIcon({className:"dc-pin",html:'<div class="dc-badge" style="background:'+col+'">'+esc(p.short||p.operator||"DC")+'</div>',
+                        iconSize:null,iconAnchor:[0,11]}),
         title:p.operator+" "+p.name,zIndexOffset:700}).addTo(dcLayer);
       m.bindTooltip(esc(p.operator+" "+p.name),{direction:"top",offset:[0,-12],className:"startip"});
       m.on("click",function(){selectDataCenter(p.id);});
@@ -3428,7 +3447,8 @@ function storyParagraphs(s){
      renderSpotlight()  <- the featured one over the map
      renderQueue()      <- the moderator queue row
    Styles are split across CSS SECTION: STORY CARD. */
-function renderCards(){
+function renderCards(keepScroll){
+  var was=$("cards").scrollTop;
   var list=filtered(),f=F.site?siteByName(F.site):null;
   // A building is the more specific answer, so it wins over its neighborhood.
   var head=F.dc?dcPage(F.dc):(f?sitePage(f):(F.hood!=="all"?hoodPage(F.hood):""));
@@ -3469,13 +3489,22 @@ function renderCards(){
   :(f?'<div class="empty"><span class="em">'+ic("sprout",26)+'</span>Nobody has told a story about this place yet.<br>The button above starts the first one.</div>'
      :'<div class="empty"><span class="em">'+ic("search",26)+'</span>No stories match these filters yet.<br>Try clearing a filter.</div>');
   $("cards").innerHTML=head+body;
-  $("cards").scrollTop=0;
+  /* Back to the top by default, because a changed filter means a different list and you
+     want the start of it. NOT when the caller says otherwise: switching the data centre
+     radius redraws this same page, and resetting the scroll threw you 700px back up to
+     the site header, which read as "the button did nothing". The button always worked. */
+  $("cards").scrollTop=keepScroll?was:0;
   var sc=$("siteClear");if(sc)sc.addEventListener("click",function(){F.site=null;apply();});
   var sa=$("siteAdd");if(sa)sa.addEventListener("click",function(){addMemoryAtSite(f);});
   var dcc=$("dcClear");if(dcc)dcc.addEventListener("click",function(){F.dc=null;apply();});
   var dcl=$("dcLink");if(dcl)dcl.addEventListener("click",copyLink);
   $("cards").querySelectorAll("[data-dcr]").forEach(function(b){b.addEventListener("click",function(){
-    dcRadius=b.dataset.dcr;renderCards();});});
+    dcRadius=b.dataset.dcr;
+    renderCards(true);
+    // Put focus back on the tab that was just pressed, or a keyboard user lands nowhere.
+    var again=$("cards").querySelector('[data-dcr="'+dcRadius+'"]');
+    if(again)again.focus();
+  });});
   var sl=$("siteLink");if(sl)sl.addEventListener("click",copyLink);
   var hl=$("hoodLink");if(hl)hl.addEventListener("click",copyLink);
   var hc=$("hoodClear");if(hc)hc.addEventListener("click",function(){
