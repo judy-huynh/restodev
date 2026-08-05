@@ -976,6 +976,16 @@
   .dream-affirm .dn{font-weight:700;font-size:14px;color:#1D5FD6;margin:0 0 11px;line-height:1.4}
   .dream-affirm button{background:var(--future);color:#fff;border-radius:11px;padding:11px 16px;font-weight:700;font-size:13.5px;width:100%}
   .dream-affirm button:hover{background:#1D5FD6}
+  .dream-affirm button.done{background:var(--line);color:var(--muted);cursor:default}
+  /* A memory wears the map's own pink rather than the vision blue, so the two readings of
+     the same gesture are not dressed as the same thing. */
+  .dream-affirm.mem{background:var(--primaryLight);border-color:#F5C9D8}
+  .dream-affirm.mem .dn{color:var(--primaryDark)}
+  .dream-affirm.mem button{background:var(--primary)}
+  .dream-affirm.mem button:hover{background:var(--primaryDark)}
+  .dream-affirm.mem button.done{background:var(--line);color:var(--muted)}
+  /* The count on a card: a statement, not a control. No hover, no pointer. */
+  .cchip.aff{background:var(--bg);border-color:var(--border);color:var(--muted);cursor:default}
   .thanks .notalone{background:#E8F1FF;border:1px solid #C9DEFF;border-radius:12px;padding:12px 15px;font-size:13.5px;color:#1D5FD6;margin:0 auto 16px;max-width:44ch;font-weight:600}
 
 
@@ -1478,8 +1488,66 @@ function publicStories(){return STORIES.filter(function(s){return s.status==="ap
    THE MODERATOR EDITOR SAVES THROUGH HERE (supaSaveStory, supaInternal). A field added
    to JS SECTION: MODERATOR DESK must be added to those too, or it will never persist.
    Contact details go to story_contacts, never to stories.answers. See DECISIONS D19. */
+/* AFFIRMS: "I remember this too" on a memory, "I dream of this too" on an idea.
+   One press per browser, and NOTHING about who pressed it. That absence is the feature,
+   not a shortcut: no identity means no consent conversation, which is why this ships and
+   email capture and social sharing do not. See STORY-75 for why those two are deferred
+   rather than refused.
+
+   AFF is what THIS browser has pressed, so the button can show its own state. It is not
+   the count. AFF_N is the count, and where that comes from depends on whether
+   ADD-STORY-AFFIRMS.sql has been run yet:
+
+     applied      story_affirm_counts, a view that returns how many and never who
+     not applied  this browser's own presses, honest but private
+
+   The app works either side of that file and never has to be told which world it is in.
+   supaFetchAffirms() failing is not an error, it is the answer. */
 var AFF={};try{AFF=JSON.parse(localStorage.getItem("mr_aff"))||{};}catch(e){}
 function saveAff(){try{localStorage.setItem("mr_aff",JSON.stringify(AFF));}catch(e){}}
+var AFF_N={},AFF_SERVER=false;
+/* A random string this browser keeps, so the database can count one press per browser
+   without knowing anything about the person. Not an id, not a fingerprint: clearing the
+   browser makes a new one, which is the correct and intended weakness. */
+function affirmToken(){
+  var t=null;try{t=localStorage.getItem("mr_aff_token");}catch(e){}
+  if(!t){
+    t=(Math.random().toString(36)+Math.random().toString(36)).replace(/[^a-z0-9]/g,"").slice(0,24);
+    try{localStorage.setItem("mr_aff_token",t);}catch(e){}
+  }
+  return t;
+}
+/* How many people stand behind each story. Returns quietly if the view is not there yet. */
+async function supaFetchAffirms(){
+  try{
+    var url=SUPA.url+"/rest/v1/story_affirm_counts?tenant_id=eq."+SUPA.tid+"&select=story_id,affirms";
+    var res=await fetch(url,{headers:supaHeaders()});
+    if(!res.ok)return false;                       // 404 until the SQL is applied
+    var out={};(await res.json()).forEach(function(r){out[r.story_id]=r.affirms;});
+    AFF_N=out;AFF_SERVER=true;
+    return true;
+  }catch(e){return false;}
+}
+/* One press. A 409 means this browser already counted, which is the unique constraint
+   doing its job and not a failure worth telling anybody about. */
+async function supaAffirm(id){
+  var res=await fetch(SUPA.url+"/rest/v1/story_affirms",{
+    method:"POST",
+    headers:Object.assign(supaHeaders(),{"Content-Type":"application/json","Prefer":"return=minimal"}),
+    body:JSON.stringify({tenant_id:SUPA.tid,story_id:id,token:affirmToken()})
+  });
+  if(res.status===409)return "already";
+  if(!res.ok)throw new Error(String(res.status));
+  return "ok";
+}
+/* The number to show, from whichever source is real today. */
+function affirmCount(s){
+  return AFF_SERVER?(AFF_N[s.id]||0):(AFF[s.id]||0);
+}
+function affirmedHere(s){return !!AFF[s.id];}
+/* The wording follows the kind. "I dream of this too" on somebody's memory of a demolished
+   church would be the wrong sentence entirely. */
+function affirmVerb(s){return s.kind==="future"?"dream of":"remember";}
 var SUPA={url:"https://vhadxjbivhwfponuamrr.supabase.co",key:"sb_publishable_Vwq1aejqQH389yVwJf8jUQ_G21GQ7YX",tid:"fca03eae-2cbc-4f3e-b65e-cdbb9acfdb12",session:null};
 try{SUPA.session=JSON.parse(sessionStorage.getItem("mr_sess"))||null;}catch(e){}
 var VIS2CONSENT={full:"full_name",first:"first_name",anon:"anonymous",heritage:"advocacy_only"};
@@ -3263,6 +3331,11 @@ function renderCards(){
           // stops reading as a map and starts reading as a legend, so colour stays with the
           // two kinds and the detail is a word you can click.
           (s.subcategory?'<button class="cchip" data-chip="subcat" data-v="'+esc(s.subcategory)+'">'+esc(s.subcategory)+'</button>':'')+
+          /* Not a button and not a rank. It says how many people stood behind this story,
+             and the list stays in date order underneath it. See point 5 of STORY-75: the
+             moment a map sorts by popularity it stops being a record and becomes a feed,
+             and the quietest story is usually the one that matters. */
+          (affirmCount(s)>0?'<span class="cchip aff">'+ic(s.kind==="future"?"star":"pin",11)+' '+affirmCount(s)+'</span>':'')+
         '</div>'+
         '<div class="cfoot">'+
           storyBadges(s)+
@@ -3476,7 +3549,7 @@ function openDetail(s){
     '<div class="d-body"><div class="quote">'+storyParagraphs(s)+'</div>'+
     (s.audio?'<div class="d-sect">'+ic("mic",13)+' Voice recording</div><audio controls src="'+s.audio+'"></audio>':"")+
     storyMediaHtml(s)+
-    (s.kind==="future"?dreamBox(s):"")+
+    dreamBox(s)+
     '<div class="d-tags">'+tags.map(function(t){return '<span class="t" data-tag="'+t[0]+'" data-v="'+esc(t[2])+'">'+t[1]+'</span>';}).join("")+'</div>'+
     '<div class="d-meta">'+
       '<div class="r"><span>Shared by</span><b>'+storyWho(s)+'</b></div>'+
@@ -3495,7 +3568,23 @@ function openDetail(s){
     '</div></div>';
   $("detail").classList.add("open");$("panel").classList.add("up");
   $("dClose").addEventListener("click",closeDetail);
-  var ab=$("affirmBtn");if(ab)ab.addEventListener("click",function(){AFF[s.id]=(AFF[s.id]||0)+1;saveAff();s.affirms=AFF[s.id];renderMarkers();openDetail(s);toast("You share this dream: "+s.affirms+" now");});
+  var ab=$("affirmBtn");if(ab&&!ab.disabled)ab.addEventListener("click",async function(){
+    ab.disabled=true;
+    AFF[s.id]=1;saveAff();                       // this browser has said it, either way
+    if(AFF_SERVER){
+      try{
+        var r=await supaAffirm(s.id);
+        if(r==="ok")AFF_N[s.id]=(AFF_N[s.id]||0)+1;
+        else await supaFetchAffirms();           // already counted: take the real number
+      }catch(e){
+        // The press is not lost, it just stays local until the next load.
+        console.warn("affirm failed",e);
+      }
+    }
+    s.affirms=affirmCount(s);
+    renderMarkers();renderCards();openDetail(s);
+    toast(affirmVerb(s)==="dream of"?"You share this dream":"You remember this too");
+  });
   $("dLocate").addEventListener("click",function(){
     // 18, not 16. At 16 you get the neighborhood; at 18 the surrounding streets are
     // named, which is the entire reason somebody presses this.
@@ -3568,11 +3657,22 @@ function showProposeForm(sp){
   $("propSubmit").addEventListener("click",function(){var t=$("propText").value.trim();if(!t)return;sp.proposals.push({id:uid(),text:t,name:$("propName").value.trim()||null,cosigns:1,status:"pending"});saveSpaces();openSpace(sp);toast("Sent to The Big We for review, it appears once approved");});
 }
 /* === JS SECTION: INTEGRATION 2, SHARED DREAMS ========================================
-   Shown inside a "vision" story. */
+   Shown inside ANY story now, not only a vision. Somebody who remembers the same corner
+   is saying the same thing as somebody who wants the same future, and there was no reason
+   only one of them could say it. The words change with the kind: "I dream of this too" on
+   a memory of a church that was demolished would be the wrong sentence entirely. */
 function dreamBox(s){
-  var n=s.affirms||0;
-  var msg=n>0?("You're not alone. "+n+" "+(n===1?"person shares":"people share")+" this dream."):"Be the first to say you share this dream.";
-  return '<div class="dream-affirm"><div class="dn">'+ic("star",14)+' '+esc(msg)+'</div><button id="affirmBtn">I dream this too</button></div>';
+  var n=affirmCount(s),mine=affirmedHere(s),v=affirmVerb(s);
+  /* The verb has to agree with the count as well as with the kind. "1 person remember
+     this too" is the sort of thing a person reads and a developer does not. */
+  var one=n===1;
+  var msg=n>0
+    ? "You're not alone. "+n+" "+(one?"person":"people")+" "+
+      (v==="dream of"?(one?"shares":"share")+" this dream":(one?"remembers":"remember")+" this too")+"."
+    : (v==="dream of"?"Be the first to say you share this dream.":"Be the first to say you remember this too.");
+  return '<div class="dream-affirm'+(v==="remember"?" mem":"")+'"><div class="dn">'+ic(v==="dream of"?"star":"pin",14)+' '+esc(msg)+'</div>'+
+    '<button id="affirmBtn"'+(mine?' class="done" disabled':'')+'>'+
+      (mine?"You said you "+v+" this":"I "+v+" this too")+'</button></div>';
 }
 
 
@@ -4574,6 +4674,7 @@ function renderQueue(){
       '<span class="qd"><span class="qt">'+storyText(s)+'</span>'+
       '<span class="qm"><b style="color:'+k.color+'">'+esc(k.short)+'</b> · '+esc(s.hood)+' · '+storyWhen(s)+
         (s.audio?' · voice':'')+(s.featured?' · featured':'')+
+        (affirmCount(s)>0?' · '+affirmCount(s)+(affirmCount(s)===1?' stands':' stand')+' behind it':'')+
         (flags?'<span class="qflag" title="'+flags+' moderator tags"></span>':'')+'</span>'+
       /* When it arrived, which the desk never showed. It is the first thing you need when
          the queue has anything in it: a story from this morning and one from three weeks
@@ -5148,7 +5249,12 @@ if(mode==="share"||mode==="kiosk"){showView("explore");startCapture(kindParam||n
 else if(mode==="admin"){if(F.story)openOnDesk(F.story);else showView("admin");}
 else{showView("explore");}
 setTimeout(renderSpotlight,400);
-(async function(){try{STORIES=await supaFetchApproved();renderSelects();apply();renderSpotlight();
+(async function(){try{STORIES=await supaFetchApproved();
+  /* Counts before the first paint that shows them. Silently does nothing until
+     ADD-STORY-AFFIRMS.sql is applied, at which point the numbers become real with no
+     other change anywhere. */
+  await supaFetchAffirms();
+  renderSelects();apply();renderSpotlight();
   /* ?story= is acted on here and not in the boot block above, because until this line
      STORIES holds the local seed fallback and the id would resolve to nothing. On the
      desk it is renderAdmin's job instead, off its own queues. */
