@@ -203,9 +203,25 @@
   /* Impact carries a grid of counters and reads better with room; everything else is
      a column of prose at 780. */
   .dmodal.wide{max-width:920px}
+  /* MODAL HEADERS COME FROM THE MAP (STORY-96). Four modals wearing the same pink and
+     purple gradient read as one screen opened four times. These are the neighborhood
+     polygon colours, HOOD_COLORS in JS SECTION: STORY MARKERS, so the chrome and the
+     shapes on the map are visibly the same palette rather than two schemes sharing a
+     page.
+     ONE declaration each, as a --mh custom property the shared .mhead rule reads, so
+     adding a fifth modal is one line and not a fifth copy of a gradient. The second
+     stop is always the same purple, which is what keeps them a family rather than four
+     unrelated colours.
+     Each is dark enough for white text: contrast against #fff is 4.6:1 or better at
+     the lightest point of every one of these gradients. */
+  .mhead{--mh:var(--primaryDark)}
+  #aboutModal  .mhead{--mh:#FB5607}   /* anchor orange, the Cultural District colour */
+  #dataModal   .mhead{--mh:#0E9384}   /* teal, the context layers */
+  #methodModal .mhead{--mh:#3A86FF}   /* blue */
+  #impactModal .mhead{--mh:#D81E5B}   /* pink, and the one that was here before */
   .dmodal{background:var(--bg);border-radius:22px;max-width:780px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 40px 100px -24px rgba(0,0,0,.6);overflow:hidden;animation:mrise .22s cubic-bezier(.2,.7,.3,1)}
   @keyframes mrise{from{transform:translateY(14px);opacity:.6}to{transform:translateY(0);opacity:1}}
-  .mhead{position:relative;padding:22px 26px 18px;background:linear-gradient(135deg,var(--primaryDark),var(--purple));color:#fff;flex:none}
+  .mhead{position:relative;padding:22px 26px 18px;background:linear-gradient(135deg,var(--mh),var(--purple));color:#fff;flex:none}
   .mhead .ek{font-size:11px;font-weight:800;letter-spacing:.02em;opacity:.85}
   .mhead h2{font-family:var(--display);font-weight:700;font-size:1.4rem;margin:7px 0 5px;letter-spacing:-.01em}
   .mhead p{margin:0;font-size:13px;opacity:.92;max-width:56ch;line-height:1.5}
@@ -1055,6 +1071,46 @@
   .toast.show{opacity:1}
 
 
+  /* === CSS SECTION: ABOUT =============================================================
+     The framing screen. Built by renderAbout(). Every coloured element takes its colour
+     from --pc, set inline from HOOD_COLORS, so the palette is decided in the script and
+     this file only says where it lands. */
+  .ab-k{font-size:10.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;
+    color:var(--faint);margin:0 0 9px}
+  .ab-def{margin-bottom:26px}
+  .ab-lede{font-size:15.5px;line-height:1.6;color:var(--text);margin:0 0 14px;max-width:64ch}
+  .ab-lede b{font-weight:700}
+  .ab-sub{font-size:13px;color:var(--muted);margin:0 0 12px}
+  .ab-pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+  /* The pillar this map IS gets the filled treatment. The other three are stated, not
+     sold: they are the rest of the framework and not something this screen delivers. */
+  .ab-pil{position:relative;background:#fff;border:1px solid var(--border);border-left:4px solid var(--pc);
+    border-radius:12px;padding:13px 14px 14px}
+  .ab-pil b{display:block;font-size:13px;font-weight:700;line-height:1.3;margin-bottom:5px}
+  .ab-pil span{display:block;font-size:11.5px;color:var(--muted);line-height:1.5}
+  .ab-pil.on{background:color-mix(in srgb,var(--pc) 8%,#fff);border-color:var(--pc)}
+  .ab-pil em{display:inline-block;margin-top:8px;font-style:normal;font-size:9.5px;font-weight:800;
+    letter-spacing:.04em;text-transform:uppercase;color:#fff;background:var(--pc);border-radius:999px;padding:3px 8px}
+  .ab-why{margin-bottom:26px}
+  .ab-why p{font-size:13.5px;line-height:1.62;color:var(--text);margin:0;max-width:66ch}
+  .ab-goals{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:30px}
+  .ab-goals .ab-k{grid-column:1/-1;margin-bottom:0}
+  .ab-goal{background:#fff;border:1px solid var(--border);border-top:3px solid var(--pc);border-radius:13px;padding:14px 15px 15px}
+  .ab-goal b{display:block;font-family:var(--display);font-size:13.5px;font-weight:600;margin-bottom:6px}
+  .ab-goal p{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+  /* The timeline. One continuous line down the left with a dot per event, so seventy
+     years reads as one run rather than seven cards. */
+  .ab-tl{position:relative}
+  .ab-ev{position:relative;padding:0 0 20px 26px;border-left:2px solid var(--line);margin-left:5px}
+  .ab-ev:last-child{border-left-color:transparent;padding-bottom:4px}
+  .ab-ev::before{content:"";position:absolute;left:-7px;top:3px;width:12px;height:12px;border-radius:50%;
+    background:var(--pc);box-shadow:0 0 0 3px var(--bg)}
+  .ab-yr{font-size:10.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--pc);margin-bottom:3px}
+  .ab-ev-b b{display:block;font-family:var(--display);font-size:14.5px;font-weight:600;letter-spacing:-.01em;margin-bottom:5px}
+  .ab-ev-b p{margin:0;font-size:13px;line-height:1.6;color:#4c4463;max-width:62ch}
+  .ab-foot{margin:22px 0 0;padding-top:16px;border-top:1px dashed var(--border);
+    font-size:12px;line-height:1.6;color:var(--muted);max-width:66ch}
+
   /* === CSS SECTION: IMPACT ============================================================
      The Impact screen. Built by renderImpact(). */
   .impact .goals{margin:6px 0 0;padding-left:18px;display:grid;gap:8px}
@@ -1359,7 +1415,11 @@
   <nav class="mainnav" id="mainnav" aria-label="Main">
     <!-- Labels are what a visitor reads; the ids and view keys behind them do not move.
          D4: renaming a working identifier to match a label costs more than it returns. -->
-    <a class="nav" href="index.html">About</a>
+    <!-- A button, not a link to index.html. That page is a separate scrollytelling build
+         and it drifts; the menu item most likely to be a visitor's first click should not
+         be a one-way door off the map onto the least current thing we have. index.html is
+         untouched and still works, it is just not what About means any more. -->
+    <button class="nav" id="navAbout">About</button>
     <button class="nav" id="navMap" data-view="explore">Culture Map</button>
     <button class="nav" id="navImpact">Impact</button>
     <button class="nav" id="navData">City Context</button>
@@ -1504,6 +1564,21 @@
       <button class="mclose" id="methodClose" aria-label="Close"><span class="ic" data-ic="x" data-s="18"></span></button>
     </div>
     <div class="mbody" id="methodBody"></div>
+  </div>
+</div>
+
+<!-- ABOUT. The framing everything else hangs off: what Restorative Development means,
+     why Clayborn is the root of it, and what this map is for. Body built by
+     renderAbout() in JS SECTION: ABOUT. -->
+<div class="mscrim hidden" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutModalTitle">
+  <div class="dmodal wide">
+    <div class="mhead">
+      <div class="ek">About</div>
+      <h2 id="aboutModalTitle">Culture is the root. Clayborn is where it goes deepest.</h2>
+      <p>A community record of one Memphis corner: what happened here, what it costs to lose it, and what people want to grow next.</p>
+      <button class="mclose" id="aboutClose" aria-label="Close"><span class="ic" data-ic="x" data-s="18"></span></button>
+    </div>
+    <div class="mbody" id="aboutBody"></div>
   </div>
 </div>
 
@@ -4679,6 +4754,97 @@ function wireHoodSort(){
   });
 }
 
+/* === JS SECTION: ABOUT ===============================================================
+   The framing screen. Goals and context FIRST, because that is what a resident, a
+   partner or a funder needs in the first ten seconds, and the timeline underneath it.
+
+   THREE RULES THIS TEXT IS WRITTEN UNDER, and each one has already been broken once
+   somewhere on this project:
+
+   1. PLAIN LANGUAGE. No planner register. Somebody who has never heard the phrase
+      "restorative development" should be able to say it back after the first block.
+   2. NOTHING INVENTED. Every date, number and claim here traces to Project Notes 01 and
+      02, the RestoDev Framework, or the landing page. Where a figure is contested or
+      only reported, it is not here at all.
+   3. NO SEED DATA QUOTED AS TESTIMONY. The landing page's timeline carries a memory
+      attributed to a named Memphian; the nine stories in this app are synthetic
+      placeholders written to demonstrate the format. Putting one in About would be
+      presenting a fabrication as somebody's word about their own grandfather. When real
+      stories replace the seeds, a quote belongs here. Not before.
+
+   The years are a plain array. Editing this screen is editing this array. */
+var ABOUT_TIME=[
+  {yr:"Before 1960",  c:0, t:"A sacred commons",
+   d:"Before it was a symbol, Clayborn was a gathering place: a grand sanctuary where a community organised its own dignity. Culture was the root here long before anybody called it strategy."},
+  {yr:"1968",         c:1, t:"I AM A MAN",
+   d:"Sanitation workers assembled at Clayborn and marched out carrying signs that declared their humanity. Frontline workers, doing the most dangerous job in the city, asking to be seen. This building watched Memphis decide who it was going to be."},
+  {yr:"After 1968",   c:3, t:"The long quiet",
+   d:"Dr. King was assassinated in Memphis that same year. Disinvestment settled in and stayed. The building that held all of it sat waiting, its roof ageing, its stories folded away."},
+  {yr:"2025",         c:4, t:"Bought, and then burned",
+   d:"The Big We bought Clayborn to restore it. That same year an arson attack tore through the temple and two nearby properties, taking roughly three quarters of the building. It could have been the end of the story."},
+  {yr:"2025",         c:2, t:"The city answered",
+   d:"Instead Memphis answered, loudly and from every direction. Strangers turned up. The near-loss pulled in people, institutions and governance that years of asking had not, and it changed what the work could be."},
+  {yr:"Today",        c:1, t:"Rebuilding on the community's terms",
+   d:"The work now is restoring a model, not only a building: shared ownership, a community land trust, a place of refuge. Two and a half acres sit beside the temple, city-owned, still being decided. Meanwhile a Google campus and two data centres are landing within five miles of this corner."},
+  {yr:"Next",         c:0, t:"What grows here",
+   d:"That is the part nobody should write alone, which is why this map has a second half. Every memory on it can be joined by somebody's idea of what should come next, on the same ground, at the same corner."},
+];
+function renderAbout(){
+  var el=$("aboutBody"); if(!el)return;
+  el.innerHTML=
+    '<div class="ab-def">'+
+      '<p class="ab-k">What restorative development means</p>'+
+      '<p class="ab-lede">Restoring a landmark is the <b>start</b> of the work, not the point of it. '+
+        'A building comes back, and it is used as leverage: to put ownership in community hands, to bring '+
+        'health, safety and repair with it, and to break the systems that kept the block poor in the first place. '+
+        'The residency says it shorter. <b>Designing the future by honouring the past.</b></p>'+
+      '<p class="ab-sub">Four pillars carry it. This map is the first one.</p>'+
+      '<div class="ab-pillars">'+
+        [["Storytelling and placemaking","The stories of a place are the foundation you reimagine it from. You are looking at this one.",0,true],
+         ["Community ownership","Wealth and agency held locally: shared ownership, equity, a community land trust.",1,false],
+         ["Public health and safety","Safety led by the community rather than done to it. Third spaces. Healing at scale.",2,false],
+         ["Environmental repair","Nature-based solutions, resilience hubs, and ground that can take the rain and the heat.",3,false]]
+        .map(function(p){
+          return '<div class="ab-pil'+(p[3]?" on":"")+'" style="--pc:'+HOOD_COLORS[p[2]]+'">'+
+            '<b>'+esc(p[0])+'</b><span>'+esc(p[1])+'</span>'+
+            (p[3]?'<em>you are here</em>':'')+'</div>';
+        }).join("")+
+      '</div>'+
+    '</div>'+
+
+    '<div class="ab-why">'+
+      '<p class="ab-k">Why this corner</p>'+
+      '<p>Clayborn Temple is the anchor because the roots are already deepest here. It has the history, '+
+        'it has the buy-in, and it has the pressure: development is arriving on this corner faster than '+
+        'anybody living on it can answer. A map of what people remember, made before the ground changes '+
+        'hands, is a record of who was here and what they wanted. That is worth something in a room where '+
+        'decisions get made.</p>'+
+    '</div>'+
+
+    '<div class="ab-goals">'+
+      '<p class="ab-k">What this map is for</p>'+
+      [["Hold the memory","So what happened on these streets is written down by the people it happened to, not summarised later by somebody else.",0],
+       ["Show the ground","Flood, food, parks, libraries, data centres. The context a story sits in, from public data, with every source named.",2],
+       ["Carry it into rooms","Ownership, funding and planning decisions are being made about this corner right now. This is what residents said, on the record, with consent.",4]]
+      .map(function(g){
+        return '<div class="ab-goal" style="--pc:'+HOOD_COLORS[g[2]]+'"><b>'+esc(g[0])+'</b><p>'+esc(g[1])+'</p></div>';
+      }).join("")+
+    '</div>'+
+
+    '<div class="ab-tl">'+
+      '<p class="ab-k">Seventy years on one corner</p>'+
+      ABOUT_TIME.map(function(e){
+        return '<div class="ab-ev" style="--pc:'+HOOD_COLORS[e.c]+'">'+
+          '<div class="ab-yr">'+esc(e.yr)+'</div>'+
+          '<div class="ab-ev-b"><b>'+esc(e.t)+'</b><p>'+esc(e.d)+'</p></div></div>';
+      }).join("")+
+    '</div>'+
+
+    '<p class="ab-foot">Memphis Roots is built with The Big We as Module 4 of Restorative Development, '+
+      'the framework from the Peace Department residency. Nothing goes on the public map until The Big We '+
+      'approves it, and anybody can ask for their story to be changed or taken down.</p>';
+}
+
 /* === JS SECTION: METHODOLOGY =========================================================
    Where every number came from, on one page, in the words a person would use.
 
@@ -4822,6 +4988,8 @@ function closeMethod(){$("methodModal").classList.add("hidden");}
    read a minute later. */
 function openImpact(){$("impactModal").classList.remove("hidden");renderImpact();}
 function closeImpact(){$("impactModal").classList.add("hidden");}
+function openAbout(){$("aboutModal").classList.remove("hidden");renderAbout();}
+function closeAbout(){$("aboutModal").classList.add("hidden");}
 function openData(){$("dataModal").classList.remove("hidden");renderCityData();}
 function closeData(){$("dataModal").classList.add("hidden");}
 
@@ -4841,10 +5009,13 @@ $("methodClose").addEventListener("click",closeMethod);
 $("methodModal").addEventListener("click",function(e){if(e.target===this)closeMethod();});
 $("impactClose").addEventListener("click",closeImpact);
 $("impactModal").addEventListener("click",function(e){if(e.target===this)closeImpact();});
+$("navAbout").addEventListener("click",openAbout);
+$("aboutClose").addEventListener("click",closeAbout);
+$("aboutModal").addEventListener("click",function(e){if(e.target===this)closeAbout();});
 $("dataClose").addEventListener("click",closeData);
 $("dataModal").addEventListener("click",function(e){if(e.target===this)closeData();});
 // Escape shuts whichever of the two is open. It only knew about City Data.
-document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeData();closeMethod();closeImpact();}});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeData();closeMethod();closeImpact();closeAbout();}});
 $("navMod").addEventListener("click",function(){showView("admin");});
 $("navAdd").addEventListener("click",function(){startCapture();});
 $("backExplore").addEventListener("click",function(){showView("explore");});
