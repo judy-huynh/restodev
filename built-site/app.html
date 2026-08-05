@@ -155,6 +155,19 @@
      rather than four things that happen to sit next to each other. */
   .mainnav{display:flex;align-items:center;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
   .mainnav::-webkit-scrollbar{display:none}
+  /* THE ROW SAYS WHEN IT CONTINUES. Six items need 498px and a 390px phone gives the
+     nav 245, so half the menu sat past the right edge. It has always been scrollable;
+     nothing said so. There is no fade, no arrow, and iOS draws no scrollbar until you
+     are already dragging, so in practice Methodology and Moderate did not exist.
+     A mask rather than an overlaid gradient: the appbar is white here and lilac in the
+     Ground Truth tenant, and a gradient has to name a colour to fade into while a mask
+     fades into whatever is actually behind it.
+     On a CLASS rather than always on, because a fade at an edge with nothing past it
+     is a lie in the other direction. syncNavFade() in JS SECTION: BOOT sets these on
+     scroll and on resize. Both at once when the row is scrolled to the middle. */
+  .mainnav.mr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}
+  .mainnav.ml{-webkit-mask-image:linear-gradient(270deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(270deg,#000 calc(100% - 36px),transparent)}
+  .mainnav.ml.mr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 36px,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,transparent,#000 36px,#000 calc(100% - 36px),transparent)}
   .nav{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;font-weight:600;color:var(--muted);background:none;border:0;padding:8px 12px;border-radius:9px;white-space:nowrap;cursor:pointer;text-decoration:none;transition:.14s}
   .nav:hover{background:var(--bg);color:var(--text)}
   .nav:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -1130,6 +1143,12 @@
      rather than one being an accident of the other. */
   @media(min-width:561px) and (max-width:1024px){
     .explore{grid-template-columns:clamp(272px,38%,340px) 1fr}
+    /* 34px is what the six menu items were over by at 768. Taking it out of the gaps
+       and the horizontal padding costs nothing anybody can see and means an iPad shows
+       the whole menu rather than a scrolling one. The fade still covers the case where
+       a seventh item is added and this stops being true. */
+    .mainnav{gap:0}
+    .nav{padding:8px 10px}
     .p-head{padding:10px 13px 9px}
     .filters{padding:10px 13px 12px}
     .cards{padding:10px 10px 26px}
@@ -1144,6 +1163,12 @@
     .nav{padding:7px 9px;font-size:12.5px}
     .addbtn{padding:9px 13px;font-size:13px;margin-left:4px}
     .addtail{display:none}
+    /* Moderate keeps its padlock and loses its word: 95px back out of a 245px row for
+       the item a resident is least likely to want. It is still in the row, still in
+       tab order, and still announced in full by its aria-label. This is the cheap half
+       of the overflow; the fade is the honest half. */
+    .nav.quiet .navtxt{display:none}
+    .nav.quiet{padding:7px 10px}
 
     /* the drawer.
        --peek is how much of it shows before anybody touches it, and it is a variable
@@ -1218,8 +1243,12 @@
     <button class="nav" id="navImpact" data-view="impact">Impact</button>
     <button class="nav" id="navData">City Context</button>
     <button class="nav" id="navMethod">Methodology</button>
-    <!-- The padlock says this one is not for visitors, before they click it. -->
-    <button class="nav quiet" id="navMod" data-view="admin"><span class="navlock" data-ic="lock" data-s="12"></span>Moderate</button>
+    <!-- The padlock says this one is not for visitors, before they click it. The label
+         is in a span so the phone can drop it and keep the padlock: the word costs 95px
+         of a 245px row, and a moderator at an event knows to look for the lock. The
+         aria-label carries the full name at every width, so nothing is lost to anyone
+         reading it aloud. -->
+    <button class="nav quiet" id="navMod" data-view="admin" aria-label="Moderate, sign in required" title="Moderate"><span class="navlock" data-ic="lock" data-s="12"></span><span class="navtxt">Moderate</span></button>
   </nav>
   <!-- No leading space inside the span: the button is inline-flex WITH a gap, so a space
        here is drawn on top of the gap and "Share  Your" ends up with a visible double
@@ -4351,6 +4380,9 @@ function dreamBox(s){
 function showView(v){["explore","capture","thanks","admin","impact"].forEach(function(n){$("v-"+n).classList.toggle("hidden",n!==v);});
   // The nav shows which of these you are looking at, which it never used to.
   document.querySelectorAll("#mainnav [data-view]").forEach(function(b){b.classList.toggle("on",b.dataset.view===v);});
+  // ...and on a narrow screen it scrolls that item into the row, so the highlight is
+  // somewhere you can see it rather than 200px past the right edge.
+  if(typeof scrollNavToActive==="function")scrollNavToActive();
   if(v==="explore"){initMap();setTimeout(function(){map.invalidateSize();},60);}
   if(v==="admin")renderAdmin();
   if(v==="impact")renderImpact();}
@@ -4681,6 +4713,31 @@ function onMeFailed(){
   meWatching=false;map.stopLocate();
   toast("Couldn't get your location. Check location permission for this site.");
 }
+/* The main nav scrolls sideways on a narrow screen and used to do it silently. These
+   two classes are the only thing telling a person the row continues, so they have to be
+   true: `mr` only while there is something past the right edge, `ml` only past the left.
+   Painted on permanently, a fade at the end of a row that has ended is a lie, and the
+   next person to see it fully scrolled would go looking for the item that is not there.
+   Styles are in CSS SECTION: APP BAR AND NAV. */
+function syncNavFade(){
+  var n=$("mainnav");if(!n)return;
+  var max=n.scrollWidth-n.clientWidth;
+  n.classList.toggle("ml",n.scrollLeft>2);
+  n.classList.toggle("mr",n.scrollLeft<max-2);
+}
+$("mainnav").addEventListener("scroll",syncNavFade,{passive:true});
+window.addEventListener("resize",syncNavFade);
+/* Land on the screen you are actually looking at. Opening ?mode=admin or the
+   Methodology view on a phone used to leave the row scrolled to the far left, with the
+   highlighted item off the edge, so the menu disagreed with the page. `nearest` on both
+   axes: the row is the only thing that should move. */
+function scrollNavToActive(){
+  var on=document.querySelector("#mainnav .nav.on");
+  if(on&&on.scrollIntoView)on.scrollIntoView({inline:"nearest",block:"nearest"});
+  syncNavFade();
+}
+syncNavFade();
+
 renderLayerPanel();
 $("lpHead").addEventListener("click",function(){var c=$("layerPanel").classList.toggle("collapsed");this.setAttribute("aria-expanded",c?"false":"true");});
 /* Not apply(): typing should not re-pick the spotlight or redraw the kind chips on every
