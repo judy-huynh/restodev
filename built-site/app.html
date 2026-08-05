@@ -953,6 +953,9 @@
 
   /* === CSS SECTION: IMPACT ============================================================
      The Impact screen. Built by renderImpact(). */
+  .impact .goals{margin:6px 0 0;padding-left:18px;display:grid;gap:8px}
+  .impact .goals li{font-size:13px;line-height:1.55;color:var(--text)}
+  .impact .goals li b{font-weight:700}
   .impact{max-width:920px;margin:0 auto;padding:24px 20px 60px;height:100%;overflow:auto}
   .impact h2{font-family:var(--display);font-size:1.5rem;margin:0 0 4px;letter-spacing:-.01em}
   .impact .sub{color:var(--muted);font-size:13px;margin:0 0 20px;max-width:64ch}
@@ -1060,7 +1063,8 @@
   <nav class="mainnav" id="mainnav" aria-label="Main">
     <a class="nav" href="index.html">The Story</a>
     <button class="nav" id="navMap" data-view="explore">The Map</button>
-    <button class="nav" id="navImpact" data-view="impact">Impact</button>
+    <!-- The key stays "impact"; only the word people read changed. D4. -->
+    <button class="nav" id="navImpact" data-view="impact">The Collection</button>
     <button class="nav" id="navData">City Data</button>
     <button class="nav" id="navMethod">Methodology</button>
     <button class="nav quiet" id="navMod" data-view="admin">Moderate</button>
@@ -5474,8 +5478,32 @@ $("reseed").addEventListener("click",async function(){await refreshStories();toa
 $("signout").addEventListener("click",function(){supaLogout();toast("Signed out");renderAdmin();});
 
 
-/* === JS SECTION: IMPACT SCREEN =======================================================
-   Counts and bars. Reads the same store as everything else. */
+/* === JS SECTION: THE COLLECTION ======================================================
+   What this holds, what it promises the people in it, and what it is for.
+
+   It used to be called Impact and it was a metrics dashboard: seven KPIs, a "data-backed
+   prospectus" tone, and a panel counting SPACES, which is SEEDED DEMO DATA. The Open
+   Spaces layer came off the map on 2026-08-03 for describing itself as samples on a live
+   map, and the moderation path for space proposals was found to be dead code and deleted
+   on 2026-08-04. So this page was reporting a number nobody could act on, from data nobody
+   entered, about a feature that did not work. A dashboard with one fictional number on it
+   is not six-sevenths trustworthy, it is untrusted. All of it is gone.
+
+   THE AUDIENCE IS MEMPHIS RESIDENTS. Judy decided that on 2026-08-04, and it changes the
+   page rather than its tone. It answers "what happened to what I gave you, and who else is
+   in this with me", not "is this project performing". So: no impact, no KPIs, no
+   prospectus. Those are investor words.
+
+   THE CONSENT PANEL LEADS, because for somebody who gave a story the first question is
+   what happens to it and who is allowed to quote it. It is also the one panel a funder has
+   not seen a hundred times.
+
+   FIVE STORIES IS NOT A PROBLEM HERE. It is embarrassing on a metrics dashboard and
+   completely fine on a page that says five neighbours have told us something and here they
+   are. Choosing the community as the audience is what makes the honesty easy.
+
+   The internal key stays "impact" on purpose. See D4: renaming a working identifier to
+   match a label costs more than it returns. */
 function renderImpact(){
   var pub=publicStories(),all=STORIES;
   var approved=all.filter(function(s){return s.status==="approved";});
@@ -5483,18 +5511,18 @@ function renderImpact(){
   var voices=pub.filter(function(s){return s.audio;}).length;
   var photos=pub.filter(function(s){return s.photo;}).length;
   var hoods=new Set(pub.map(function(s){return s.hood;}));
+  var eras=new Set(pub.map(function(s){return s.era;}).filter(Boolean));
   var visions=pub.filter(function(s){return s.kind==="future";}).length;
   var memories=pub.length-visions;
   var freedom=approved.filter(function(s){return s.inst;}).length;
   var heritage=approved.filter(function(s){return s.vis==="heritage";}).length;
+  var named=approved.filter(function(s){return s.vis==="full"||s.vis==="first";}).length;
   var pct=approved.length?Math.round(freedom/approved.length*100):0;
-  var byC={};pub.forEach(function(s){byC[s.campaign]=(byC[s.campaign]||0)+1;});
-  var campRows=Object.keys(byC).sort(function(a,b){return byC[b]-byC[a];}).map(function(c){return{label:(CAMPAIGNS[c]?CAMPAIGNS[c].label:c),value:byC[c]};});
+  // Affirms now belong to every story, not only visions, so this counts all of them.
+  var standing=pub.reduce(function(a,s){return a+affirmCount(s);},0);
   var byH={};pub.forEach(function(s){byH[s.hood]=(byH[s.hood]||0)+1;});
   var hoodRows=Object.keys(byH).sort(function(a,b){return byH[b]-byH[a];}).map(function(h){return{label:h,value:byH[h]};});
-  var propCount=SPACES.reduce(function(a,sp){return a+(sp.proposals?sp.proposals.length:0);},0);
-  var cosignCount=SPACES.reduce(function(a,sp){return a+(sp.proposals?sp.proposals.reduce(function(b,p){return b+p.cosigns;},0):0);},0);
-  var dreamsAffirmed=pub.filter(function(s){return s.kind==="future";}).reduce(function(a,s){return a+(s.affirms||0);},0);
+
   function bars(rows,color){
     /* concat([1]) keeps the divisor off zero when every row is empty. */
     var max=Math.max.apply(null,rows.map(function(r){return r.value;}).concat([1]));
@@ -5505,61 +5533,81 @@ function renderImpact(){
     }).join("");
   }
   function kpi(n,l,s){return '<div class="kpi"><div class="n">'+n+'</div><div class="l">'+l+'</div>'+(s?'<div class="s">'+s+'</div>':"")+'</div>';}
+
+  /* What the map can already say, computed rather than written. "26,725 people live within
+     five miles of a data centre and not one of them has a public library" is a finding. It
+     is also the difference between this page and a metrics dashboard: it is about Memphis,
+     not about the project. Drawn only when the data is actually loaded, and it says the
+     library part only when the count really is zero. */
+  var ringLines=(DATACENTERS||[]).map(function(f){
+    var d=((f.properties.profile||{})["5"])||{},a=d.assets||{};
+    if(d.population==null)return "";
+    var bits=num(d.population)+" people live within five miles of "+esc(f.properties.operator+" "+f.properties.name);
+    if(a.libraries===0)bits+=", and not one of them has a public library nearby";
+    else if(a.libraries!=null)bits+=", sharing "+a.libraries+" public "+(a.libraries===1?"library":"libraries");
+    if(d.povertyPct!=null)bits+=". About "+Math.round(d.povertyPct)+" in every 100 are living in poverty";
+    return '<li>'+bits+'.</li>';
+  }).filter(Boolean).join("");
+
   $("impactBody").innerHTML=
-    '<h2>Impact &amp; Transparency</h2>'+
-    '<p class="sub">A living account of what this collection holds: for The Big We, for '+
-      'funders, and for the community itself. Memphis is tired of being studied while the '+
-      'streets stay the same. This page exists so the people who give their stories can see '+
-      'what those stories are building. These are the <b>warm data</b>, the lived and '+
-      'cultural record, that the hard numbers cannot hold on their own.</p>'+
-    '<div class="ethos-note"><b>Every number here is a person who trusted us with a memory or a dream.</b> The Big We stewards each one. Nothing reaches a funder or a city agency except what a contributor said it could. That is what "data for freedom" means, and it is measured below.</div>'+
-    '<div class="kpis">'+
-      kpi(pub.length,"Stories rooted","live on the public map")+
-      kpi(hoods.size,"Neighborhoods","across Memphis")+
-      kpi(voices,"Voices recorded","oral histories")+
-      kpi(photos,"Photos shared","")+
-      kpi(memories+" · "+visions,"Memories · Visions","past &amp; future")+
-      kpi(pending,"In review","awaiting The Big We")+
-      kpi(propCount,"Space ideas","claims on the commons")+
-      kpi(dreamsAffirmed,"Dreams affirmed","‘you’re not alone’")+
-    '</div>'+
-    '<div class="ipanel"><h3>Stories by event &amp; campaign <span>where they were collected</span></h3>'+bars(campRows,"#17C3B2")+'</div>'+
-    '<div class="ipanel"><h3>Neighborhood coverage <span>where more listening is needed</span></h3>'+bars(hoodRows,"#8338EC")+'</div>'+
+    '<h2>What we are holding</h2>'+
+    '<p class="sub">This is a record Memphis is making of itself, one story at a time. '+
+      'Memphis is tired of being studied while the streets stay the same, so this page is '+
+      'not a report card on us. It is here so that anybody who has given a story, or is '+
+      'thinking about it, can see exactly what happens to it and who else is in this.</p>'+
+
+    /* Consent first. Everything else on this page is a detail next to "what happens to
+       what I told you". */
     '<div class="ipanel">'+
-      '<h3>Honoring the past · imagining 2068 <span>memories vs. visions</span></h3>'+
-      '<div class="split">'+
-        /* flex never reaches 0, or a side with no stories collapses to a sliver that
-           reads as a rendering fault rather than as a count of zero. */
-        '<div class="seg" style="background:'+KIND.memory.color+';flex:'+Math.max(memories,0.001)+'">'+
-          memories+' past</div>'+
-        '<div class="seg" style="background:'+KIND.future.color+';flex:'+Math.max(visions,0.001)+'">'+
-          visions+' future</div>'+
-      '</div>'+
-    '</div>'+
-    '<div class="ipanel">'+
-      '<h3>Data for freedom <span>consent, in the open</span></h3>'+
-      '<div class="bar"><span class="bl">OK to cite to city partners</span>'+
+      '<h3>What happens to your story <span>you decide, every time</span></h3>'+
+      '<div class="bar"><span class="bl">Said yes to being quoted to the city</span>'+
         '<div class="bt"><div class="bf" style="width:'+pct+'%;background:var(--ok)"></div></div>'+
         '<span class="bv">'+pct+'%</span></div>'+
       '<p class="note">'+
-        freedom+' of '+approved.length+' contributors opted in to let The Big We cite their '+
-        'story (anonymized) when advocating with the city. '+heritage+' chose '+
-        'heritage-record-only, held privately, never public.</p>'+
+        (approved.length
+          ? freedom+' of '+approved.length+' people said The Big We may quote their story, with their name taken off, when arguing for Memphis with the city. '+
+            named+' chose to be named on the map. '+
+            (heritage?heritage+' asked to be kept in the private record only, and are not shown publicly anywhere.'
+                     :'Anyone can ask to be kept in the private record instead, and never shown publicly.')
+          : 'Nobody has shared a story yet. When they do, each person chooses whether they are named, and whether their words may be quoted to the city.')+
+      '</p>'+
+      '<p class="note">You can change your mind. Ask The Big We and it changes, or comes down.</p>'+
     '</div>'+
+
     '<div class="ipanel">'+
-      '<h3>Commons: space being re-permissioned '+
-        '<span>after Jayne Engle · Permissioning the City</span></h3>'+
-      SPACES.map(function(sp){
-        var pc=sp.proposals?sp.proposals.length:0;
-        var cc=sp.proposals?sp.proposals.reduce(function(b,p){return b+p.cosigns;},0):0;
-        return '<div class="bar"><span class="bl">'+esc(sp.name)+'</span>'+
-          '<div class="bt"><div class="bf" style="width:'+Math.min(100,cc*6+pc*4)+
-            '%;background:var(--gold)"></div></div>'+
-          '<span class="bv">'+pc+'</span></div>';
-      }).join("")+
-      '<p class="note">'+
-        propCount+' proposed uses · '+cosignCount+' co-signs · '+dreamsAffirmed+
-        ' dreams affirmed. Underused space claimed back as a commons.</p>'+
+      '<h3>What is in here so far <span>a beginning, not a total</span></h3>'+
+      '<div class="kpis">'+
+        kpi(pub.length,"Stories","on the public map")+
+        kpi(hoods.size,"Neighborhoods","so far")+
+        kpi(voices,"Voices recorded","in someone&rsquo;s own voice")+
+        kpi(photos,"Photographs","")+
+        kpi(eras.size,"Time periods","from before 1960 to 2068")+
+        kpi(memories+" &middot; "+visions,"Memories &middot; Ideas","what was &middot; what could be")+
+        kpi(standing,"People who said &ldquo;me too&rdquo;","on someone else&rsquo;s story")+
+        kpi(pending,"Waiting to be read","by The Big We")+
+      '</div>'+
+      '<p class="note">Small numbers, and that is what a beginning looks like. Every one of '+
+        'them is somebody who decided their corner of Memphis was worth writing down.</p>'+
+    '</div>'+
+
+    (hoodRows.length?'<div class="ipanel"><h3>Where the stories have come from '+
+      '<span>and where nobody has been asked yet</span></h3>'+bars(hoodRows,"#8338EC")+
+      '<p class="note">A short bar is not a quiet neighborhood. It is one we have not '+
+        'reached yet.</p></div>':"")+
+
+    '<div class="ipanel">'+
+      '<h3>What this is for <span>why we are asking at all</span></h3>'+
+      '<p class="note">Three things, said plainly:</p>'+
+      '<ul class="goals">'+
+        '<li><b>A Cultural District the city has to recognise.</b> Not a plaque. A record of '+
+          'what is already here, in the words of the people who kept it going.</li>'+
+        '<li><b>Investment reaching the neighborhoods carrying the cost.</b> The data '+
+          'centres are being built next to the people with the least, and the map can show '+
+          'that street by street.</li>'+
+        '<li><b>Culture treated as the root, not the decoration.</b> Development that starts '+
+          'from what a place already is.</li>'+
+      '</ul>'+
+      (ringLines?'<p class="note">What the map can already say toward that:</p><ul class="goals">'+ringLines+'</ul>':"")+
     '</div>';
 }
 
