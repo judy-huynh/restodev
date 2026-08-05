@@ -1237,9 +1237,42 @@ var SUBCATS={
   future:["Memphis 2068","Food and Land","Housing","Youth","Safety","Culture"]
 };
 function subcatsFor(k){return SUBCATS[k]||SUBCATS[LEGACY_KIND[k]]||[];}
+/* WHICH ERAS BELONG TO WHICH KIND. Judy, 2026-08-04.
+   A memory is about a time that happened. An idea is about one that has not. Offering
+   "Before 1960" for something somebody wants to grow is nonsense, and offering "Memphis
+   2068" on a memory is worse than nonsense: it files a vision as history, and this map's
+   whole job is keeping those two apart.
+
+   Only the places where somebody is FILING a story read this: the intake form and the
+   moderator's editor. The public filter and the desk filter still offer every era,
+   because a reader is looking across both kinds at once. */
+var KIND_ERAS={
+  memory:["before1960","civilrights","eighties","recent","today"],
+  future:["tomorrow","future2065"]
+};
+function erasFor(k){
+  var keys=KIND_ERAS[k]||KIND_ERAS[LEGACY_KIND[k]];
+  if(!keys)return ERAS.slice();
+  return ERAS.filter(function(e){return keys.indexOf(e[0])>-1;});
+}
+function eraFitsKind(era,k){return !era||erasFor(k).some(function(e){return e[0]===era;});}
+/* An idea needs a default, because both of its eras are reasonable and picking one saves a
+   decision. A memory does not: which decade it happened in is the whole question, and
+   guessing it would put a wrong answer on somebody's story. */
+function defaultEraFor(k,campaign){
+  return k==="future"?(campaign==="reimagine2065"?"future2065":"tomorrow"):"";
+}
 /* The choices for one story: the list for its kind, plus whatever it already carries.
    Without that second half, renaming a word in SUBCATS would make every story holding the
    old word quietly lose it the next time a moderator opened the editor and saved. */
+/* The eras this story may be filed under: the list for its kind, plus whatever it already
+   carries. Without the second half, opening an old story whose era does not match its kind
+   would silently move it to a different decade the moment a moderator saved. */
+function eraOptions(s){
+  var list=erasFor(s.kind);
+  if(s.era&&!list.some(function(e){return e[0]===s.era;}))list=list.concat([[s.era,eraLabel(s.era)+" (does not fit this type)"]]);
+  return list;
+}
 function subcatOptions(s){
   var list=subcatsFor(s.kind).slice();
   if(s.subcategory&&list.indexOf(s.subcategory)<0)list.push(s.subcategory);
@@ -3881,8 +3914,11 @@ var CAPTURE_STEPS=[
     $("ko").querySelectorAll("[data-k]").forEach(function(el){el.addEventListener("click",function(){
       if(draft.kind===el.dataset.k)return;
       draft.kind=el.dataset.k;
-      // An idea is about a time that has not happened yet, so the era default follows.
-      if(draft.kind==="future"&&(!draft.era||draft.era==="today"))draft.era=draft.campaign==="reimagine2065"?"future2065":"tomorrow";
+      /* The eras change with the kind, so an era chosen under the old one may no longer
+         exist. Drop it rather than carry a hidden value the chips cannot show: an idea
+         quietly still marked "1980s-90s" would file a vision as history. */
+      // Empty counts as needing the default too: an idea should arrive with one lit.
+      if(!draft.era||!eraFitsKind(draft.era,draft.kind))draft.era=defaultEraFor(draft.kind,draft.campaign);
       renderStep();
     });});
     // Said once, on the first screen, before anybody has invested anything.
@@ -3957,7 +3993,8 @@ var CAPTURE_STEPS=[
     window.__suggestName=suggestName;   // initPinMap calls this after a manual move
     window.__refreshStep=refresh;       // setDraftLoc calls this, see above
 
-    $("er").innerHTML=ERAS.map(function(e){return '<button type="button" class="chip'+(draft.era===e[0]?" on":"")+'" data-e="'+e[0]+'" aria-pressed="'+(draft.era===e[0])+'">'+esc(e[1])+'</button>';}).join("");
+    // Only the eras that belong to what they said they were sharing. See KIND_ERAS.
+    $("er").innerHTML=erasFor(draft.kind).map(function(e){return '<button type="button" class="chip'+(draft.era===e[0]?" on":"")+'" data-e="'+e[0]+'" aria-pressed="'+(draft.era===e[0])+'">'+esc(e[1])+'</button>';}).join("");
     b.querySelectorAll("[data-e]").forEach(function(el){el.addEventListener("click",function(){
       draft.era=el.dataset.e;
       b.querySelectorAll("#er .chip").forEach(function(c){c.classList.remove("on");c.setAttribute("aria-pressed","false");});
@@ -4069,7 +4106,7 @@ function captureStepsFor(d){
 var draft=null,stepIdx=0,STEPS=[],mediaRec,chunks=[],pinMap,pinMarker,thanksMap;
 var campaignParam="web",eventParam="",captureMode="web";
 function startCapture(kind){
-  var defEra=kind==="future"?(campaignParam==="reimagine2065"?"future2065":"tomorrow"):"";
+  var defEra=defaultEraFor(kind,campaignParam);
   // locSource records where the coordinate actually came from. "unset" means the
   // person never placed it, and a story must not submit that way: an unplaced pin
   // used to silently file the story at Clayborn.
@@ -4620,7 +4657,7 @@ function renderEditor(){
         NEIGHBORHOODS.map(function(n){return '<option'+(n.n===s.hood?" selected":"")+'>'+esc(n.n)+'</option>';}).join("")+
         '<option'+(s.hood===HOOD_OTHER?" selected":"")+'>'+esc(HOOD_OTHER)+'</option></select></div>'+
       '<div><label class="efl" for="mEra">Era</label><select class="ti" id="mEra">'+
-        ERAS.map(function(e){return '<option value="'+e[0]+'"'+(e[0]===s.era?" selected":"")+'>'+esc(e[1])+'</option>';}).join("")+'</select></div>'+
+        eraOptions(s).map(function(e){return '<option value="'+e[0]+'"'+(e[0]===s.era?" selected":"")+'>'+esc(e[1])+'</option>';}).join("")+'</select></div>'+
       '<div><label class="efl" for="mKind">Story type</label><select class="ti" id="mKind">'+
         kindKeys().map(function(x){return '<option value="'+x+'"'+(x===s.kind?" selected":"")+'>'+esc(KIND[x].label)+'</option>';}).join("")+'</select></div>'+
     '</div>'+
@@ -4732,6 +4769,7 @@ function renderEditor(){
   $("mKind").addEventListener("change",function(){
     s.kind=this.value;
     if(s.subcategory&&subcatsFor(s.kind).indexOf(s.subcategory)<0)s.subcategory="";
+    if(!s.era||!eraFitsKind(s.era,s.kind))s.era=defaultEraFor(s.kind,s.campaign);
     renderEditor();
   });
   $("mSub").addEventListener("change",function(){s.subcategory=this.value;markUnsaved();});
