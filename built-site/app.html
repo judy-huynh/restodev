@@ -227,6 +227,37 @@
   .cdtable tbody tr:hover{background:var(--bg)}
   .cdtable tr:last-child td{border-bottom:0}
   .cdtable .cdw{display:block;font-size:10.5px;color:var(--muted);font-weight:400;white-space:normal;max-width:34ch}
+  /* --- the Methodology variant -------------------------------------------------------
+     Same table, one column doing a different job. City Data's cells are numbers and
+     names, so nowrap is right there. Methodology's "Who publishes it" carries a whole
+     paragraph of provenance, and nowrap turned each flood row into a single line
+     hundreds of characters wide. The most important sentence on the page — every
+     published percentage is computed from the full-resolution geometry, never from the
+     simplified drawing file — sat past the right edge of a horizontal scroll almost
+     nobody drags. A caveat you have to go looking for is not a caveat.
+     table-layout:fixed so one long cell cannot decide the width of the other three. */
+  .cdtable.wraps{table-layout:fixed;width:100%}
+  .cdtable.wraps th,.cdtable.wraps td{white-space:normal;vertical-align:top}
+  .cdtable.wraps td.n,.cdtable.wraps th.n{white-space:nowrap}
+  .cdtable.wraps th:nth-child(1){width:25%}
+  .cdtable.wraps th:nth-child(2){width:13%}
+  .cdtable.wraps th:nth-child(3){width:44%}
+  .cdtable.wraps th:nth-child(4){width:18%}
+  .cdtable.wraps .cdw{max-width:none;margin-top:3px}
+  .cdtable.wraps td.cds{line-height:1.5}
+  /* On a phone four columns of prose is four narrow gutters. Each row becomes a block
+     and each cell says what it is, from data-l on the cell rather than from a rule that
+     counts columns and breaks when one is added. */
+  @media(max-width:560px){
+    .cdtable.wraps,.cdtable.wraps tbody,.cdtable.wraps tr,.cdtable.wraps td{display:block;width:auto}
+    .cdtable.wraps thead{display:none}
+    .cdtable.wraps tr{padding:13px 0;border-bottom:1px solid var(--line)}
+    .cdtable.wraps tr:last-child{border-bottom:0}
+    .cdtable.wraps td{border:0;padding:1px 0;text-align:left}
+    .cdtable.wraps td.n{text-align:left}
+    .cdtable.wraps td[data-l]::before{content:attr(data-l) " ";font-size:10px;font-weight:800;
+      letter-spacing:.02em;color:var(--faint)}
+  }
   .cdtable .cds{font-size:11px;color:var(--muted)}
   .cdtable th:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .mcard{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:var(--shadow-sm);margin-bottom:16px}
@@ -4729,16 +4760,26 @@ function renderMethodology(){
     });
     var acsWhen=niceDate(all.prof&&all.prof.retrieved);
     el.innerHTML=
-      '<div class="cdwrap"><table class="cdtable"><thead><tr>'+
+      // `wraps`, not the City Data table's default: this one's third column is a
+      // paragraph, and data-l lets each cell name itself once the rows stack on a
+      // phone. See CSS SECTION: CITY DATA MODAL.
+      '<div class="cdwrap"><table class="cdtable wraps"><thead><tr>'+
         '<th>Layer</th><th class="n">Things on it</th><th>Who publishes it</th><th>Pulled</th>'+
       '</tr></thead><tbody>'+
-      rows.map(function(r){
+      rows.map(function(r,i){
+        /* The two flood bands are two rows out of one file, so they carry the same
+           90-word provenance paragraph, and printing it twice in a row buried the
+           thing it says. Repeated only when it repeats immediately: a source that
+           comes back further down the table still gets stated in full, because
+           "as above" is only true when above is the line you just read. */
+        var same=i>0&&rows[i-1].src===r.src&&r.src;
         return '<tr><td><b>'+esc(r.name)+'</b><span class="cdw">'+esc(r.what||"")+'</span></td>'+
-          '<td class="n">'+(r.n!=null?num(r.n):"—")+'</td>'+
-          '<td class="cds">'+esc(r.src||"—")+'</td>'+
+          '<td class="n" data-l="On it:">'+(r.n!=null?num(r.n):"—")+'</td>'+
+          '<td class="cds" data-l="Published by">'+
+            (same?'<i>Same file and method as the row above.</i>':esc(r.src||"—"))+'</td>'+
           // A file that never recorded when it was pulled says so. Better an admitted
           // gap than a date somebody invented.
-          '<td class="cds">'+(r.when?esc(r.when):'<i>not recorded</i>')+'</td></tr>';
+          '<td class="cds" data-l="Pulled">'+(r.when?esc(r.when):'<i>not recorded</i>')+'</td></tr>';
       }).join("")+
       '</tbody></table></div>'+
       '<div class="mcard"><div class="mch"><div><h3>People, income, rent, flood share</h3>'+
