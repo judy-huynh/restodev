@@ -1062,6 +1062,7 @@
     <button class="nav" id="navMap" data-view="explore">The Map</button>
     <button class="nav" id="navImpact" data-view="impact">Impact</button>
     <button class="nav" id="navData">City Data</button>
+    <button class="nav" id="navMethod">Methodology</button>
     <button class="nav quiet" id="navMod" data-view="admin">Moderate</button>
   </nav>
   <button class="addbtn" id="navAdd">+ Share<span class="addtail"> Your Story</span></button>
@@ -1179,6 +1180,18 @@
 <div class="toast" id="toast"></div>
 
 <!-- DATA MODAL -->
+<div class="mscrim hidden" id="methodModal" role="dialog" aria-modal="true" aria-labelledby="methodModalTitle">
+  <div class="dmodal">
+    <div class="mhead">
+      <div class="ek">Methodology</div>
+      <h2 id="methodModalTitle">Where every number on this map comes from</h2>
+      <p>What we counted, who publishes it, when we pulled it, and what each figure can and cannot tell you. Written to be read by somebody who lives here, not only by somebody who works with data.</p>
+      <button class="mclose" id="methodClose" aria-label="Close"><span class="ic" data-ic="x" data-s="18"></span></button>
+    </div>
+    <div class="mbody" id="methodBody"></div>
+  </div>
+</div>
+
 <div class="mscrim hidden" id="dataModal" role="dialog" aria-modal="true" aria-labelledby="dataModalTitle">
   <div class="dmodal">
     <div class="mhead">
@@ -4075,15 +4088,147 @@ function wireHoodSort(){
     th.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}});
   });
 }
+
+/* === JS SECTION: METHODOLOGY =========================================================
+   Where every number came from, on one page, in the words a person would use.
+
+   The panel was stripped to numbers and labels on 2026-08-04 and that was right: the
+   community should get the figure cleanly, not a footnote per block. But the method then
+   had nowhere to live, and a map that will be read in a mayor's office has to be able to
+   say where each figure came from. This is that place, and it is ONE place.
+
+   The layer table is DERIVED from cityLayerRows() and from the files themselves, so a
+   layer cannot be on the map and missing here, and a date cannot say one thing on this
+   page and another in the data. Nothing in the table is typed. */
+
+/* When a file was pulled, taken from the file. Several record `retrieved` directly; some
+   only say it inside their `source` sentence, so that is read too. Anything that records
+   neither says so, rather than being given a date somebody guessed. A blank here is a
+   to-do that shows itself. */
+function vintageOf(doc){
+  if(!doc)return null;
+  if(doc.retrieved)return String(doc.retrieved);
+  var hay=[doc.source,doc.note].filter(Boolean).join(" ");
+  var m=hay.match(/retrieved\s+(\d{4}-\d{2}-\d{2})/i)||hay.match(/(\d{4}-\d{2}-\d{2})/);
+  return m?m[1]:null;
+}
+function sourceOf(doc,fallback){
+  var v=doc&&doc.source?String(doc.source).replace(/,?\s*retrieved\s+\d{4}-\d{2}-\d{2}\.?/i,"").trim():"";
+  /* A bare endpoint is not an answer to "who publishes this". The neighborhoods file
+     records a maps.memphistn.gov REST url, which is the right thing for the file to keep
+     and the wrong thing to show a resident, so the registry's own words win in that case.
+     Anywhere the file says something in words it is more specific than the registry
+     ("USDA Food and Nutrition Service, SNAP Retailer Locator" against "USDA SNAP") and it
+     is used. */
+  if(!v||/^https?:\/\/\S+$/.test(v))return fallback||v||"";
+  return v;
+}
+/* Plain-language date. "3 August 2026" reads; "2026-08-03" is a filename. */
+function niceDate(iso){
+  if(!iso)return null;
+  try{
+    var d=new Date(iso+"T12:00:00Z");
+    return d.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+  }catch(e){return iso;}
+}
+/* The things a number cannot tell you. Judy's rule for the whole app applies hardest
+   here: no planner jargon, no statistics vocabulary. This page is read by a resident and
+   by a mayor's staffer, and the resident is the harder audience and the one that matters. */
+var METHOD_NOTES=[
+  {t:"Every neighborhood is made of whole census tracts",
+   p:"A census tract is the small area the government already counts people in. Each "+
+     "neighborhood on this map is a group of whole tracts, never half of one. That is why "+
+     "the numbers can be added up honestly: nothing is split, estimated or shared out. "+
+     "It also means our boundaries are close to how people describe their neighborhood, "+
+     "not exactly it."},
+  {t:"A typical income is rebuilt, not averaged",
+   p:"The government publishes how many households fall in each income band, not one "+
+     "figure per neighborhood. So we add up the bands across the whole neighborhood and "+
+     "find the point where half the households are below and half above. We do NOT average "+
+     "the separate figures for each tract, because averaging middles does not give you a "+
+     "middle. Rent is worked out the same way."},
+  {t:"A 1 in 100 chance is not once a century",
+   p:"Ground marked as flooding has about a 1 in 100 chance of flooding in ANY year. It "+
+     "can flood two years running. The phrase “100-year flood” is the most misread one in "+
+     "this whole subject, which is why it is not used anywhere else on this map. Land that "+
+     "floods less often has about a 1 in 500 chance in any year, and it is the ground "+
+     "OUTSIDE the first band, so the two can be added together."},
+  {t:"The count of churches is a floor, not a total",
+   p:"Places of worship come from a map anyone can add to, plus the ones this project "+
+     "knows itself. It does not know every storefront church, and in Memphis that is a lot "+
+     "of them. So the real number is HIGHER than the one shown here. Treat it as “at "+
+     "least this many”."},
+  {t:"A neighborhood can sit in more than one council district",
+   p:"Where it does, we show how much of it falls in each. It matters practically: if your "+
+     "block is split, a request has to be made to two council members, not one."},
+  {t:"Where the ring numbers are less exact",
+   p:"A data centre ring is a circle, and circles cut across tracts. So a ring is counted "+
+     "from the whole tracts it touches, and the page says so on every figure. A "+
+     "neighborhood never does that. Read a ring as close, not as precise."},
+  /* Out of scope for this issue and named anyway. A methodology page that hides a known
+     limitation is not a methodology page. */
+  {t:"What this page does not show yet",
+   p:"Government population figures are estimates from a survey, so each carries a range "+
+     "it could really be. We do not show that range, which means a figure like $33,125 "+
+     "looks more exact than it is. Worth knowing before quoting one to the pound."}
+];
+function renderMethodology(){
+  var el=$("methodBody");if(!el)return;
+  el.innerHTML='<p class="mnote">Reading the data files…</p>';
+  // Same cache the City Data screen fills, so opening both does not fetch twice.
+  cityCounts().then(function(c){
+    return fetch("data/neighborhood-profiles.json",{cache:"no-cache"})
+      .then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
+      .then(function(prof){return {c:c,prof:prof};});
+  }).then(function(all){
+    var rows=cityLayerRows().map(function(L){
+      var got=all.c[L.key]||{},doc=got.doc;
+      return {name:L.name,what:L.what,src:sourceOf(doc,L.src),
+              when:niceDate(vintageOf(doc)),n:got.n};
+    });
+    var acsWhen=niceDate(all.prof&&all.prof.retrieved);
+    el.innerHTML=
+      '<div class="cdwrap"><table class="cdtable"><thead><tr>'+
+        '<th>Layer</th><th class="n">Things on it</th><th>Who publishes it</th><th>Pulled</th>'+
+      '</tr></thead><tbody>'+
+      rows.map(function(r){
+        return '<tr><td><b>'+esc(r.name)+'</b><span class="cdw">'+esc(r.what||"")+'</span></td>'+
+          '<td class="n">'+(r.n!=null?num(r.n):"—")+'</td>'+
+          '<td class="cds">'+esc(r.src||"—")+'</td>'+
+          // A file that never recorded when it was pulled says so. Better an admitted
+          // gap than a date somebody invented.
+          '<td class="cds">'+(r.when?esc(r.when):'<i>not recorded</i>')+'</td></tr>';
+      }).join("")+
+      '</tbody></table></div>'+
+      '<div class="mcard"><div class="mch"><div><h3>People, income, rent, flood share</h3>'+
+        '<p class="sub">The figures in every neighborhood and data centre profile</p></div>'+
+        (acsWhen?'<div class="tot">pulled <b>'+esc(acsWhen)+'</b></div>':'')+'</div>'+
+        '<p class="mcap">American Community Survey, 2024 five-year estimates, by census tract. '+
+        'Flood share is measured against FEMA’s own maps.</p></div>'+
+      METHOD_NOTES.map(function(n){
+        return '<div class="mcard"><div class="mch"><div><h3>'+esc(n.t)+'</h3></div></div>'+
+          '<p class="mcap">'+esc(n.p)+'</p></div>';
+      }).join("");
+  }).catch(function(e){
+    el.innerHTML='<p class="mnote">Could not read the data files just now.</p>';
+    console.warn("methodology:",e);
+  });
+}
+function openMethod(){$("methodModal").classList.remove("hidden");renderMethodology();}
+function closeMethod(){$("methodModal").classList.add("hidden");}
 function openData(){$("dataModal").classList.remove("hidden");renderCityData();}
 function closeData(){$("dataModal").classList.add("hidden");}
 
 /* === JS SECTION: BOOT AND TOP-LEVEL WIRING ===========================================
    Where the nav buttons, modal, geolocation and map events get their listeners. */
 $("navData").addEventListener("click",openData);
+$("navMethod").addEventListener("click",openMethod);
+$("methodClose").addEventListener("click",closeMethod);
+$("methodModal").addEventListener("click",function(e){if(e.target===this)closeMethod();});
 $("dataClose").addEventListener("click",closeData);
 $("dataModal").addEventListener("click",function(e){if(e.target===this)closeData();});
-document.addEventListener("keydown",function(e){if(e.key==="Escape")closeData();});
+// Escape shuts whichever of the two is open. It only knew about City Data.
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeData();closeMethod();}});
 $("navMod").addEventListener("click",function(){showView("admin");});
 $("navAdd").addEventListener("click",function(){startCapture();});
 $("backExplore").addEventListener("click",function(){showView("explore");});
