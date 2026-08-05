@@ -1588,7 +1588,19 @@ async function supaFetchApproved(){
    extension preserved so a .mov stays a .mov and a PDF stays a PDF. Uploads as the
    signed-in moderator when there is a session, and as the site otherwise, which is what
    the public intake form already does. */
-var MEDIA_MAX=52428800;   // 50MB; past this the browser upload is the wrong tool
+/* Judy confirmed the Supabase storage limit is 50MB, set by her, 2026-08-04.
+   This is 50,000,000 and NOT 52,428,800, deliberately. "50MB" is ambiguous: 50 MiB is
+   52,428,800 bytes and 50 million bytes is 50,000,000, and a file in the 2.3MB gap
+   between them passes a binary check here and can still be refused on upload. Sitting
+   under both readings means a person always gets our sentence about the limit instead of
+   a failed upload, which at an event is the difference between a fixable moment and a
+   story that never arrives. The 2.3MB given up is worth nothing; the failure is not. */
+var MEDIA_MAX=50000000;
+/* Both the size of a file and the size of the limit, printed the same way and off the
+   same number. They used to disagree: the message divided by 1048576 while the limit was
+   written into the sentence by hand, so a file just over the line could read "48MB, over
+   the 50MB limit" and look like a bug in the form rather than a file that is too big. */
+function mb(bytes){return Math.round(bytes/1000000)+"MB";}
 /* What the form will accept, agreed with Judy 2026-08-04. One place, because every one of
    these is SHOWN to the person in one wording and ENFORCED somewhere else, and those two
    drifting apart is how a form starts lying about what it will take.
@@ -1634,7 +1646,7 @@ function mediaKindOf(file){
 }
 async function supaUploadFile(file,kind){
   kind=kind||mediaKindOf(file);
-  if(file.size>MEDIA_MAX)throw new Error((file.name||"That file")+" is "+Math.round(file.size/1048576)+"MB, over the 50MB limit");
+  if(file.size>MEDIA_MAX)throw new Error((file.name||"That file")+" is "+mb(file.size)+", over the "+mb(MEDIA_MAX)+" limit");
   var fallback={photo:"jpg",video:"mp4",audio:"webm",file:"bin"};
   var raw=(file.name||"").split(".").pop();
   var ext=(raw&&raw.length<=5&&/^[a-z0-9]+$/i.test(raw))?raw.toLowerCase():fallback[kind]||"bin";
@@ -4242,7 +4254,7 @@ async function addDraftFiles(files,kind){
                           :"Six photos is the limit. Remove one to add another.");
       break;
     }
-    if(f.size>LIMITS.fileBytes){toast((f.name||"That file")+" is over the 50MB limit");continue;}
+    if(f.size>LIMITS.fileBytes){toast((f.name||"That file")+" is "+mb(f.size)+", over the "+mb(LIMITS.fileBytes)+" limit");continue;}
     if(kind==="video"){
       var secs=await videoSeconds(f);
       if(secs>LIMITS.videoSec){
