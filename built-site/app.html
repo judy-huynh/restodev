@@ -319,6 +319,10 @@
   .sitepage .shaddr{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);line-height:1.45;margin:5px 0 0}
   .sp-desc.gap{margin-bottom:10px}
   .sitepage .sp-desc{font-size:13px;color:var(--text);line-height:1.6;margin:11px 0 0}
+  /* An aerial stands in for a missing photograph, and is dimmed a touch so it never reads
+     as the real thing sitting at the top of the page. */
+  .sp-hero.aerial{filter:saturate(.85) contrast(.95)}
+  .sp-credit b{color:var(--text);font-weight:700}
   .sp-nrhp{margin:10px 0 0;font-size:12px;line-height:1.5;color:var(--muted)}
   .sp-nrhp b{color:var(--text);font-weight:700}
   .sp-nrhp a{color:var(--primaryDark);text-decoration:underline}
@@ -3123,6 +3127,32 @@ function initFilterToggle(){
    uncovered: teaching happens on the left, the map is for pointing.
    `history`, `photo`, `link` and `linkLabel` are optional properties in
    data/cultural.geojson. Each one appears only once it is written. */
+/* Eight of the 24 sites have no photograph and nothing free exists that shows them, so the
+   page opened on a blank where the place should be. Until somebody stands in Memphis with
+   a camera, this shows the ground from above.
+
+   MAPBOX, NOT GOOGLE, and that is a licensing decision rather than a preference. Street
+   View imagery cannot be embedded in a public site without a key and terms, and this
+   project already decided not to redistribute other people's assets casually (D22, on
+   company logos). Mapbox is imagery Judy already pays for, with the same token the map
+   runs on, so it can be shown here and credited properly.
+
+   It is LABELLED as an aerial view and never presented as a photograph of the place. A
+   satellite tile of a rooftop is not a picture of a building, and captioning it honestly
+   is the difference between filling a gap and papering over one. */
+function aerialUrl(f,w,h){
+  var c=f.geometry.coordinates;
+  return "https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/"+
+    c[0]+","+c[1]+",17.5,0/"+(w||640)+"x"+(h||300)+"@2x?access_token="+MAPBOX_TOKEN+
+    "&attribution=false&logo=false";
+}
+/* A link OUT to Street View, for every site. Linking is not embedding: no key, no terms,
+   no imagery redistributed, and it is the fastest way for somebody to see the place as it
+   stands today. */
+function streetViewUrl(f){
+  var c=f.geometry.coordinates;
+  return "https://www.google.com/maps/@?api=1&map_action=pano&viewpoint="+c[1]+","+c[0];
+}
 /* Walking directions to a site, built from its own coordinates. Nothing to maintain and
    nothing to keep in step: move the pin in the geojson and the link moves with it. */
 function directionsUrl(f){
@@ -3167,10 +3197,15 @@ function sitePage(f){
   var hist=(p.history?String(p.history).split(/\n{2,}/):[]);
   return '<div class="sitepage">'+
     // A photo that fails to load removes itself rather than sitting there as a broken box.
-    (p.photo?'<img class="sp-hero" src="'+esc(p.photo)+'" alt="'+esc(p.name)+'" loading="lazy" onerror="this.remove()">':'')+
+    (p.photo?'<img class="sp-hero" src="'+esc(p.photo)+'" alt="'+esc(p.name)+'" loading="lazy" onerror="this.remove()">'
+      // No photograph: the ground from above, said plainly to be exactly that.
+      :'<img class="sp-hero aerial" src="'+esc(aerialUrl(f))+'" alt="Aerial view of '+esc(p.name)+'" loading="lazy" onerror="this.remove()">')+
     // Most of these are Creative Commons, which means the photographer gets named. It is
     // also the honest label: an archive photo of 1890 is not a photo of the corner today.
-    (p.photo&&p.photoCredit?'<p class="sp-credit">'+(p.photoSource?'<a href="'+esc(p.photoSource)+'" target="_blank" rel="noopener">'+esc(p.photoCredit)+'</a>':esc(p.photoCredit))+'</p>':'')+
+    (p.photo
+      ?(p.photoCredit?'<p class="sp-credit">'+(p.photoSource?'<a href="'+esc(p.photoSource)+'" target="_blank" rel="noopener">'+esc(p.photoCredit)+'</a>':esc(p.photoCredit))+'</p>':'')
+      :'<p class="sp-credit">Seen from above &middot; &copy; Mapbox &copy; OpenStreetMap. '+
+       '<b>No photograph of this place yet.</b></p>')+
     '<div class="sp-body">'+
       '<div class="sp-bar"><button class="sp-back" id="siteClear">'+ic("x",12)+' Back to all of Memphis</button>'+
       '<button class="sp-link" id="siteLink">'+ic("join",12)+' Copy link</button></div>'+
@@ -3184,6 +3219,7 @@ function sitePage(f){
       /* Walking, not driving. These sites are within a mile or so of each other and the
          point of the district is that you can walk it. */
       '<a class="sp-link" href="'+esc(directionsUrl(f))+'" target="_blank" rel="noopener">'+ic("pin",12)+' Walking directions</a>'+
+      '<a class="sp-link" href="'+esc(streetViewUrl(f))+'" target="_blank" rel="noopener">'+ic("camera",12)+' See it on Street View</a>'+
       '<button class="shadd" id="siteAdd">'+ic("sprout",13)+' Add a Memory Here</button>'+
     '</div>'+
     '<p class="sp-count">'+(n?ic("star",12)+' '+n+' '+(n===1?"memory":"memories")+' rooted here':ic("star",12)+' No memories here yet. Yours would be the first.')+'</p>'+
