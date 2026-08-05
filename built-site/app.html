@@ -161,8 +161,13 @@
   .nav.on{background:var(--primaryLight);color:var(--primaryDark);font-weight:700}
   .nav.quiet{color:var(--faint)}
   .nav.quiet:hover{color:var(--text)}
-  .addbtn{display:inline-flex;align-items:center;gap:7px;background:var(--text);color:#fff;font-weight:700;font-size:13.5px;padding:10px 17px;border-radius:11px;box-shadow:var(--shadow-sm);flex:none;margin-left:8px}
-  .addbtn:hover{background:#3a2f57}
+  /* The one thing on this bar that asks somebody to do something, so it wears the brand
+     pink the "Add a Memory Here" button already uses rather than the same near-black as
+     the text. gap:5px, not 7: this sits between two words and 7px reads as a typo. */
+  .addbtn{display:inline-flex;align-items:center;gap:5px;background:var(--primary);color:#fff;font-weight:700;font-size:13.5px;padding:10px 18px;border-radius:11px;box-shadow:0 2px 10px -2px rgba(255,71,126,.55);flex:none;margin-left:8px}
+  .addbtn:hover{background:var(--primaryDark);box-shadow:0 3px 14px -2px rgba(216,30,91,.6)}
+  .addbtn:focus-visible{outline:2px solid var(--primaryDark);outline-offset:2px}
+  .navlock{display:inline-flex;opacity:.75}
 
   /* inline icons */
 
@@ -1092,16 +1097,20 @@
     <span class="bk"><b>Memphis Roots</b><span>Culture as a Root &middot; The Big We</span></span>
   </a>
   <nav class="mainnav" id="mainnav" aria-label="Main">
-    <!-- Named for the building, not for an abstraction. STORY-81. -->
-    <a class="nav" href="index.html">Clayborn Temple</a>
-    <button class="nav" id="navMap" data-view="explore">The Map</button>
-    <!-- The key stays "impact"; only the word people read changed. D4. -->
-    <button class="nav" id="navImpact" data-view="impact">The Collection</button>
-    <button class="nav" id="navData">City Data</button>
+    <!-- Labels are what a visitor reads; the ids and view keys behind them do not move.
+         D4: renaming a working identifier to match a label costs more than it returns. -->
+    <a class="nav" href="index.html">About</a>
+    <button class="nav" id="navMap" data-view="explore">Culture Map</button>
+    <button class="nav" id="navImpact" data-view="impact">Impact</button>
+    <button class="nav" id="navData">City Context</button>
     <button class="nav" id="navMethod">Methodology</button>
-    <button class="nav quiet" id="navMod" data-view="admin">Moderate</button>
+    <!-- The padlock says this one is not for visitors, before they click it. -->
+    <button class="nav quiet" id="navMod" data-view="admin"><span class="navlock" data-ic="lock" data-s="12"></span>Moderate</button>
   </nav>
-  <button class="addbtn" id="navAdd">+ Share<span class="addtail"> Your Story</span></button>
+  <!-- No leading space inside the span: the button is inline-flex WITH a gap, so a space
+       here is drawn on top of the gap and "Share  Your" ends up with a visible double
+       space. The gap alone does the spacing. -->
+  <button class="addbtn" id="navAdd">+ Share<span class="addtail">Your Story</span></button>
 </div>
 
 <main>
@@ -1233,7 +1242,7 @@
 <div class="mscrim hidden" id="dataModal" role="dialog" aria-modal="true" aria-labelledby="dataModalTitle">
   <div class="dmodal">
     <div class="mhead">
-      <div class="ek">City Data</div>
+      <div class="ek">City Context</div>
       <h2 id="dataModalTitle">The ground these stories sit on</h2>
       <p>Every layer on this map, where it came from, and what it adds up to in each neighborhood. The layers are the context; the memories go on top.</p>
       <button class="mclose" id="dataClose" aria-label="Close"><span class="ic" data-ic="x" data-s="18"></span></button>
