@@ -3124,18 +3124,178 @@ function assetTile(icon,n,label,cls,sub){
     '<div><b>'+n+'</b><span>'+esc(label)+'</span>'+
     (sub?'<span class="hp-sub">'+esc(sub)+'</span>':'')+'</div></div>';
 }
+/* === JS SECTION: PROFILE BLOCKS ======================================================
+   ONE list of blocks, walked by BOTH the neighborhood profile and the data centre ring.
+
+   They used to be two functions that each hand-assembled their own blocks, so adding a
+   stat to the neighborhood silently did not add it to the ring. That drift is the whole
+   thing this ends: Judy asked that "whatever gets in the neighborhood profile will always
+   automatically get edited in the data center profile as well", because the argument the
+   map is making is a COMPARISON. A ring figure with nothing to be read against cannot be
+   acted on.
+
+   THE DEFAULT IS BOTH. Forgetting to think about it means a new block shows up in both
+   places, not that it goes missing. `where` is only for a question that genuinely differs.
+
+   Each entry:
+     key     what it is, for finding it
+     title   the heading. A function when the ring asks the question differently.
+     icon    the glyph beside it
+     source  who says so, printed small. A function when the honesty differs, which it
+             does: a neighborhood is exact sums over WHOLE tracts, a ring is whole tracts
+             it TOUCHES. Presenting those with the same confidence is how a map gets
+             dismissed in a room where somebody knows the census. See D17 and STORY-54.
+     where   "hood" or "ring" when the question only makes sense for one. Omit for both.
+     render  (d, ctx) -> the block body. Return "" and the block is not drawn AT ALL,
+             heading included, so a shared block on data the ring does not have yet
+             disappears rather than printing a column of dashes.
+
+   ctx: {kind:"hood"|"ring", name, mi, stories}. */
+var PROFILE_BLOCKS=[
+  {key:"who",icon:"join",
+   title:function(ctx){return ctx.kind==="ring"?"Who is inside "+ctx.mi+" mile"+(ctx.mi==="1"?"":"s"):"Who lives here";},
+   source:function(ctx){return ctx.kind==="ring"?"ACS 2024 · whole tracts":"ACS 2024";},
+   render:function(d,ctx){
+     if(d.population==null)return "";
+     return '<div class="hp-head"><b>'+num(d.population)+'</b><span>people live here</span></div>'+
+       // The ring says homes here; a neighborhood already says it in its own header.
+       (ctx.kind==="ring"&&d.housingUnits!=null?'<div class="hp-stat"><span>Homes</span><b>'+num(d.housingUnits)+'</b></div>':"")+
+       cmpRow(d,"blackPct","Black residents")+
+       cmpRow(d,"over65Pct","Elders, 65 and older")+
+       cmpRow(d,"disabledPct","People living with a disability")+
+       /* The basis, on the ring only, because it is the ring that is approximate. A
+          one-mile circle holds no whole tract, so it correctly has no median rather than
+          one borrowed from a bigger area. */
+       (ctx.kind==="ring"?'<p class="hp-note">Counted from '+esc(d.basis||"census tracts")+'. '+
+         (d.tractsMostlyInside?d.tractsMostlyInside+' of '+d.tractsTouched+' tracts sit mostly inside this ring.'
+           :'A '+ctx.mi+'-mile ring is smaller than a census tract, so these are whole tracts the ring touches, not people counted inside it.')+'</p>':"");
+   }},
+
+  /* Youth sits second, directly under who lives here, because it is the same question
+     asked forward. Against the over-65 figure above it makes ageing versus renewal
+     readable in one glance, which is the whole argument for a cultural district as
+     economic development. The ring has none of this yet, so the block does not draw. */
+  {key:"youth",icon:"sprout",title:"Who is coming up",
+   source:function(ctx){return ctx.kind==="ring"?"ACS 2024 · whole tracts":"ACS 2024";},
+   render:function(d){
+     var rows=cmpRow(d,"under18Pct","Kids and teens under 18")+
+       cmpRow(d,"under5Pct","Little kids under 5")+
+       cmpRow(d,"age1824Pct","Young adults, 18 to 24")+
+       // Child poverty is not the poverty rate and is reliably higher. A combined figure
+       // hides it, and it is the number that moves different money.
+       cmpRow(d,"childPovertyPct","Kids growing up poor")+
+       cmpRow(d,"teen1619DisconnectedPct","Teens 16 to 19 not in school and not working");
+     if(!rows&&d.under18==null)return "";
+     return '<div class="hp-head"><b>'+(d.under18!=null?num(d.under18):"—")+'</b><span>kids and teens<br>live here</span></div>'+rows;
+   }},
+
+  {key:"cost",icon:"chart",title:"What it costs to stay",
+   source:function(ctx){return ctx.kind==="ring"?"ACS 2024 · whole tracts":"ACS 2024";},
+   render:function(d){
+     if(d.medianIncome==null&&d.povertyPct==null)return "";
+     return (d.medianIncome!=null
+       // A true pooled median, not a range and not an average of tract medians. See the
+       // source note in neighborhood-profiles.json for the method.
+       ?'<div class="hp-head"><b>'+money(d.medianIncome)+'</b><span>a typical family<br>makes in a year</span></div>'+cmpRow(d,"medianIncome","",true)
+       :"")+
+       incomeBands(d)+
+       (d.medianRent!=null?'<div class="hp-stat ruled"><span>Rent for a home, each month</span><b>'+money(d.medianRent)+'</b></div>':"")+
+       /* The baseline rides along for the ring too, which is the point of sharing this
+          block: 34% in poverty means something once you know most of Memphis is nearer
+          24%. That comparison is what turns an assertion into an argument. */
+       meterIf("Living in poverty",d.povertyPct,50,d.povertyPct>=33?"strain":d.povertyPct>=20?"watch":"ok","povertyPct")+
+       meterIf("Households renting",d.renterPct,100,d.renterPct>=70?"strain":d.renterPct>=55?"watch":"ok","renterPct")+
+       meterIf("Homes sitting empty",d.vacantPct,35,d.vacantPct>=20?"strain":d.vacantPct>=13?"watch":"ok","vacantPct");
+   }},
+
+  {key:"assets",icon:"layers",title:"What is here",
+   source:"City of Memphis · USDA SNAP · OSM",
+   render:function(d){
+     var a=d.assets||{};
+     // The ring calls its groceries foodFull and a neighborhood calls them snapFull. One
+     // question, two field names, reconciled here rather than in two page builders.
+     var groceries=a.snapFull!=null?a.snapFull:a.foodFull;
+     var corner=(a.snapAll!=null&&a.snapFull!=null)?a.snapAll-a.snapFull:null;
+     if(a.libraries==null&&a.centers==null&&a.parks==null&&groceries==null)return "";
+     return '<div class="hp-assets">'+
+       assetTile("book",a.libraries||0,a.libraries===1?"public library":"public libraries")+
+       assetTile("hall",a.centers||0,a.centers===1?"community center":"community centers")+
+       assetTile("tree",a.parks||0,a.parks===1?"park":"parks")+
+       (a.cultural!=null?assetTile("star",a.cultural||0,"Cultural District"):"")+
+       // Food and faith run full width, and last. Both are counts that only mean
+       // something next to a second number, so both carry one. The tiles above are plain
+       // tallies and a half tile says everything there is to say about them.
+       (groceries!=null?assetTile("basket",groceries,groceries===1?"full-service grocery":"full-service groceries"):"")+
+       (corner!=null?assetTile("store",corner,"corner stores"):"")+
+       (a.faith!=null?assetTile("church",a.faith,a.faith===1?"place of worship":"places of worship"):"")+
+     '</div>';
+   }},
+
+  /* Flood and broadband used to sit inside Civic assets. A library is something a place
+     HAS; a floodplain is something it IS IN. Filing them together asked a reader to hold
+     two opposite ideas in one box. */
+  {key:"ground",icon:"layers",title:"What this ground carries",source:"FEMA · ACS 2024",
+   render:function(d,ctx){
+     var out=floodRows(d);
+     if(d.broadbandPct!=null)out+='<div class="hp-stat"><span>Homes with no internet</span><b>'+(100-d.broadbandPct).toFixed(1)+'%</b></div>';
+     if(ctx.kind==="ring"&&d.areaKm2!=null)out+='<div class="hp-stat"><span>Ground covered</span><b>'+d.areaKm2+' km²</b></div>';
+     return out;
+   }},
+
+  /* Council is the one question that genuinely differs. A neighborhood sits inside
+     districts in known proportions; a ring crosses several and owns none of them, so it
+     names them and stops. */
+  {key:"council-hood",where:"hood",icon:"columns",title:"Who answers for this ground",source:"Council 2023",
+   render:function(d){
+     return (d.council||[]).map(function(c){
+       return '<div class="hp-cd"><span class="hp-cdn">District '+c.cd+'</span>'+
+         '<span class="hp-track"><span class="hp-fill" style="width:'+c.share+'%;background:var(--hood);opacity:.85"></span></span>'+
+         '<span class="hp-cdv">'+c.share+'%</span></div>';
+     }).join("");
+   }},
+  {key:"council-ring",where:"ring",icon:"columns",title:"Who answers for this ground",source:"Council 2023",
+   render:function(d){
+     if(!(d.council||[]).length)return "";
+     return '<div class="tagrow">'+(d.council||[]).map(function(c){return '<span class="mtag">District '+c+'</span>';}).join("")+'</div>'+
+       '<p class="hp-note">Neighborhoods the ring reaches: '+((d.neighborhoods||[]).map(esc).join(", ")||"none named in this map")+'.</p>';
+   }},
+
+  /* Count only. This block used to carry up to three generated prompts ("No public library
+     inside this boundary. Where did you go to study?"). They were written to start a
+     conversation, and on a page whose job is to hand somebody the numbers they read as the
+     map telling people what to feel about their own neighborhood. The stories below are the
+     answer to that question and they were being introduced by a machine-written version of
+     themselves. */
+  {key:"stories",where:"hood",icon:"sprout",title:"Memories rooted here",source:"The Big We",
+   render:function(d,ctx){
+     return '<div class="hp-head"><b>'+ctx.stories+'</b><span>'+(ctx.stories===1?"story":"stories")+' so far</span></div>';
+   }}
+];
+/* A meter, or nothing at all when the number is not there. The neighborhood profile has
+   all three; the ring has one. Without this the shared block printed NaN%. */
+function meterIf(label,val,max,tone,baseKey){
+  if(val==null)return "";
+  return meterRow(label,val,max,tone,base(baseKey));
+}
+/* Walk the list once. A block that returns nothing is not drawn, heading and all, so a
+   shared block whose data the ring does not carry yet disappears instead of printing a
+   column of dashes. That also means adding the data later is enough to make it appear. */
+function profileBody(d,ctx){
+  return PROFILE_BLOCKS.filter(function(b){return !b.where||b.where===ctx.kind;}).map(function(b){
+    var body=b.render(d,ctx);
+    if(!body||!String(body).trim())return "";
+    var title=typeof b.title==="function"?b.title(ctx):b.title;
+    var src=typeof b.source==="function"?b.source(ctx):b.source;
+    return '<div class="hp-block"><div class="hp-label"><h3>'+ic(b.icon,12)+' '+esc(title)+'</h3><span>'+esc(src)+'</span></div>'+body+'</div>';
+  }).join("");
+}
+
 function hoodPage(name){
   var d=HOOD_PROFILES&&HOOD_PROFILES[name];
   if(!d)return "";
-  var a=d.assets||{},n=publicStories().filter(function(s){return s.hood===name;}).length;
+  var n=publicStories().filter(function(s){return s.hood===name;}).length;
   // The panel wears the same colour as the shape on the map, so the two are one object.
   var col=hoodColor(name);
-  var cds=(d.council||[]).map(function(c){
-    return '<div class="hp-cd"><span class="hp-cdn">District '+c.cd+'</span>'+
-      '<span class="hp-track"><span class="hp-fill" style="width:'+c.share+'%;background:var(--hood);opacity:.85"></span></span>'+
-      '<span class="hp-cdv">'+c.share+'%</span></div>';
-  }).join("");
-  var conv=a.snapAll-a.snapFull;
   return '<div class="hoodpage" style="--hood:'+col+';background:linear-gradient(180deg,'+col+'26,transparent 62%)">'+
     '<div class="hp-body">'+
       '<div class="sp-bar"><button class="sp-back" id="hoodClear">'+ic("x",12)+' Back to all of Memphis</button>'+
@@ -3143,79 +3303,8 @@ function hoodPage(name){
       '<p class="shk" style="color:'+col+'"><span class="hp-dot" style="background:'+col+'"></span> Neighborhood</p><h2>'+esc(name)+'</h2>'+
       '<p class="hp-sub">'+d.tracts+' whole census tracts · '+d.areaKm2+' km² · '+num(d.housingUnits)+' homes</p>'+
     '</div>'+
-
-    '<div class="hp-block"><div class="hp-label"><h3>'+ic("join",12)+' Who lives here</h3><span>ACS 2024</span></div>'+
-      '<div class="hp-head"><b>'+num(d.population)+'</b><span>people live here</span></div>'+
-      cmpRow(d,"blackPct","Black residents")+
-      cmpRow(d,"over65Pct","Elders, 65 and older")+
-      cmpRow(d,"disabledPct","People living with a disability")+
-    '</div>'+
-
-    /* Youth sits second, directly under who lives here, because it is the same question
-       asked forward. Putting it against the over-65 figure above makes ageing versus
-       renewal readable in one glance, which is the whole argument for a cultural district
-       as economic development. */
-    '<div class="hp-block"><div class="hp-label"><h3>'+ic("sprout",12)+' Who is coming up</h3><span>ACS 2024</span></div>'+
-      '<div class="hp-head"><b>'+(d.under18!=null?num(d.under18):"—")+'</b><span>kids and teens<br>live here</span></div>'+
-      cmpRow(d,"under18Pct","Kids and teens under 18")+
-      cmpRow(d,"under5Pct","Little kids under 5")+
-      cmpRow(d,"age1824Pct","Young adults, 18 to 24")+
-      // Child poverty is not the poverty rate and is reliably higher. A combined figure
-      // hides it, and it is the number that moves different money.
-      cmpRow(d,"childPovertyPct","Kids growing up poor")+
-      cmpRow(d,"teen1619DisconnectedPct","Teens 16 to 19 not in school and not working")+
-    '</div>'+
-
-    '<div class="hp-block"><div class="hp-label"><h3>'+ic("chart",12)+' What it costs to stay</h3><span>ACS 2024</span></div>'+
-      // A true pooled median, not a range and not an average of tract medians. See the
-      // source note in neighborhood-profiles.json for the method.
-      '<div class="hp-head"><b>'+(d.medianIncome?money(d.medianIncome):"—")+'</b><span>a typical family<br>makes in a year</span></div>'+
-      cmpRow(d,"medianIncome","",true)+
-      incomeBands(d)+
-      '<div class="hp-stat ruled">'+
-        '<span>Rent for a home, each month</span><b>'+(d.medianRent?money(d.medianRent):"—")+'</b></div>'+
-      meterRow("Living in poverty",d.povertyPct,50,d.povertyPct>=33?"strain":d.povertyPct>=20?"watch":"ok",base("povertyPct"))+
-      meterRow("Households renting",d.renterPct,100,d.renterPct>=70?"strain":d.renterPct>=55?"watch":"ok",base("renterPct"))+
-      meterRow("Homes sitting empty",d.vacantPct,35,d.vacantPct>=20?"strain":d.vacantPct>=13?"watch":"ok",base("vacantPct"))+
-    '</div>'+
-
-    '<div class="hp-block"><div class="hp-label"><h3>'+ic("layers",12)+' What is here</h3><span>City of Memphis · USDA SNAP · OSM</span></div>'+
-      '<div class="hp-assets">'+
-        assetTile("book",a.libraries,a.libraries===1?"public library":"public libraries")+
-        assetTile("hall",a.centers,a.centers===1?"community center":"community centers")+
-        assetTile("tree",a.parks,a.parks===1?"park":"parks")+
-        assetTile("star",a.cultural||0,"Cultural District")+
-        // Food and faith run full width, and last. Both are counts that only mean
-        // something next to a second number, so both carry one. The four above are plain
-        // tallies and a half tile says everything there is to say about them.
-        assetTile("basket",a.snapFull,a.snapFull===1?"full-service grocery":"full-service groceries")+
-        assetTile("store",conv,"corner stores")+
-        (a.faith!=null?assetTile("church",a.faith,
-           a.faith===1?"place of worship":"places of worship"):"")+
-      '</div>'+
-    '</div>'+
-
-    /* Flood and broadband used to sit inside Civic assets. A library is something the
-       neighborhood HAS; a floodplain is something it IS IN. Filing them together asked a
-       reader to hold two opposite ideas in one box. */
-    '<div class="hp-block"><div class="hp-label"><h3>'+ic("layers",12)+' What this ground carries</h3><span>FEMA · ACS 2024</span></div>'+
-      floodRows(d)+
-      '<div class="hp-stat"><span>Homes with no internet</span><b>'+(100-d.broadbandPct).toFixed(1)+'%</b></div>'+
-    '</div>'+
-
-    '<div class="hp-block"><div class="hp-label"><h3>'+ic("columns",12)+' Who answers for this ground</h3><span>Council 2023</span></div>'+
-      cds+
-    '</div>'+
-
-    /* Count only. The block used to carry up to three generated prompts underneath it
-       ("No public library inside this boundary. Where did you go to study?"). They were
-       written to start a conversation, and on a page whose job is to hand someone the
-       numbers they read as the map telling people what to feel about their own
-       neighborhood. The stories below are the answer to that question and they were
-       being introduced by a machine-written version of themselves. */
-    '<div class="hp-block"><div class="hp-label"><h3>'+ic("sprout",12)+' Memories rooted here</h3><span>The Big We</span></div>'+
-      '<div class="hp-head"><b>'+n+'</b><span>'+(n===1?"story":"stories")+' so far</span></div>'+
-    '</div>'+
+    // Every block comes from JS SECTION: PROFILE BLOCKS, which the ring walks too.
+    profileBody(d,{kind:"hood",name:name,stories:n})+
   '</div>';
 }
 /* The data centre profile. Same column as the neighborhood one, different questions:
@@ -3223,36 +3312,10 @@ function hoodPage(name){
    scarce there, and who signed for it". Each radius is a tab. */
 var dcRadius="5";
 function dcRing(f,mi){
-  var d=(f.properties.profile||{})[mi]||{},a=d.assets||{};
-  var rows=[
-    ["People in the ring",d.population?num(d.population):"\u2014"],
-    ["Homes",d.housingUnits?num(d.housingUnits):"\u2014"],
-    ["Black residents",d.blackPct!=null?d.blackPct+"%":"\u2014"],
-    ["Living in poverty",d.povertyPct!=null?d.povertyPct+"%":"\u2014"],
-    // Pooled median, same method as the neighborhood profiles. A one-mile ring holds no
-    // whole tract, so it correctly has none rather than a number borrowed from a bigger area.
-    ["Median household income",d.medianIncome?money(d.medianIncome):"\u2014"]
-  ];
-  return '<div class="hp-block"><div class="hp-label"><h3>'+ic("join",12)+' Who Is Inside '+mi+' Mile'+(mi==="1"?"":"s")+'</h3><span>ACS 2024</span></div>'+
-      rows.map(function(r){return '<div class="hp-stat"><span>'+esc(r[0])+'</span><b>'+r[1]+'</b></div>';}).join("")+
-      '<p class="hp-note">Counted from '+esc(d.basis||"census tracts")+'. '+
-        (d.tractsMostlyInside?d.tractsMostlyInside+' of '+d.tractsTouched+' tracts sit mostly inside this ring.'
-          :'A '+mi+'-mile ring is smaller than a census tract, so these are whole tracts the ring touches, not people counted inside it.')+'</p>'+
-    '</div>'+
-    '<div class="hp-block"><div class="hp-label"><h3>'+ic("layers",12)+' What Is Already There</h3><span>City of Memphis</span></div>'+
-      '<div class="hp-assets">'+
-        assetTile("tree",a.parks||0,(a.parks===1?"park":"parks"))+
-        assetTile("book",a.libraries||0,(a.libraries===1?"public library":"public libraries"))+
-        assetTile("hall",a.centers||0,(a.centers===1?"community center":"community centers"))+
-        assetTile("basket",a.foodFull||0,"full-service groceries")+
-      '</div>'+
-      floodRows(d)+
-      '<div class="hp-stat"><span>Ground covered</span><b>'+(d.areaKm2||"\u2014")+' km\u00b2</b></div>'+
-    '</div>'+
-    '<div class="hp-block"><div class="hp-label"><h3>'+ic("columns",12)+' Who Answers for This Ground</h3><span>Council 2023</span></div>'+
-      '<div class="tagrow">'+(d.council||[]).map(function(c){return '<span class="mtag">District '+c+'</span>';}).join("")+'</div>'+
-      '<p class="hp-note">Neighborhoods the ring reaches: '+((d.neighborhoods||[]).map(esc).join(", ")||"none named in this map")+'.</p>'+
-    '</div>';
+  var d=(f.properties.profile||{})[mi]||{};
+  // The SAME blocks the neighborhood profile draws, so a stat added there arrives here
+  // with no second edit. That is the whole of STORY-79.
+  return profileBody(d,{kind:"ring",mi:mi,stories:0});
 }
 function dcPage(id){
   var f=dcById(id);if(!f)return "";
