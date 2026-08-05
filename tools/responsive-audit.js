@@ -68,8 +68,10 @@ const BUDGET = {
   smallTargets: { phone: 0, tablet: 0, laptop: null },
   // STORY-92 done-when: the map is the majority of the screen when the app opens.
   mapVisible:   { phone: 55, tablet: 55, laptop: 55 },
-  // STORY-92: and the layer panel is not sitting on top of it.
-  layersPct:    { phone: 20, tablet: 20, laptop: 20 },
+  // STORY-92: and the layer panel is not sitting on top of it. One number at every
+  // width: a control may annotate the map, it may not be a quarter of it. On a phone
+  // it also defaults shut, which takes it to about 5%.
+  layersPct:    { phone: 25, tablet: 25, laptop: 25 },
   // STORY-90: it may scroll, but it must say that it scrolls.
   navOverflowOk: true,
   noHScroll:     true,

@@ -1127,6 +1127,11 @@
        together in practice. */
     .deskbody{grid-template-columns:1fr}
     .deskbody .queue{border-right:0;border-bottom:1px solid var(--line);max-height:250px}
+    /* Nine layer rows run down a screen as well as across it. On an iPad in portrait
+       that put the panel over 30% of the map; capped and scrolling, it is under 20%
+       and the map underneath stays a map. The cap is on the BODY, so the header and
+       its collapse control are never the thing that scrolls away. */
+    .lp-body{max-height:30vh;overflow:auto}
   }
 
   /* ---- TABLET: 561 – 1024 ---------------------------------------------------------
@@ -1193,8 +1198,10 @@
     .chero img{height:104px}
     .card .snip{-webkit-line-clamp:3}
 
-    /* map furniture gets out of the way */
-    .maptools{top:10px;right:10px;width:210px}
+    /* map furniture gets out of the way. 210px was chosen against a laptop-sized map
+       and is 54% of a 390px screen; 176 is enough for "Map Layers" and a chevron, and
+       for a layer name over its source underneath. */
+    .maptools{top:10px;right:10px;width:176px}
     .spotlight{display:none}
     .detail{border-radius:20px 20px 0 0}
   }
@@ -2124,6 +2131,17 @@ function $(id){return document.getElementById(id);}
    stopped doing. Reading the computed position means the stylesheet stays the single
    answer to "which layout is this", which is agreement 1 in CSS SECTION: RESPONSIVE. */
 function isDrawer(){var p=$("panel");return !!p&&getComputedStyle(p).position==="absolute";}
+/* Is this screen too small to spend on chrome?
+   ONE place asks it, because two things default shut under it — the filter block and
+   the Map Layers panel — and if they ever disagreed, one of them would be wrong on
+   some screen nobody owns and nobody would find out.
+   BY HEIGHT AS WELL AS WIDTH. A phone held sideways is 844px wide, which every width
+   test calls roomy, and 390px tall, where there is no room for anything. Height is
+   what a panel actually spends. Matches the max-height:620px block in CSS SECTION:
+   RESPONSIVE, and the two are meant to be read together. */
+function tightScreen(){
+  return !!(window.matchMedia&&window.matchMedia("(max-width:560px),(max-height:620px)").matches);
+}
 function esc(s){return(s==null?"":String(s)).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function uid(){return"u"+Math.random().toString(36).slice(2,9)+new Date().getTime().toString(36);}
 function storyDate(s){
@@ -3327,14 +3345,12 @@ function initFilterToggle(){
      is that the count badge keeps working while it is shut, so a filtered map can
      never look like an empty one.
 
-     BY HEIGHT AS WELL AS WIDTH. A phone held sideways is 844px wide, which every
-     width test calls a tablet, and 390px tall, where head plus filters are TALLER
-     than the whole panel. Height is what the panel actually spends.
+     The condition is tightScreen(), shared with the Map Layers panel, which defaults
+     shut on the same screens for the same reason and must never disagree with this.
 
      Once a person opens or shuts it themselves that is remembered, and this never
      runs again for them. */
-  var tight=!!(window.matchMedia&&window.matchMedia("(max-width:560px),(max-height:620px)").matches);
-  setFiltersOpen(saved===null?!tight:saved==="1",false);
+  setFiltersOpen(saved===null?!tightScreen():saved==="1",false);
   t.addEventListener("click",function(){
     var open=this.getAttribute("aria-expanded")!=="true";
     setFiltersOpen(open,true);
@@ -4739,7 +4755,34 @@ function scrollNavToActive(){
 syncNavFade();
 
 renderLayerPanel();
-$("lpHead").addEventListener("click",function(){var c=$("layerPanel").classList.toggle("collapsed");this.setAttribute("aria-expanded",c?"false":"true");});
+/* Open or shut, remembered — the same pattern the filter block already uses, and the
+   same tightScreen() condition, so the two controls never disagree about what counts
+   as a small screen.
+
+   The default is SHUT where the panel would cover the map it is annotating. At 390px
+   it was 210px wide and nine rows tall, 42% of the map, so the first thing a visitor
+   met over Memphis was a list of data layers they had not asked for.
+
+   THE TENSION IS REAL AND WORTH NAMING. The layers ARE the argument this map makes:
+   it is a counter-map and they are the counter. Shutting them by default risks nobody
+   finding them at all. What makes it safe is that shutting it leaves the header, with
+   its icon and the words "Map Layers", sitting on the map. It is one tap and it still
+   says what it is. A map you cannot see is not a map, and the layer list is a thing
+   you go to once rather than something you keep open. */
+function initLayerPanel(){
+  var p=$("layerPanel"),h=$("lpHead");if(!p||!h)return;
+  var saved=null;
+  try{saved=localStorage.getItem("mr_layers_open");}catch(e){}
+  var open=saved===null?!tightScreen():saved==="1";
+  p.classList.toggle("collapsed",!open);
+  h.setAttribute("aria-expanded",open?"true":"false");
+  h.addEventListener("click",function(){
+    var shut=p.classList.toggle("collapsed");
+    this.setAttribute("aria-expanded",shut?"false":"true");
+    try{localStorage.setItem("mr_layers_open",shut?"0":"1");}catch(e){}
+  });
+}
+initLayerPanel();
 /* Not apply(): typing should not re-pick the spotlight or redraw the kind chips on every
    keystroke. syncUrl() is in the list because the search box was the last filter a link
    could not carry, which is the exact defect the registry exists to stop. A word typed by
