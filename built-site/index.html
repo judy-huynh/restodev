@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>The Clayborn Time Machine · Memphis Roots</title>
+<title>Clayborn Temple · Memphis Roots</title>
 <meta name="description" content="From a sacred commons, through I AM A MAN, through fire, and into a future you can move with your own hand. Clayborn Temple's story, and the living cultural-memory map of Memphis. For The Big We.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E🕯️%3C/text%3E%3C/svg%3E">
 <meta property="og:type" content="website">
-<meta property="og:title" content="The Clayborn Time Machine · Memphis Roots">
+<meta property="og:title" content="Clayborn Temple · Memphis Roots">
 <meta property="og:description" content="Clayborn Temple has watched Memphis decide who it would be. Travel its story, and enter the living cultural-memory map of Memphis.">
 <meta property="og:image" content="https://judy-huynh.github.io/restodev/media/clayborn-temple.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -178,6 +178,7 @@
   .mini .mn.ok{color:#1B7A3D}
   .mini .ml{font-size:12.5px;color:#4c4463;margin-top:9px;line-height:1.5}
   .mini .ml b{color:var(--text)}
+  .ground-note{max-width:70ch;margin:18px auto 0;font-size:.92rem;line-height:1.6;color:#6b5f80}
   .ground-cta{font-size:14.5px;color:#4c4463;max-width:66ch;margin:32px 0 0;line-height:1.7}
   .ground-cta b{color:var(--text)}
   .ground-cta a{color:var(--primaryDark);font-weight:700;text-decoration:none;border-bottom:1.5px solid transparent;white-space:nowrap}
@@ -196,7 +197,7 @@
 </style>
 </head>
 <body>
-<div class="protobar">✦ <b>The Clayborn Time Machine</b> · Memphis Roots × The Big We · future scenes are <b>placeholder renders to commission</b></div>
+<div class="protobar">✦ <b>Clayborn Temple</b> · Memphis Roots × The Big We · future scenes are <b>placeholder renders to commission</b></div>
 
 <!-- HERO -->
 <header class="hero">
@@ -231,56 +232,53 @@
 <section class="ground wrap" id="data">
   <div class="kicker">Follow the data</div>
   <h2>These memories sit on real ground.</h2>
-  <p class="lead">Around Clayborn, the city's own numbers tell the harder story the memories already know. Every figure below is read within one mile of the temple.</p>
+  <p class="lead">Around Clayborn, the city&rsquo;s own numbers tell the harder story the
+    memories already know. Every figure below is read within <b>about a 15-minute walk</b>
+    of the temple.</p>
 
   <div class="ground-grid">
-    <!-- food chart -->
+    <!-- Food. Counts, and the citywide total, both read from the same file the map draws. -->
     <div class="dcard">
       <div class="dh">
         <div>
           <h3>A neighborhood of corner stores</h3>
-          <p class="sub">Food retailers by type, citywide</p>
+          <p class="sub">Shops that take SNAP, citywide</p>
         </div>
-        <div class="tot">of <b>147</b> outlets</div>
+        <div class="tot">of <b id="gFoodAll">&hellip;</b> shops</div>
       </div>
-      <div class="dbars">
-        <div class="dbar">
-          <div class="dl"><span class="c" style="background:#C2410C"></span> Convenience</div>
-          <div class="dtrack"><div class="dfill" style="width:100%;background:#C2410C"><span class="v">106</span></div></div>
-        </div>
-        <div class="dbar">
-          <div class="dl"><span class="c" style="background:#2B6CA3"></span> Other outlets</div>
-          <div class="dtrack"><div class="dfill" style="width:19.8%;background:#2B6CA3"><span class="v">21</span></div></div>
-        </div>
-        <div class="dbar">
-          <div class="dl"><span class="c" style="background:#1B7A3D"></span> Full grocery</div>
-          <div class="dtrack"><div class="dfill" style="width:18.9%;background:#1B7A3D"><span class="v">20</span></div></div>
-        </div>
+      <div class="dbars" id="gFoodBars">
+        <p class="sub">Reading the food layer&hellip;</p>
       </div>
-      <p class="dcap">Only <b>1 in 7</b> food outlets sells a full grocery basket. Convenience stores outnumber real grocers <b>5 to 1</b>. That is a food desert.</p>
+      <p class="dcap" id="gFoodCap"></p>
     </div>
 
-    <!-- headline stats -->
     <div class="stat-col">
       <div class="bigstat flag">
-        <div class="bn">0</div>
-        <div class="bl">community centers within a mile</div>
-        <div class="bs">Memphis runs 25 of them. The nearest to Clayborn is more than a mile out.</div>
-        <div class="warn">◍ The sharpest gap</div>
+        <div class="bn" id="gCentres">&hellip;</div>
+        <div class="bl">community centers within a 15-minute walk</div>
+        <div class="bs" id="gCentresSub"></div>
+        <div class="warn">&#9678; The sharpest gap</div>
       </div>
       <div class="bigstat">
-        <div class="bn">14</div>
-        <div class="bl">food outlets within a mile</div>
-        <div class="bs">Just 3 of them sell full groceries. The nearest grocer, South Point Grocery, is 0.22 miles away.</div>
+        <div class="bn" id="gFoodNear">&hellip;</div>
+        <div class="bl">places to buy food within a 15-minute walk</div>
+        <div class="bs" id="gFoodNearSub"></div>
       </div>
     </div>
   </div>
 
   <div class="ground-tiles">
-    <div class="mini"><div class="mn ok">14</div><div class="ml"><b>parks</b> within a mile, and 4 within a half mile. The ground for gathering outdoors is already here.</div></div>
-    <div class="mini"><div class="mn ok">Higher ground</div><div class="ml">Clayborn sits <b>outside</b> FEMA's high-risk flood zone, though blocks around it do not. A candidate refuge when the water comes.</div></div>
+    <div class="mini"><div class="mn ok" id="gParks">&hellip;</div><div class="ml"><b>parks</b> within a 15-minute walk. The ground for gathering outdoors is already here.</div></div>
+    <div class="mini"><div class="mn ok">Higher ground</div><div class="ml">Clayborn sits <b>outside</b> both of FEMA&rsquo;s flood bands, though blocks around it do not. A candidate refuge when the water comes.</div></div>
     <div class="mini"><div class="mn">1930s</div><div class="ml">Redlining still shapes who the market forgot. These are the streets the stories come from.</div></div>
   </div>
+
+  <!-- Say what the circle is. A 15-minute walk follows streets; this does not. Presenting
+       a radius as a walkshed is on this project's standing list of data traps, so it is
+       named here rather than glossed. -->
+  <p class="ground-note" id="gNote">A 15-minute walk is measured here as a straight circle
+    1.2&nbsp;km across the ground, not a route that follows the streets. The real walk is
+    shorter in some directions and longer in others.</p>
 
   <p class="ground-cta"><b>This is the counter-map:</b> what the city's data sees, set against what the people know. The stories go on top. <a href="layers.html">Explore the layers →</a> &nbsp;·&nbsp; <a href="app.html">Open the living map →</a></p>
 </section>
@@ -396,11 +394,90 @@
 </section>
 
 <footer>
-  <strong>The Clayborn Time Machine</strong> · Memphis Roots × The Big We.<br>
+  <strong>Clayborn Temple</strong> · Memphis Roots × The Big We.<br>
   Future scenes are placeholder renders to commission.
 </footer>
 
 <script>
+  /* THE GROUND FIGURES ARE READ FROM THE LAYER FILES, NOT TYPED.
+
+     This section used to be hand-written HTML and it had gone quietly wrong in exactly the
+     way this project has been bitten by three times: it said "of 147 outlets" and "1 in 7
+     sells a full grocery basket" long after food.geojson was replaced with the full 753
+     city-wide, and it counted 14 parks where the parks file holds 21 within the same
+     radius. Nobody reports a wrong number on a landing page. It just sits there being read
+     by funders and by people who live on Vance Avenue.
+
+     app.html's City Data screen was rebuilt for this exact reason. This is the same fix on
+     the page more people actually see: a stale number now means a stale data file, not
+     stale copy. Fails soft, and leaves the words alone if a file will not load. */
+  (function(){
+    var CLAYBORN=[35.1365,-90.0511];
+    // 15 minutes at an ordinary walking pace. A circle, and the page says so.
+    var WALK_M=1200;
+    // The same four types app.html counts as a full grocery basket. Kept identical on
+    // purpose: two pages disagreeing about what a grocery is would be worse than either.
+    var FULL_FOOD={"Grocery Store":1,"Supermarket":1,"Super Store":1,"Farmers and Markets":1};
+    function metres(a,b){
+      return Math.hypot((a[0]-b[0])*111000,(a[1]-b[1])*111000*Math.cos(a[0]*Math.PI/180));
+    }
+    function points(doc){
+      return (doc&&doc.features||[]).filter(function(f){
+        return f.geometry&&f.geometry.type==="Point";
+      }).map(function(f){
+        return {at:[f.geometry.coordinates[1],f.geometry.coordinates[0]],p:f.properties||{}};
+      });
+    }
+    function near(list){return list.filter(function(x){return metres(x.at,CLAYBORN)<=WALK_M;});}
+    function get(f){return fetch("data/"+f,{cache:"no-cache"}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}
+    function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+    function html(id,v){var el=document.getElementById(id);if(el)el.innerHTML=v;}
+
+    Promise.all([get("food.geojson"),get("community.geojson"),get("parks.geojson")])
+      .then(function(r){
+        var food=points(r[0]),centres=points(r[1]),parks=points(r[2]);
+        if(food.length){
+          var all=food.length,n=near(food);
+          var full=n.filter(function(x){return FULL_FOOD[x.p.type];}).length;
+          var conv=n.filter(function(x){return /convenience/i.test(x.p.type||"");}).length;
+          var other=n.length-full-conv;
+          set("gFoodAll",all.toLocaleString("en-US"));
+          set("gFoodNear",n.length);
+          var bar=function(label,v,col){
+            var w=n.length?Math.max(3,v/n.length*100):0;
+            return '<div class="dbar"><div class="dl"><span class="c" style="background:'+col+'"></span> '+label+'</div>'+
+              '<div class="dtrack"><div class="dfill" style="width:'+w+'%;background:'+col+'"><span class="v">'+v+'</span></div></div></div>';
+          };
+          html("gFoodBars",bar("Convenience",conv,"#C2410C")+bar("Other shops",other,"#2B6CA3")+bar("Full grocery",full,"#1B7A3D"));
+          set("gFoodNearSub",full===0
+            ? "Not one of them sells a full grocery basket."
+            : full+" of them "+(full===1?"sells":"sell")+" a full grocery basket.");
+          /* DESCRIBES, DOES NOT RULE. The old copy said "only 1 in 7 outlets sells a
+             full grocery basket" and "convenience stores outnumber real grocers 5 to 1.
+             That is a food desert." Both came off the 147-outlet file, and against the
+             corrected 753 the ratio inside this circle is nothing like 5 to 1.
+
+             So the verdict is gone and the count is left standing. Whether this is a food
+             desert is a USDA determination about distance AND income, and this map does
+             not hold the data to make it. Asserting it anyway is how a map gets dismissed
+             by the first person in the room who knows the measure. Judy can put the claim
+             back with a source behind it. */
+          html("gFoodCap",full===0
+            ? "<b>Not one full grocery</b> within a 15-minute walk of the temple."
+            : "<b>"+full+" of "+n.length+"</b> "+(full===1?"sells":"sell")+" a full grocery basket. "+
+              "The rest are corner stores and specialty shops.");
+        }
+        if(r[1]){
+          var c=near(centres).length;
+          set("gCentres",c);
+          set("gCentresSub",c===0
+            ? "Memphis runs "+centres.length+" of them. Not one is inside this circle."
+            : "Memphis runs "+centres.length+" of them city-wide.");
+        }
+        if(r[2])set("gParks",near(parks).length);
+      });
+  })();
+
   var IMG = "media/";
   function url(f){ return IMG + f; }
 
