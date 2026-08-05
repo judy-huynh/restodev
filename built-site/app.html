@@ -1206,6 +1206,69 @@
     .detail{border-radius:20px 20px 0 0}
   }
 
+  /* ---- TOUCH: any screen a finger is aimed at -------------------------------------
+     Agreement 2, and the one block here keyed to POINTER rather than to size. A touch
+     laptop is still a touch device and a narrow desktop window is still a mouse, so
+     width is the wrong question: 42 controls were under 44px and every one of them was
+     under 44px at 1440 too, where it does not matter.
+
+     44px is what Apple and Google both publish. Neither is guessing.
+
+     A MINIMUM-HEIGHT RULE, NOT A LIST OF COMPONENTS. The next control anybody adds
+     inherits this instead of becoming the 43rd item on a list somebody has to
+     remember to update. That is the whole reason it is written as one selector group.
+
+     PADDING, NOT FONT SIZE. The type is already small at 12.5px; what these needed was
+     space around them.
+
+     Checkboxes and radios are excluded on purpose: they sit inside .consent-opt
+     labels, which are already well over 44px, and inflating the box itself would
+     break the row rather than fix anything. The file inputs are hidden. */
+  @media(pointer:coarse){
+    .nav,.addbtn,.brand,.lp-head,.lrow,.kchip,.fpill,.clearf,.tabs button,.dxbtn,
+    select,textarea,
+    input:not([type="radio"]):not([type="checkbox"]):not([type="file"]){min-height:44px}
+    /* These two set height outright, so a minimum is ignored.
+       The zoom buttons are Leaflet's own and it ships `.leaflet-touch .leaflet-bar a`
+       at 30px, which is three classes and beats anything shorter. Matching that
+       selector exactly and relying on source order is why both halves are named: this
+       stylesheet comes after leaflet.css in the head, so an equal-specificity rule
+       wins. A single .leaflet-control-zoom a here loses silently and looks fine in the
+       file. */
+    .locbtn{width:44px;height:44px}
+    .leaflet-touch .leaflet-bar a,.leaflet-bar a{width:44px;height:44px;line-height:44px}
+
+    /* HIT AREA, NOT PAINT, for the four controls that cannot grow without undoing
+       something. The first three sit in the panel head, which STORY-89 has just spent
+       200px reclaiming, and the fourth is a close button on a card 54px tall. Each
+       grows its reach and leaves its box where it is. */
+    .ftoggle,.p-head .meta .metaclear,.p-head .meta .metaback,.spotlight .sclose{position:relative}
+    .ftoggle::after,.p-head .meta .metaclear::after,.p-head .meta .metaback::after,
+    .spotlight .sclose::after{content:"";position:absolute;left:-8px;right:-8px;top:-13px;bottom:-13px}
+
+    /* THE STORY CHIPS ARE THE ONE THAT MATTERS. There are 3 or 4 on every card and 16
+       on a phone screen, so at 44px of paint each they would add 320px to the list and
+       bury the stories to make their labels easier to hit.
+       They are also FILTERS. A mis-tap does not do nothing: it silently narrows the
+       map, and the person who did it by accident has no idea why the list changed. So
+       the hit area grows vertically only, and .cchips gains exactly enough row-gap
+       that two rows of chips cannot overlap each other's reach. An overlapping hit
+       area on a filter would be worse than a small one. */
+    .cchip{position:relative}
+    .cchip::after{content:"";position:absolute;left:0;right:0;top:-11px;bottom:-11px}
+    .cchips{row-gap:22px;margin:14px 0 13px}
+
+    /* PAYING FOR THE ABOVE. 44px controls made the filter block taller, and on a
+       1024px iPad — where the filters are open by default, correctly — that pushed
+       chrome from 48% to 53% and broke agreement 3 to satisfy agreement 2.
+       The label goes on the chips' line instead of above them. That is the 22px back,
+       and it keeps the word "Category", which deleting it would not. Agreement 3 is
+       not a thing to spend when another agreement gets expensive. */
+    .fgroup{display:flex;align-items:center;gap:9px}
+    .fgroup .flabel{margin-bottom:0;flex:none}
+    .filters{gap:7px}
+  }
+
   /* ---- SHORT: anything under 620px tall -------------------------------------------
      The one block here keyed to HEIGHT, and it is here because the other three cannot
      see the case it is for. A phone held sideways is 844px wide and 390px tall: every
