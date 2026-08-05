@@ -319,6 +319,9 @@
   .sitepage .shaddr{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);line-height:1.45;margin:5px 0 0}
   .sp-desc.gap{margin-bottom:10px}
   .sitepage .sp-desc{font-size:13px;color:var(--text);line-height:1.6;margin:11px 0 0}
+  .sp-nrhp{margin:10px 0 0;font-size:12px;line-height:1.5;color:var(--muted)}
+  .sp-nrhp b{color:var(--text);font-weight:700}
+  .sp-nrhp a{color:var(--primaryDark);text-decoration:underline}
   .sitepage .sp-link{display:inline-block;font-size:12px;font-weight:700;color:var(--primaryDark);text-decoration:underline;margin-top:10px}
   .sitepage .shadd{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:14px;padding:11px;border-radius:10px;background:var(--primary);color:#fff;font-size:13px;font-weight:700}
   .sitepage .shadd:hover{background:var(--primaryDark)}
@@ -3120,6 +3123,45 @@ function initFilterToggle(){
    uncovered: teaching happens on the left, the map is for pointing.
    `history`, `photo`, `link` and `linkLabel` are optional properties in
    data/cultural.geojson. Each one appears only once it is written. */
+/* Walking directions to a site, built from its own coordinates. Nothing to maintain and
+   nothing to keep in step: move the pin in the geojson and the link moves with it. */
+function directionsUrl(f){
+  var c=f.geometry.coordinates;
+  return "https://www.google.com/maps/dir/?api=1&destination="+c[1]+","+c[0]+"&travelmode=walking";
+}
+/* NATIONAL REGISTER STATUS, and the reason it is on the page at all.
+
+   FOUR states, and the fourth is the one that keeps this honest:
+
+     listed     on the register, with the year
+     pending    a nomination is in progress. Aretha Franklin's birth home and Royal
+                Studios are both here, so this is a real third state and not a missing one
+     none       checked, and genuinely not on the register
+     (absent)   NOT CHECKED YET. Says nothing at all.
+
+   Collapsing the last two would be the easy mistake and it would be a lie in the direction
+   that flatters the argument. "Not listed" is a finding: 142 listings in Memphis, 49 within
+   a mile of Clayborn, ZERO in Orange Mound, and who got nominated tracks who had the
+   resources to nominate. That finding is worth something only if every "not listed" on this
+   map was actually looked up. An unchecked site printing "not listed" would be inventing
+   evidence for a claim we want to be true, which is the worst way to be wrong.
+
+   Every claim carries where it came from, for the same reason. */
+function nrhpLine(p){
+  var r=p.nrhp;
+  if(!r||!r.status)return "";            // not checked: say nothing
+  var body;
+  if(r.status==="listed")
+    body='<b>On the National Register'+(r.listed?" since "+esc(String(r.listed).slice(0,4)):"")+'.</b>';
+  else if(r.status==="pending")
+    body='<b>A nomination is in progress.</b> Not listed yet.';
+  else
+    body='<b>Not on the National Register.</b> Being left off is not a measure of what '+
+         'happened here. Nominating a building takes money and time, and that is what the '+
+         'register mostly records.';
+  return '<p class="sp-nrhp">'+ic("columns",12)+' '+body+
+    (r.source?' <a href="'+esc(r.source)+'" target="_blank" rel="noopener">Check it</a>':"")+'</p>';
+}
 function sitePage(f){
   var p=f.properties,n=storiesAtSite(p.name).length;
   var hist=(p.history?String(p.history).split(/\n{2,}/):[]);
@@ -3137,7 +3179,11 @@ function sitePage(f){
       (p.street?'<p class="shaddr">'+ic("pin",12)+' '+esc(p.street)+'</p>':'')+
       (p.description?'<p class="sp-desc">'+esc(p.description)+'</p>':'')+
       hist.map(function(t){return '<p class="sp-desc">'+esc(t)+'</p>';}).join("")+
+      nrhpLine(p)+
       (p.link?'<a class="sp-link" href="'+esc(p.link)+'" target="_blank" rel="noopener">'+esc(p.linkLabel||"Read more")+' →</a>':'')+
+      /* Walking, not driving. These sites are within a mile or so of each other and the
+         point of the district is that you can walk it. */
+      '<a class="sp-link" href="'+esc(directionsUrl(f))+'" target="_blank" rel="noopener">'+ic("pin",12)+' Walking directions</a>'+
       '<button class="shadd" id="siteAdd">'+ic("sprout",13)+' Add a Memory Here</button>'+
     '</div>'+
     '<p class="sp-count">'+(n?ic("star",12)+' '+n+' '+(n===1?"memory":"memories")+' rooted here':ic("star",12)+' No memories here yet. Yours would be the first.')+'</p>'+
