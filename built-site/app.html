@@ -200,6 +200,9 @@
      Shared chrome for any centred modal: scrim, panel, header, close. */
   .mscrim{position:fixed;inset:0;z-index:1600;background:rgba(36,28,59,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:22px;animation:mfade .18s ease}
   @keyframes mfade{from{opacity:0}to{opacity:1}}
+  /* Impact carries a grid of counters and reads better with room; everything else is
+     a column of prose at 780. */
+  .dmodal.wide{max-width:920px}
   .dmodal{background:var(--bg);border-radius:22px;max-width:780px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 40px 100px -24px rgba(0,0,0,.6);overflow:hidden;animation:mrise .22s cubic-bezier(.2,.7,.3,1)}
   @keyframes mrise{from{transform:translateY(14px);opacity:.6}to{transform:translateY(0);opacity:1}}
   .mhead{position:relative;padding:22px 26px 18px;background:linear-gradient(135deg,var(--primaryDark),var(--purple));color:#fff;flex:none}
@@ -1057,9 +1060,11 @@
   .impact .goals{margin:6px 0 0;padding-left:18px;display:grid;gap:8px}
   .impact .goals li{font-size:13px;line-height:1.55;color:var(--text)}
   .impact .goals li b{font-weight:700}
-  .impact{max-width:920px;margin:0 auto;padding:24px 20px 60px;height:100%;overflow:auto}
-  .impact h2{font-family:var(--display);font-size:1.5rem;margin:0 0 4px;letter-spacing:-.01em}
-  .impact .sub{color:var(--muted);font-size:13px;margin:0 0 20px;max-width:64ch}
+  /* Impact is a modal body now, so the modal owns the width, the padding, the height
+     and the scrolling, and this class is only what is INSIDE it. The max-width,
+     margin, height:100% and overflow that used to be here were a full-page layout and
+     fought .mbody for all four. Its title and standfirst live in .mhead with every
+     other modal's, which is why the h2 and .sub rules that were here are gone. */
   .ethos-note{background:var(--primaryLight);border:1px solid #F6C9D8;border-radius:14px;padding:14px 18px;font-size:13px;color:#7a2c48;margin-bottom:22px;line-height:1.55}
   .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(146px,1fr));gap:12px;margin-bottom:22px}
   .kpi{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px 17px}
@@ -1356,7 +1361,7 @@
          D4: renaming a working identifier to match a label costs more than it returns. -->
     <a class="nav" href="index.html">About</a>
     <button class="nav" id="navMap" data-view="explore">Culture Map</button>
-    <button class="nav" id="navImpact" data-view="impact">Impact</button>
+    <button class="nav" id="navImpact">Impact</button>
     <button class="nav" id="navData">City Context</button>
     <button class="nav" id="navMethod">Methodology</button>
     <!-- The padlock says this one is not for visitors, before they click it. The label
@@ -1479,8 +1484,6 @@
       <div class="adminbar"><button id="reseed"><span class="ic" data-ic="refresh" data-s="15"></span> Reload Stories</button><button id="signout" style="display:none">Sign Out</button><button id="backExplore">← Back to Map</button></div>
     </div>
   </section>
-  <!-- IMPACT -->
-  <section class="view hidden" id="v-impact"><div class="impact" id="impactBody"></div></section>
 </main>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo">
   <button class="lb-close" id="lbClose" aria-label="Close">&times;</button>
@@ -1501,6 +1504,21 @@
       <button class="mclose" id="methodClose" aria-label="Close"><span class="ic" data-ic="x" data-s="18"></span></button>
     </div>
     <div class="mbody" id="methodBody"></div>
+  </div>
+</div>
+
+<!-- IMPACT. A modal like the other three, not a view: City Context and Methodology
+     opened over the map while this one replaced it, so three items on the same menu
+     behaved two different ways and leaving Impact meant finding the way back. -->
+<div class="mscrim hidden" id="impactModal" role="dialog" aria-modal="true" aria-labelledby="impactModalTitle">
+  <div class="dmodal wide">
+    <div class="mhead">
+      <div class="ek">Impact</div>
+      <h2 id="impactModalTitle">What we are holding</h2>
+      <p>This is a record Memphis is making of itself, one story at a time. Memphis is tired of being studied while the streets stay the same, so this is not a report card on us. It is here so that anybody who has given a story, or is thinking about it, can see exactly what happens to it and who else is in this.</p>
+      <button class="mclose" id="impactClose" aria-label="Close"><span class="ic" data-ic="x" data-s="18"></span></button>
+    </div>
+    <div class="mbody impact" id="impactBody"></div>
   </div>
 </div>
 
@@ -4511,7 +4529,7 @@ function dreamBox(s){
 
 /* === JS SECTION: VIEW SWITCHING ======================================================
    Explore / Capture / Thanks / Moderate / Impact. One function shows and hides all five. */
-function showView(v){["explore","capture","thanks","admin","impact"].forEach(function(n){$("v-"+n).classList.toggle("hidden",n!==v);});
+function showView(v){["explore","capture","thanks","admin"].forEach(function(n){$("v-"+n).classList.toggle("hidden",n!==v);});
   // The nav shows which of these you are looking at, which it never used to.
   document.querySelectorAll("#mainnav [data-view]").forEach(function(b){b.classList.toggle("on",b.dataset.view===v);});
   // ...and on a narrow screen it scrolls that item into the row, so the highlight is
@@ -4519,7 +4537,7 @@ function showView(v){["explore","capture","thanks","admin","impact"].forEach(fun
   if(typeof scrollNavToActive==="function")scrollNavToActive();
   if(v==="explore"){initMap();setTimeout(function(){map.invalidateSize();},60);}
   if(v==="admin")renderAdmin();
-  if(v==="impact")renderImpact();}
+}
 /* City Data is built from the layer files themselves, every time it opens.
    The version before this was hand-written HTML, and it had gone quietly wrong: it said
    "147 food outlets" and "1 in 7 sells a full grocery basket" long after food.geojson was
@@ -4798,6 +4816,12 @@ function renderMethodology(){
 }
 function openMethod(){$("methodModal").classList.remove("hidden");renderMethodology();}
 function closeMethod(){$("methodModal").classList.add("hidden");}
+/* Impact is built fresh every open, like City Data and Methodology, because every
+   figure in it is counted from the stories that are loaded right now. A story
+   approved while somebody has the app open must not be missing from a count they
+   read a minute later. */
+function openImpact(){$("impactModal").classList.remove("hidden");renderImpact();}
+function closeImpact(){$("impactModal").classList.add("hidden");}
 function openData(){$("dataModal").classList.remove("hidden");renderCityData();}
 function closeData(){$("dataModal").classList.add("hidden");}
 
@@ -4815,10 +4839,12 @@ $("navMethod").addEventListener("click",openMethod);
 })();
 $("methodClose").addEventListener("click",closeMethod);
 $("methodModal").addEventListener("click",function(e){if(e.target===this)closeMethod();});
+$("impactClose").addEventListener("click",closeImpact);
+$("impactModal").addEventListener("click",function(e){if(e.target===this)closeImpact();});
 $("dataClose").addEventListener("click",closeData);
 $("dataModal").addEventListener("click",function(e){if(e.target===this)closeData();});
 // Escape shuts whichever of the two is open. It only knew about City Data.
-document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeData();closeMethod();}});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeData();closeMethod();closeImpact();}});
 $("navMod").addEventListener("click",function(){showView("admin");});
 $("navAdd").addEventListener("click",function(){startCapture();});
 $("backExplore").addEventListener("click",function(){showView("explore");});
@@ -5012,7 +5038,7 @@ FILTERS.forEach(function(f){
     if(f.then)f.then(this.value);
   });
 });
-$("navImpact").addEventListener("click",function(){showView("impact");});
+$("navImpact").addEventListener("click",openImpact);
 $("navMap").addEventListener("click",function(){showView("explore");});
 /* navHome has no handler any more: it is an <a href="app.html"> and the browser does the
    work. That also buys back the things a button never had, middle-click and cmd-click to
@@ -6292,12 +6318,9 @@ function renderImpact(){
     return '<li>'+bits+'.</li>';
   }).filter(Boolean).join("");
 
+  /* The title and the standfirst moved into the modal's .mhead, where every other modal
+     keeps them, so this builds only what it computes. */
   $("impactBody").innerHTML=
-    '<h2>What we are holding</h2>'+
-    '<p class="sub">This is a record Memphis is making of itself, one story at a time. '+
-      'Memphis is tired of being studied while the streets stay the same, so this page is '+
-      'not a report card on us. It is here so that anybody who has given a story, or is '+
-      'thinking about it, can see exactly what happens to it and who else is in this.</p>'+
 
     /* Consent first. Everything else on this page is a detail next to "what happens to
        what I told you". */
