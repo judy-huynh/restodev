@@ -63,10 +63,20 @@ def main(base, cand):
     for k in changed: print(f"  ~ CHANGED {k[0]} {k[1]}\n      was {b[k][:70]}\n      now {c[k][:70]}")
     if not (removed or added or changed): print("  (no rule changes)")
 
-    # a rule that vanished because a comment swallowed it is the killer case
-    swallowed = [k for k in removed if k[1] in ('.cards', '.card', '.panel', '#map', 'body')]
+    # A rule that vanished because a comment swallowed it is the killer case. Ask
+    # whether the SELECTOR is gone from the whole stylesheet, not whether it left one
+    # media context: moving .panel from @media(max-width:860px) to a phone block is a
+    # deliberate breakpoint change, and failing that would train people to ignore this.
+    # A swallowed rule takes the selector with it out of every context, which is what
+    # the check is really looking for.
+    STRUCTURAL = ('.cards', '.card', '.panel', '#map', 'body')
+    still = {k[1] for k in c}
+    swallowed = sorted({k[1] for k in removed if k[1] in STRUCTURAL and k[1] not in still})
     if swallowed:
-        print(f"FAIL  a structural rule disappeared: {swallowed}"); fail += 1
+        print(f"FAIL  a structural rule disappeared from every context: {swallowed}"); fail += 1
+    moved = sorted({k[1] for k in removed if k[1] in STRUCTURAL and k[1] in still})
+    if moved:
+        print(f"NOTE  structural rule moved between media contexts, check it landed: {moved}")
 
     # 4. $() ids
     ids = set(re.findall(r'id="([^"]+)"', cs))

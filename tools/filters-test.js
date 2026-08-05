@@ -58,38 +58,13 @@ const fs = require('fs');
       match:/clearf/},
 */
 const EXPECTED_DIFFS = [
-  // STORY-83: `ring` joined the registry, so a data centre ring can filter and be linked.
-  {check: 'syncUrl',       why: 'a ring is filterable and linkable now',
-   match: /(^|&)ring=/,        state: /"ring":"[^"]/},
-  {check: 'bootParam',     why: '?ring= is read back now',
-   match: /"ring":"[^"]/,      state: /ring=/},
-  {check: 'renderActiveF', why: 'a ring shows a pill and Clear All',
-   state: /"ring":"[^"]/},
-  {check: 'activeFilterCount', why: 'a ring counts on the Filters badge',
-   state: /"ring":"[^"]/},
-  {check: 'passes',        why: 'a ring narrows the list to the people inside it',
-   state: /"ring":"[^"]/},
-  // STORY-70: `subcat` joined the registry, so what a story is about is filterable.
-  {check: 'syncUrl',       why: 'subcategory is filterable and linkable now',
-   match: /(^|&)sub=/,        state: /"subcat":"(?!all)/},
-  {check: 'bootParam',     why: '?sub= is read back now',
-   match: /"subcat":"(?!all)/, state: /sub=/},
-  {check: 'renderActiveF', why: 'Clear All appears for a subcategory too',
-   match: /clearf/,           state: /"subcat":"(?!all)/},
-  {check: 'activeFilterCount', why: 'a subcategory counts on the Filters badge',
-   state: /"subcat":"(?!all)/},
-  {check: 'renderSelects.subSel', why: 'the subcategory dropdown is new',
-   state: /./},
-  {check: 'passes',        why: 'a subcategory narrows the list',
-   state: /"subcat":"(?!all)/},
-
-  // STORY-71: `story` joined the registry, so a story is linkable.
-  {check: 'syncUrl',       why: 'a story is linkable now',
-   match: /(^|&)story=/,      state: /"story":"[^"]/},
-  {check: 'bootParam',     why: '?story= is read back now',
-   match: /"story":"[^"]/,    state: /story=/},
-  {check: 'renderActiveF', why: 'Clear All appears while a story is open',
-   match: /clearf/,           state: /"story":"[^"]/},
+  // Empty. The responsive set (STORY-88 to 93) is layout only and must not change a
+  // single filter output, so this asserts exactly that.
+  //
+  // Cleared 2026-08-05. The entries that were here declared STORY-70, -71 and -83, all
+  // merged, and a declaration outlives its change silently: it goes on excusing the
+  // difference it was written for, so the regression it eventually hides is the one
+  // nobody is looking for.
 ];
 
 /* ---- slicing ---------------------------------------------------------------------- */

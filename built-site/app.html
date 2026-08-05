@@ -368,9 +368,9 @@
   .deskbar select{font:inherit;font-size:12px;padding:6px 9px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--text)}
   .deskbody{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--panel)}
   .deskbody.nodesk{display:block;border:0;background:none}
-  @media(max-width:1040px){.deskbody{grid-template-columns:1fr}}
+  /* The desk's two stacking rules moved to CSS SECTION: RESPONSIVE, HANDHELD block.
+     They were at 1040 and 900 and always fired together in practice. */
   .deskbody .queue{border-right:1px solid var(--line);max-height:74vh;overflow:auto}
-  @media(max-width:900px){.deskbody .queue{border-right:0;border-bottom:1px solid var(--line);max-height:250px}}
   .qrow{display:flex;gap:9px;width:100%;text-align:left;padding:11px 13px;border:0;border-bottom:1px solid var(--line);border-left:3px solid transparent;background:none;cursor:pointer}
   .qrow:hover{background:var(--bg)}
   .qrow.on{background:var(--primaryLight);border-left-color:var(--primary)}
@@ -400,7 +400,7 @@
   .epreview b{color:var(--text)}
   .egrid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
   .egrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
-  @media(max-width:640px){.egrid2,.egrid3{grid-template-columns:1fr}}
+  @media(max-width:560px){.egrid2,.egrid3{grid-template-columns:1fr}}
   .tagrow{display:flex;flex-wrap:wrap;gap:6px}
   .mtag{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:11.5px;font-weight:650;padding:5px 10px;border-radius:999px;border:1px solid var(--border);background:var(--panel);color:var(--muted);cursor:pointer}
   .mtag:hover{border-color:var(--muted);color:var(--text)}
@@ -847,7 +847,7 @@
   @keyframes locpulse{0%,100%{opacity:1}50%{opacity:.35}}
   .me-dot{width:16px;height:16px;border-radius:50%;background:#1A73E8;border:2.5px solid #fff;
           box-shadow:0 0 0 1px rgba(0,0,0,.18),0 1px 4px rgba(0,0,0,.3)}
-  @media(max-width:900px){.locbtn{bottom:92px}}
+  /* .locbtn's small-screen offset moved to CSS SECTION: RESPONSIVE, HANDHELD block. */
   /* Clicking a shape used to leave the browser's focus rectangle around it, a blue box
      the size of the whole neighborhood. Keyboard focus still gets a visible ring. */
 
@@ -917,7 +917,12 @@
   .pop .paddr{font-size:11.5px;color:var(--muted);line-height:1.4;margin:0 0 9px}
   .addhere{display:block;width:100%;background:var(--primary);color:#fff;border:0;border-radius:9px;padding:9px 13px;font:inherit;font-weight:700;font-size:12.5px;line-height:1.2;cursor:pointer;text-align:center}
   .addhere:hover{background:var(--primaryDark)}
-  @media(max-width:860px){.mapsearch{width:calc(100% - 24px)}.mapwrap .leaflet-top.leaflet-left{top:106px}}
+  /* On a phone the 310px cap is the only thing between the search box and the width of
+     the screen, so it goes. The Leaflet zoom offset that used to be doubled here is
+     gone: fitZoomControl() measures it at runtime and the 108px above is only the
+     fallback for the moment before that runs, so a second hardcoded 106px was a copy
+     of a value neither of them uses. */
+  @media(max-width:560px){.mapsearch{width:calc(100% - 24px)}}
 
   /* === CSS SECTION: CONSENT AND CONTACT ===============================================
      How a person chooses to be named, and the private contact block.
@@ -1052,22 +1057,95 @@
 
 
   /* === CSS SECTION: RESPONSIVE ========================================================
-     Mobile and small-screen overrides. ONE @media block per breakpoint, grouped by
-     what it changes. If you add a rule, put it in the group it belongs to rather
-     than at the end, or this becomes two blocks again.
-     Not everything responsive is here: .mapsearch keeps its own 860px rule next to
-     its component, which is fine. What is NOT fine is a second copy of a rule that
-     already exists in this block, which is what these two used to be. */
-  @media(max-width:860px){
-    /* app bar: tighter, and the strapline goes */
-    .appbar{gap:6px;padding:0 10px;height:54px}
+     THE THREE AGREEMENTS (STORY-88). Everything below derives from these. If you are
+     about to write a media query with a new number in it, you are about to make the
+     mistake this section was rewritten to end.
+
+     1. THREE BREAKPOINTS, AND NO OTHERS.
+
+            phone     max-width: 560px       held in one hand
+            tablet    561px – 1024px         held in two, or flat on a workshop table
+            laptop    1025px and up          on a desk
+
+        There used to be ONE, at 860px, so a 390px phone and a 768px iPad got identical
+        layout decisions and a laptop-shaped panel was dropped into both. An iPad in
+        portrait is a tablet. It gets two columns.
+
+        The layout question is answered in exactly two declarations, .explore's
+        grid-template-columns and .panel's position. Everything else here is spacing.
+
+     2. 44px ON ANYTHING A FINGER IS MEANT TO HIT.
+        Applied by POINTER, not by width, in the TOUCH block below: a touch laptop is
+        still a touch device and a narrow desktop window is still a mouse. Where a
+        control cannot grow without shoving the layout around, the HIT AREA grows and
+        the paint stays where it is. See .cchip.
+
+     3. THE PANEL EXISTS TO SHOW STORIES.
+        Head plus filters stays under half the panel at every width, and a story card
+        is visible before anybody drags or scrolls. Commit 3e7aa50 fixed this once on a
+        laptop and it came straight back on a phone, because a layout fix measured at
+        one width is not a layout fix.
+
+     ALL THREE ARE MEASURED, NOT ASSERTED:
+
+            node tools/responsive-audit.js --gate
+
+     The budgets are at the top of that file and it names the issue a regression
+     belongs to. Run it before you commit a layout change; the numbers in this comment
+     are the ones it enforces.
+
+     FOUR BLOCKS, in width order, each with one job. A rule goes in the block whose job
+     it belongs to, never at the end. What is NOT allowed is a second copy of a rule
+     that already exists in another block, which is what the old 860 block had become
+     against .mapsearch and the Leaflet zoom offset. */
+
+  /* ---- HANDHELD: everything that is not a laptop ---------------------------------
+     True of a phone and a tablet alike, so it is said once rather than twice. The
+     brand strapline is the clearest case: there is room for "Memphis Roots · Culture
+     as a Root" on a desk and nowhere else, and on an iPad it costs the nav the 140px
+     that decides whether Methodology and Moderate are reachable. */
+  @media(max-width:1024px){
     .bk{display:none}
+    .appbar{gap:8px;padding:0 12px}
+    .locbtn{bottom:92px}
+    /* The moderator desk stacks, and the queue is capped so the editor underneath it
+       is reachable without scrolling past forty stories to find it. One condition,
+       one block: these used to be two rules at 1040 and 900 that always fired
+       together in practice. */
+    .deskbody{grid-template-columns:1fr}
+    .deskbody .queue{border-right:0;border-bottom:1px solid var(--line);max-height:250px}
+  }
+
+  /* ---- TABLET: 561 – 1024 ---------------------------------------------------------
+     Two columns, like a laptop, with the panel narrowed and every pixel of the
+     difference given to the map. An iPad in portrait is THE workshop device: big
+     enough to read a story aloud from, held in two hands, passed around a table. It
+     was being handed a 768px-wide bottom drawer, which is as wide as a laptop panel
+     and as short as a phone one, so the filters stretched across the full width while
+     the stories underneath got 179px.
+
+     clamp() rather than a fourth breakpoint. 272px is the narrowest a story card
+     still reads at; 340px is where a panel stops being a column and starts being a
+     wall. Between those it tracks the screen, so 561px and 1024px are both deliberate
+     rather than one being an accident of the other. */
+  @media(min-width:561px) and (max-width:1024px){
+    .explore{grid-template-columns:clamp(272px,38%,340px) 1fr}
+    .p-head{padding:10px 13px 9px}
+    .filters{padding:10px 13px 12px}
+    .cards{padding:10px 10px 26px}
+  }
+
+  /* ---- PHONE: 560 and below -------------------------------------------------------
+     The story panel stops being a column and becomes a bottom drawer over the map. */
+  @media(max-width:560px){
+    /* app bar: tighter still */
+    .appbar{gap:6px;padding:0 10px;height:54px}
     .mainnav{gap:0}
     .nav{padding:7px 9px;font-size:12.5px}
     .addbtn{padding:9px 13px;font-size:13px;margin-left:4px}
     .addtail{display:none}
 
-    /* the story panel stops being a column and becomes a bottom drawer */
+    /* the drawer */
     .explore{grid-template-columns:1fr}
     .panel{position:absolute;left:0;right:0;bottom:0;top:auto;max-height:62%;border-right:none;border-top:1px solid var(--border);border-radius:20px 20px 0 0;box-shadow:0 -14px 40px -20px rgba(36,28,59,.5);transform:translateY(calc(100% - 132px));transition:transform .3s;z-index:800}
     .panel.up{transform:translateY(0)}
@@ -1974,6 +2052,13 @@ async function refreshStories(){try{STORIES=await supaFetchApproved();}catch(e){
    esc() escapes user content and must wrap anything a person typed.
    publicName()/displayName() are the ONE place that decides whether a name shows. */
 function $(id){return document.getElementById(id);}
+/* Is the story panel a bottom drawer right now, rather than a column?
+   ONE place asks this, and it asks the LAYOUT rather than a number. The script used to
+   carry its own copy of the breakpoint — matchMedia("(max-width:860px)") — so moving
+   the breakpoint in the stylesheet left the script believing something the page had
+   stopped doing. Reading the computed position means the stylesheet stays the single
+   answer to "which layout is this", which is agreement 1 in CSS SECTION: RESPONSIVE. */
+function isDrawer(){var p=$("panel");return !!p&&getComputedStyle(p).position==="absolute";}
 function esc(s){return(s==null?"":String(s)).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function uid(){return"u"+Math.random().toString(36).slice(2,9)+new Date().getTime().toString(36);}
 function storyDate(s){
@@ -4121,8 +4206,7 @@ function openDetail(s){
        pin used to land behind it and look like the button did nothing. Drop the drawer to
        its peek; the story stays open underneath, so sliding it back up returns to exactly
        where they were rather than to the top of the list. */
-    if(window.matchMedia&&window.matchMedia("(max-width:860px)").matches)
-      $("panel").classList.remove("up");
+    if(isDrawer())$("panel").classList.remove("up");
   });
   $("dCopy").addEventListener("click",function(){copyLink(storyLink(s.id));});
   var dm=$("dMod");if(dm)dm.addEventListener("click",function(){openOnDesk(s.id);});
@@ -4623,8 +4707,12 @@ $("navMap").addEventListener("click",function(){showView("explore");});
    work. That also buys back the things a button never had, middle-click and cmd-click to
    open a clean map in a new tab, and it is why the reload is cheap now: boot fetches four
    files, about 23KB, because the context layers wait to be asked for. */
-/* mobile panel drawer */
-$("panel").addEventListener("click",function(e){if(e.target===this||e.target.classList.contains("p-head")){this.classList.toggle("up");}});
+/* mobile panel drawer. Guarded by isDrawer() so a click on the panel head in the two
+   column layouts stops toggling a class that has no rule behind it there. */
+$("panel").addEventListener("click",function(e){
+  if(!isDrawer())return;
+  if(e.target===this||e.target.classList.contains("p-head"))this.classList.toggle("up");
+});
 
 
 /* === JS SECTION: CAPTURE STEPS =======================================================

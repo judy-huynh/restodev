@@ -44,6 +44,12 @@ const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const DEVICES = [
   { w: 390,  h: 844,  label: "iPhone 14/15",   touch: true,  klass: "phone"  },
   { w: 430,  h: 932,  label: "iPhone Max",     touch: true,  klass: "phone"  },
+  // A phone on its side is 844 wide and 390 TALL, so the breakpoint set calls it a
+  // tablet while the height says otherwise. It is here because it is the one screen
+  // where a wide layout and a short one meet, and it is a real thing somebody does at
+  // a workshop table. If a change passes 390 and 768 but not this, the fix was keyed
+  // to width when it should have been keyed to height.
+  { w: 844,  h: 390,  label: "phone sideways", touch: true,  klass: "tablet" },
   { w: 768,  h: 1024, label: "iPad portrait",  touch: true,  klass: "tablet" },
   { w: 1024, h: 768,  label: "iPad landscape", touch: true,  klass: "tablet" },
   { w: 1440, h: 900,  label: "laptop",         touch: false, klass: "laptop" },
