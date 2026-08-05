@@ -2875,8 +2875,13 @@ var LAYERS=[
 
   /* A MODE, not a data layer, which is why it has no files: the stars are already on the
      map and this changes what they mean. Off by default, so nothing is numbered until
-     somebody asks for a walk. */
-  {key:"walk",group:"Community",name:"Culture Walk",
+     somebody asks for a walk.
+
+     HIDDEN, 2026-08-05, Judy's call: the mechanism works but the route is still a draft
+     and the site histories are not written, so it is not ready to be found by a visitor.
+     Everything it needs is in JS SECTION: WALK MODE. Delete `hidden:true` to bring the
+     switch back; nothing else has to change. */
+  {key:"walk",hidden:true,group:"Community",name:"Culture Walk",
    note:"15 Numbered Stops &middot; Draft Route",on:false,files:[],
    toggle:function(btn){
      if(walkOn){stopWalk();btn.classList.remove("on");}
@@ -2968,13 +2973,17 @@ var LAYERS=[
 var FULL_FOOD={"Grocery Store":1,"Supermarket":1,"Super Store":1,"Farmers and Markets":1};
 /* Builds the Layers panel from LAYERS and wires every switch. Called once, on boot.
    A layer with `toggle` runs its own; everything else goes through toggleCtx(). */
+/* `hidden:true` keeps an entry out of the panel without deleting it. Parking something
+   half-finished by removing its switch is honest; deleting the work so it has to be
+   rebuilt is not, and leaving it switchable when it is not ready is worse than either. */
+function shownLayers(){return LAYERS.filter(function(L){return !L.hidden;});}
 function renderLayerPanel(){
   var body=$("lpBody"); if(!body)return;
   var groups=[];
-  LAYERS.forEach(function(L){ if(groups.indexOf(L.group)<0)groups.push(L.group); });
+  shownLayers().forEach(function(L){ if(groups.indexOf(L.group)<0)groups.push(L.group); });
   body.innerHTML=groups.map(function(g){
     return '<div class="lp-group"><div class="lp-gh">'+esc(g)+'</div>'+
-      LAYERS.filter(function(L){return L.group===g;}).map(function(L){
+      shownLayers().filter(function(L){return L.group===g;}).map(function(L){
         return '<button class="lrow'+(L.on?" on":"")+'" id="'+L.key+'Toggle" data-layer="'+L.key+'" '+
           'aria-pressed="'+(L.on?"true":"false")+'">'+
           '<span class="lname"><b>'+esc(L.name)+'</b><em>'+L.note+'</em></span><span class="sw"></span></button>';
