@@ -676,6 +676,13 @@
   .lrow.loading .lname b::after{content:" · loading…";font-weight:600;color:var(--faint)}
   @keyframes lsw{0%,100%{left:2px}50%{left:16px}}
   .lrow.on .sw::after{left:16px}
+  /* The way to the sources, now that the rows no longer name them. Quiet on purpose:
+     it is a door, not a layer, so it must not read as a tenth switch. */
+  .layerpanel.collapsed .lp-src{display:none}
+  .lp-src{display:block;width:100%;text-align:left;padding:9px 14px 11px;border-top:1px solid var(--line);
+    font:inherit;font-size:10.5px;font-weight:700;letter-spacing:.01em;color:var(--faint);cursor:pointer}
+  .lp-src:hover{color:var(--primaryDark)}
+  .lp-src:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:6px}
 
   /* === CSS SECTION: SPOTLIGHT AND MOBILE FAB ==========================================
      The floating action button that used to live here is gone: it was display:none at
@@ -1231,7 +1238,7 @@
      labels, which are already well over 44px, and inflating the box itself would
      break the row rather than fix anything. The file inputs are hidden. */
   @media(pointer:coarse){
-    .nav,.addbtn,.brand,.lp-head,.lrow,.kchip,.fpill,.clearf,.tabs button,.dxbtn,
+    .nav,.addbtn,.brand,.lp-head,.lrow,.lp-src,.kchip,.fpill,.clearf,.tabs button,.dxbtn,
     select,textarea,
     input:not([type="radio"]):not([type="checkbox"]):not([type="file"]){min-height:44px}
     /* These two set height outright, so a minimum is ignored.
@@ -1386,6 +1393,12 @@
               <!-- Rows are generated from LAYERS by renderLayerPanel(). Do not add
                    a <button class="lrow"> here; add a LAYERS entry instead. -->
             </div>
+            <!-- The way to the sources, now that the rows no longer name them.
+                 OUTSIDE .lp-body on purpose: the body is capped and scrolls on a
+                 handheld, and a door at the bottom of a scroll is a door most people
+                 never find. Pinned to the foot of the panel, it is always there while
+                 the panel is open. -->
+            <button class="lp-src" id="lpMethod">Where this data comes from</button>
           </div>
         </div>
         <div class="spotlight hidden" id="spotlight"></div>
@@ -3157,7 +3170,7 @@ var LAYERS=[
      rather than assumed (0.01 km2 of intersection across the whole city), which is what
      lets the profile add the two together. */
   {key:"flood",group:"City Data · Context",name:"Flood Risk",
-   note:"FEMA &middot; 1 in 100 and 1 in 500 Odds",on:false,
+   note:"1 in 100 and 1 in 500 Odds",on:false,
    files:[{f:"flood500.geojson",name:"Land that floods less often",
            what:"About a 1 in 500 chance in any year",src:"FEMA"},
           {f:"flood.geojson",name:"Land that can flood",
@@ -3176,7 +3189,7 @@ var LAYERS=[
      A place this project holds itself is drawn larger and ringed, because those are the
      ones the crowd-sourced map does not know about and the difference is worth seeing. */
   {key:"faith",group:"City Data · Context",name:"Churches and Faith",
-   note:"1,117 Named &middot; OpenStreetMap",on:false,
+   note:"1,117 Named",on:false,
    files:[{f:"faith.geojson",name:"Churches and Faith",
            what:"Named places of worship",src:"OpenStreetMap"}],
    build:function(d){return L.geoJSON(d,{pane:"ctx",
@@ -3188,7 +3201,7 @@ var LAYERS=[
        l.bindPopup(pop(p.name,p.street||"",p.note||(p.src==="local"?"Held by this project":"OpenStreetMap")));}});}},
 
   {key:"food",group:"City Data · Context",name:"Food Access",
-   note:"USDA SNAP · city-wide",on:false,
+   note:"",on:false,
    files:[{f:"food.geojson",name:"Food Access",
            what:"Shops that take SNAP, city-wide",src:"USDA SNAP"}],
    build:function(d){return L.geoJSON(d,{pane:"ctx",
@@ -3196,19 +3209,19 @@ var LAYERS=[
      onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Food retailer",f.properties.type||"",
        FULL_FOOD[f.properties.type]?"Full-service · USDA SNAP":"USDA SNAP"));}});}},
 
-  {key:"parks",group:"City Data · Context",name:"Parks",note:"City of Memphis",on:false,
+  {key:"parks",group:"City Data · Context",name:"Parks",note:"",on:false,
    files:[{f:"parks.geojson",name:"Parks",what:"City parks",src:"City of Memphis"}],
    build:function(d){return L.geoJSON(d,{pane:"ctx",
      pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#17C3B2",4));},
      onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Park","","City of Memphis park"));}});}},
 
-  {key:"comm",group:"City Data · Context",name:"Community Centers",note:"City of Memphis",on:false,
+  {key:"comm",group:"City Data · Context",name:"Community Centers",note:"",on:false,
    files:[{f:"community.geojson",name:"Community Centers",what:"City-run centers",src:"City of Memphis"}],
    build:function(d){return L.geoJSON(d,{pane:"ctx",
      pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#8338EC",6));},
      onEachFeature:function(f,l){l.bindPopup(pop(f.properties.name||"Community center",f.properties.street||"","City of Memphis"));}});}},
 
-  {key:"lib",group:"City Data · Context",name:"Libraries",note:"Memphis Public Libraries",on:false,
+  {key:"lib",group:"City Data · Context",name:"Libraries",note:"",on:false,
    files:[{f:"libraries.geojson",name:"Libraries",what:"Public library branches",src:"Memphis Public Libraries"}],
    build:function(d){return L.geoJSON(d,{pane:"ctx",
      pointToLayer:function(f,ll){return L.circleMarker(ll,ctxCircle("#3A86FF",6));},
@@ -3232,7 +3245,8 @@ function renderLayerPanel(){
       shownLayers().filter(function(L){return L.group===g;}).map(function(L){
         return '<button class="lrow'+(L.on?" on":"")+'" id="'+L.key+'Toggle" data-layer="'+L.key+'" '+
           'aria-pressed="'+(L.on?"true":"false")+'">'+
-          '<span class="lname"><b>'+esc(L.name)+'</b><em>'+L.note+'</em></span><span class="sw"></span></button>';
+          '<span class="lname"><b>'+esc(L.name)+'</b>'+
+          (L.note?'<em>'+L.note+'</em>':'')+'</span><span class="sw"></span></button>';
       }).join("")+'</div>';
   }).join("");
   body.querySelectorAll("[data-layer]").forEach(function(btn){
@@ -4850,6 +4864,11 @@ function initLayerPanel(){
     this.setAttribute("aria-expanded",shut?"false":"true");
     try{localStorage.setItem("mr_layers_open",shut?"0":"1");}catch(e){}
   });
+  /* Wired once, because it is in the markup rather than regenerated by
+     renderLayerPanel(). stopPropagation so it does not also toggle the panel shut on
+     its way past the header's click handler. */
+  var lm=$("lpMethod");
+  if(lm)lm.addEventListener("click",function(e){e.stopPropagation();openMethod();});
 }
 initLayerPanel();
 /* Not apply(): typing should not re-pick the spotlight or redraw the kind chips on every
