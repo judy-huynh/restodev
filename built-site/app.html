@@ -180,6 +180,13 @@
   .addbtn{display:inline-flex;align-items:center;gap:5px;background:var(--primary);color:#fff;font-weight:700;font-size:13.5px;padding:10px 18px;border-radius:11px;box-shadow:0 2px 10px -2px rgba(255,71,126,.55);flex:none;margin-left:8px}
   .addbtn:hover{background:var(--primaryDark);box-shadow:0 3px 14px -2px rgba(216,30,91,.6)}
   .addbtn:focus-visible{outline:2px solid var(--primaryDark);outline-offset:2px}
+  /* The padlock stands alone at every width. Judy, 2026-08-05: Moderate is not for
+     visitors and does not need to announce itself in the main menu. The word lived in a
+     span so the phone could drop it (STORY-90); now nothing draws it anywhere. The
+     button keeps aria-label and title, so a screen reader and a hover both still say
+     "Moderate, sign in required" and only the pixels are gone. */
+  .nav.quiet .navtxt{display:none}
+  .nav.quiet{padding:8px 11px}
   .navlock{display:inline-flex;opacity:.75}
 
   /* inline icons */
@@ -1012,8 +1019,6 @@
   .adminbar button{background:none;border:1px solid var(--border);border-radius:8px;padding:7px 13px;font-size:12px;color:var(--muted)}
   .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:13px 22px;border-radius:12px;font-weight:600;font-size:14px;z-index:3000;opacity:0;transition:.3s;box-shadow:var(--shadow)}
   .toast.show{opacity:1}
-  .protobar{background:var(--text);color:#fff;font-size:11px;text-align:center;padding:4px;flex:none;letter-spacing:.02em}
-  .protobar b{color:var(--gold)}
 
 
   /* === CSS SECTION: IMPACT ============================================================
@@ -1181,11 +1186,9 @@
     .nav{padding:7px 9px;font-size:12.5px}
     .addbtn{padding:9px 13px;font-size:13px;margin-left:4px}
     .addtail{display:none}
-    /* Moderate keeps its padlock and loses its word: 95px back out of a 245px row for
-       the item a resident is least likely to want. It is still in the row, still in
-       tab order, and still announced in full by its aria-label. This is the cheap half
-       of the overflow; the fade is the honest half. */
-    .nav.quiet .navtxt{display:none}
+    /* .nav.quiet's label is dropped at EVERY width now, in CSS SECTION: APP BAR AND
+       NAV, so the phone-only copy that used to live here is gone. Only the tighter
+       padding is a phone concern. */
     .nav.quiet{padding:7px 10px}
 
     /* the drawer.
@@ -1305,7 +1308,6 @@
 </style>
 </head>
 <body>
-<div class="protobar"><b>MEMPHIS ROOTS</b> · The Big We · live stories via Supabase &amp; moderated · commons &amp; dreams saved on this device</div>
 <div class="appbar">
   <!-- A real link, not a button that switches views. The button kept the address bar
        exactly as it was, so "go home" from ?hood=Frayser&dc=colossus-1 left every filter
