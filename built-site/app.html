@@ -251,7 +251,14 @@
      row it cost 38px, which was most of what tightening the header had just saved. */
   .p-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .p-head h1{font-family:var(--display);font-size:16px;margin:0;letter-spacing:-.01em;line-height:1.2}
-  .p-head .meta{font-size:11.5px;color:var(--muted);margin:2px 0 0;line-height:1.3}
+  .p-head .meta{font-size:11.5px;color:var(--muted);margin:2px 0 0;line-height:1.45}
+  /* Two controls that live in the orientation line. Small, quiet, and only drawn when
+     there is something to clear or somewhere to go back to. */
+  .p-head .meta .metaclear,.p-head .meta .metaback{font:inherit;font-size:11px;font-weight:700;
+    border:1px solid var(--border);background:var(--panel);color:var(--primaryDark);
+    border-radius:7px;padding:1px 7px;cursor:pointer;white-space:nowrap}
+  .p-head .meta .metaclear:hover,.p-head .meta .metaback:hover{border-color:var(--primary);background:var(--primaryLight)}
+  .p-head .meta .metaback{display:inline-flex;align-items:center;gap:3px;margin-top:3px}
   /* Collapse control. The count keeps working when the panel is shut, so a filtered map
      can never look like an empty one. */
   .ftoggle{display:inline-flex;align-items:center;gap:6px;flex:none;
@@ -1181,6 +1188,7 @@ var ICON={
   chart:'<path d="M4 20V4M4 20h16M9 20v-6M14 20V9M19 20v-9"/>',
   layers:'<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/>',
   chevDown:'<path d="m6 9 6 6 6-6"/>',
+  chevLeft:'<path d="m15 18-6-6 6-6"/>',
   mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 17v5"/>',
   camera:'<path d="M4 8a2 2 0 0 1 2-2h1.5l1.2-1.7A1 1 0 0 1 9.5 4h5a1 1 0 0 1 .8.3L16.5 6H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><circle cx="12" cy="12.5" r="3.2"/>',
   audio:'<path d="M3 12h3l2.5-7 3.5 15 3-11 2 3h4"/>',
@@ -1964,6 +1972,7 @@ var toastT;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("s
 var FILTERS=[
   {key:"kinds",type:"set",label:"Category",counts:true,
    passes:function(s,v){return v.has(s.kind);},
+   say:function(v){return Array.from(v).map(function(k){return (KIND[k]||{}).short||k;}).join(" and ");},
    param:"type",
    /* One type is a link worth sending; two are a state only this browser is in. So the
       parameter is cleared either way and written back only when there is exactly one. */
@@ -1972,6 +1981,7 @@ var FILTERS=[
 
   {key:"hood",type:"select",label:"Neighborhood",counts:true,el:"hoodSel",param:"hood",
    passes:function(s,v){return s.hood===v;},
+   say:function(v){return v;},
    // Neighborhoods come from the gazetteer, in gazetteer order, with story counts, so
    // this reads as a way to navigate Memphis rather than a list of whatever got typed.
    // Anything in the data that predates the gazetteer is kept at the bottom so no story
@@ -2008,6 +2018,7 @@ var FILTERS=[
 
   {key:"era",type:"select",label:"Era",counts:true,el:"eraSel",param:"era",
    passes:function(s,v){return s.era===v;},
+   say:function(v){return eraLabel(v);},
    options:function(){
      return '<option value="all">All eras</option>'+ERAS.map(function(e){return '<option value="'+e[0]+'"'+(F.era===e[0]?" selected":"")+'>'+esc(e[1])+'</option>';}).join("");
    },
@@ -2036,6 +2047,7 @@ var FILTERS=[
      link on the first click. */
   {key:"campaign",type:"select",label:"Collected at",counts:true,el:"campSel",param:"collected",
    passes:function(s,v){return s.campaign===v;},
+   say:function(v){return (CAMPAIGNS[v]||{}).label||v;},
    options:function(){
      var camps=Array.from(new Set(publicStories().map(function(s){return s.campaign;})));
      return '<option value="all">All events &amp; campaigns</option>'+camps.map(function(c){var m=CAMPAIGNS[c];return '<option value="'+esc(c)+'"'+(F.campaign===c?" selected":"")+'>'+(m?esc(m.label):esc(c))+'</option>';}).join("");
@@ -2046,6 +2058,7 @@ var FILTERS=[
      is on and the only way off. */
   {key:"place",type:"value",label:"Place type",counts:true,param:"place",
    passes:function(s,v){return s.place===v;},
+   say:function(v){return (PLACE[v]||{}).l||v;},
    pill:function(v){return PLACE[v].l;},
    fromParam:function(r){return PLACE[r]?r:undefined;}},
 
@@ -2070,6 +2083,7 @@ var FILTERS=[
   {key:"story",type:"value",label:"Story",param:"story"},
 
   {key:"q",type:"text",label:"Search",counts:true,param:"q",
+   say:function(v){return 'the word "'+v+'"';},
    passes:function(s,v){
      var q=v.toLowerCase();
      return (s.story+" "+(s.name||"")+" "+s.corner+" "+s.hood).toLowerCase().indexOf(q)>=0;
@@ -2077,6 +2091,26 @@ var FILTERS=[
    /* The box has to show the word the link filtered by, or a short list looks like a bug. */
    onBoot:function(v){var si=$("searchIn");if(si)si.value=v;}}
 ];
+/* What is on, in words, for the line above the story list.
+
+   Only filters that actually NARROW the list, which is what having a passes() means. So
+   `dc` and `story` are absent: they choose a PAGE, the stories underneath are still all of
+   Memphis, and each already carries its own header and its own way out.
+
+   `site` IS here, even though the site page names the building above the list, because the
+   two say different things: the page says which building, this line says the list has been
+   narrowed to it and offers the way out of every filter at once. */
+function activeFilterWords(){
+  return FILTERS.filter(function(f){return f.passes&&fOn(f);}).map(function(f){
+    var v=F[f.key];
+    return f.say?f.say(v):String(v);
+  });
+}
+/* The story somebody was reading when they clicked a tag inside it. Held so the pane can
+   offer a way back: that click closes the story and changes the list underneath it, and
+   before this it offered nothing, which is a dead end. Cleared as soon as it is used or
+   as soon as another story is opened. */
+var lastStory=null;
 function filterBy(k){for(var i=0;i<FILTERS.length;i++)if(FILTERS[i].key===k)return FILTERS[i];return null;}
 /* The cleared state, built from the same list, so "Clear All Filters" cannot fall behind
    a filter somebody added afterwards. Each type has its own idea of "off". */
@@ -2865,9 +2899,34 @@ function selMarker(id){Object.keys(markersById).forEach(function(k){if(markersBy
 
 /* === JS SECTION: PANEL, FILTERS AND SELECTS ==========================================
    The controls above the story list. apply() is the one function that redraws everything. */
+/* THE ONE LINE THAT SAYS WHERE YOU ARE. It sits in the panel head, above the filters, so
+   it is still there when the filter panel is shut. That is the whole point of putting it
+   here: a filtered map with a collapsed panel used to look like a map with few stories on
+   it, and the only signal was a number on a toggle.
+
+   Deliberately ONE line and nothing when nothing is on. The pane is 380px on a laptop and
+   a bottom drawer on a phone, every pixel of chrome is a pixel not showing a story, and
+   this panel was already 52% chrome once (3e7aa50). No breadcrumbs, no second nav.
+
+   It answers three questions in the order somebody asks them: what am I looking at, why
+   is it this and not everything, and how do I get back. */
 function renderMeta(){
-  var list=filtered();var hoods=new Set(publicStories().map(function(s){return s.hood;}));
-  $("panelMeta").textContent=list.length+" "+(list.length===1?"story":"stories")+" · "+hoods.size+" neighborhoods";
+  var list=filtered(),hoods=new Set(publicStories().map(function(s){return s.hood;}));
+  var words=activeFilterWords();
+  var out=list.length+" "+(list.length===1?"story":"stories");
+  out+=words.length?" · "+esc(words.join(" · ")):" · "+hoods.size+" neighborhoods";
+  var el=$("panelMeta");
+  el.innerHTML=out+
+    (words.length?' <button type="button" class="metaclear" id="metaClear">Clear</button>':"")+
+    /* The way back to whatever you were reading when you clicked a tag. That click used to
+       close the story, change the list underneath it and offer nothing, which is the dead
+       end Judy hit. */
+    (lastStory&&!$("detail").classList.contains("open")?
+      ' <button type="button" class="metaback" id="metaBack">'+ic("chevLeft",11)+' Back to the story you were reading</button>':"");
+  var c=$("metaClear");
+  if(c)c.addEventListener("click",function(){closeDetail();F=blankFilters();$("searchIn").value="";lastStory=null;renderSelects();apply();});
+  var b=$("metaBack");
+  if(b)b.addEventListener("click",function(){var id=lastStory;lastStory=null;selectStory(id,true);});
 }
 function renderKChips(){
   var counts={};publicStories().forEach(function(s){counts[s.kind]=(counts[s.kind]||0)+1;});
@@ -2901,7 +2960,7 @@ function renderActiveF(){
   /* closeDetail() first, because `story` is in the registry now and blankFilters() would
      otherwise drop the id while leaving the pane sitting open over the panel. Clear All
      means back to all of Memphis, and that includes whatever page or story is open. */
-  var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){closeDetail();F=blankFilters();$("searchIn").value="";renderSelects();apply();});
+  var ca=$("clearAll");if(ca)ca.addEventListener("click",function(){closeDetail();F=blankFilters();$("searchIn").value="";lastStory=null;renderSelects();apply();});
   var blank=blankFilters();
   $("activeF").querySelectorAll("[data-clr]").forEach(function(b){b.addEventListener("click",function(){F[b.dataset.clr]=blank[b.dataset.clr];apply();});});
   renderFCount();
@@ -3426,16 +3485,18 @@ function selectStory(id,fly){
   var s=STORIES.find(function(x){return x.id===id;});if(!s)return;
   // Opening a story puts it in the address bar, which is what makes it sendable without
   // anybody pressing a button. syncUrl() picks it up from the registry.
-  F.story=id;
+  F.story=id;lastStory=null;
   selMarker(id);
   $("cards").querySelectorAll(".card").forEach(function(c){c.classList.toggle("sel",c.dataset.id===id);});
   if(fly&&map)map.flyTo([s.lat,s.lng],15,{duration:1.1});
   openDetail(s);
-  /* renderActiveF as well as syncUrl, because `story` is a registry value now and the
-     active-filter row is drawn from the registry. Without it the row goes stale: open a
-     story, close it again, and "Clear All Filters" sits there over nothing. Not apply(),
-     which would redraw the card list underneath the pane that just opened. */
-  renderActiveF();syncUrl();
+  /* renderActiveF and renderMeta as well as syncUrl. Both are drawn from state this
+     function just changed: `story` is a registry value, so the active-filter row reads it,
+     and the orientation line shows a way back only while no story is open. Without these
+     two the pane keeps a control that no longer applies, which is worse than not having
+     offered it. Not apply(), which would redraw the card list under the pane that just
+     opened. */
+  renderActiveF();renderMeta();syncUrl();
 }
 /* A ?story= link, acted on only once the real stories have arrived. At boot STORIES holds
    the local seed fallback, so resolving against it would open the wrong story or none. */
@@ -3610,11 +3671,14 @@ function openDetail(s){
       if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}});
   });
   $("detail").querySelectorAll("[data-tag]").forEach(function(el){el.addEventListener("click",function(){
+    // Remember where we were BEFORE closing, so the pane can offer the way back.
+    var from=s.id;
     closeDetail();
     chipSet(el.dataset.tag,el.dataset.v);
+    lastStory=from;renderMeta();
   });});
 }
-function closeDetail(){F.story=null;$("detail").classList.remove("open");selMarker(null);renderActiveF();syncUrl();}
+function closeDetail(){F.story=null;$("detail").classList.remove("open");selMarker(null);renderActiveF();renderMeta();syncUrl();}
 
 /* === JS SECTION: INTEGRATION 1, CLAIM A SPACE ========================================
    Jayne Engle's commons layer. Local-only. Its moderation path is dead code. */
