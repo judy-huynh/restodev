@@ -555,7 +555,7 @@
   .ctop .cwho{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ctop .cwhere{font-size:11px;color:var(--faint);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52%}
   .card .feattag{display:inline-flex;align-items:center;gap:4px;margin-left:6px;font-size:9.5px;font-weight:800;letter-spacing:.02em;color:var(--gold)}
-  .card .snip{font-size:13px;color:var(--text);margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
+  .card .snip{font-size:12.5px;color:var(--text);margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
   .cchips{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0 6px}
   .cchip{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:10.5px;font-weight:650;padding:3px 8px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer}
   .cchip:hover{border-color:var(--primary);color:var(--text)}
@@ -672,7 +672,16 @@
   .d-close{position:absolute;top:14px;left:14px;z-index:2;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.95);display:grid;place-items:center;box-shadow:var(--shadow-sm);font-size:18px}
   .d-ktag{position:absolute;bottom:14px;left:16px;z-index:2;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:#fff;padding:5px 12px;border-radius:999px;box-shadow:0 4px 12px rgba(0,0,0,.3)}
   .d-body{flex:1;overflow:auto;padding:20px;min-height:0}
-  .d-body .quote{font-size:16.5px;line-height:1.6;color:var(--text);margin:0 0 18px}
+  /* Down a step from 16.5, which fits more of the story in the same pane without taking
+     it below what is readable on a phone at arm's length in a room. It is still the
+     largest thing in here, which it should be. */
+  .d-body .quote{font-size:15.5px;line-height:1.62;color:var(--text);margin:0 0 18px}
+  .d-body .quote p{margin:0 0 11px}
+  .d-body .quote p:last-child{margin-bottom:0}
+  /* The quotation marks survive the move to paragraphs, on the first and last block
+     rather than around the whole thing. */
+  .d-body .quote p:first-child::before{content:'\201C'}
+  .d-body .quote p:last-child::after{content:'\201D'}
   .d-body audio{width:100%;margin:0 0 18px}
   .dmedia{display:flex;flex-direction:column;gap:10px;margin:0 0 18px}
   .dmedia .dm{display:block;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
@@ -3201,9 +3210,25 @@ function storyBadges(s){
 }
 
 /* The words. `max` truncates for the spotlight, which has one line to work with. */
+/* The story as ONE safe run of text. What a clamped card preview, a one-line queue row
+   and a truncated spotlight title all want: newlines collapse and the clamp behaves. */
 function storyText(s,max){
   var t=(s&&s.story)||"";
   return max&&t.length>max?esc(t.slice(0,max))+'…':esc(t);
+}
+/* The same story, laid out the way the person actually typed it. Only the expanded pane
+   uses this; three paragraphs were arriving as one wall everywhere.
+
+   ESCAPE FIRST, then build the blocks. The other order is an injection hole on a page
+   that publishes text typed by the public, and it is the kind that stays invisible until
+   somebody types a bracket. Doing it this way there is nothing left to inject: esc() has
+   already turned every < and & into an entity before a single tag is added. */
+function storyParagraphs(s){
+  var t=((s&&s.story)||"").replace(/\r\n/g,"\n").trim();
+  if(!t)return "";
+  return esc(t).split(/\n{2,}/).map(function(para){
+    return '<p>'+para.replace(/\n/g,"<br>")+'</p>';
+  }).join("");
 }
 
 /* === JS SECTION: STORY CARD ==========================================================
@@ -3448,7 +3473,7 @@ function openDetail(s){
   $("detail").innerHTML=hero+
     '<button class="d-close" id="dClose">←</button>'+
     '<span class="d-ktag" style="background:'+k.color+'">'+ic(k.icon,13)+' '+esc(k.label)+'</span></div>'+
-    '<div class="d-body"><p class="quote">"'+storyText(s)+'"</p>'+
+    '<div class="d-body"><div class="quote">'+storyParagraphs(s)+'</div>'+
     (s.audio?'<div class="d-sect">'+ic("mic",13)+' Voice recording</div><audio controls src="'+s.audio+'"></audio>':"")+
     storyMediaHtml(s)+
     (s.kind==="future"?dreamBox(s):"")+
@@ -3471,7 +3496,17 @@ function openDetail(s){
   $("detail").classList.add("open");$("panel").classList.add("up");
   $("dClose").addEventListener("click",closeDetail);
   var ab=$("affirmBtn");if(ab)ab.addEventListener("click",function(){AFF[s.id]=(AFF[s.id]||0)+1;saveAff();s.affirms=AFF[s.id];renderMarkers();openDetail(s);toast("You share this dream: "+s.affirms+" now");});
-  $("dLocate").addEventListener("click",function(){if(map)map.flyTo([s.lat,s.lng],16,{duration:1.1});});
+  $("dLocate").addEventListener("click",function(){
+    // 18, not 16. At 16 you get the neighborhood; at 18 the surrounding streets are
+    // named, which is the entire reason somebody presses this.
+    if(map)map.flyTo([s.lat,s.lng],18,{duration:1.1});
+    /* 4. On a phone the panel is a bottom drawer sitting over the map, so flying to the
+       pin used to land behind it and look like the button did nothing. Drop the drawer to
+       its peek; the story stays open underneath, so sliding it back up returns to exactly
+       where they were rather than to the top of the list. */
+    if(window.matchMedia&&window.matchMedia("(max-width:860px)").matches)
+      $("panel").classList.remove("up");
+  });
   $("dCopy").addEventListener("click",function(){copyLink(storyLink(s.id));});
   var dm=$("dMod");if(dm)dm.addEventListener("click",function(){openOnDesk(s.id);});
   /* Hero, section heading and every thumbnail go through one path, and every one of them
