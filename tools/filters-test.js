@@ -58,6 +58,17 @@ const fs = require('fs');
       match:/clearf/},
 */
 const EXPECTED_DIFFS = [
+  // STORY-83: `ring` joined the registry, so a data centre ring can filter and be linked.
+  {check: 'syncUrl',       why: 'a ring is filterable and linkable now',
+   match: /(^|&)ring=/,        state: /"ring":"[^"]/},
+  {check: 'bootParam',     why: '?ring= is read back now',
+   match: /"ring":"[^"]/,      state: /ring=/},
+  {check: 'renderActiveF', why: 'a ring shows a pill and Clear All',
+   state: /"ring":"[^"]/},
+  {check: 'activeFilterCount', why: 'a ring counts on the Filters badge',
+   state: /"ring":"[^"]/},
+  {check: 'passes',        why: 'a ring narrows the list to the people inside it',
+   state: /"ring":"[^"]/},
   // STORY-70: `subcat` joined the registry, so what a story is about is filterable.
   {check: 'syncUrl',       why: 'subcategory is filterable and linkable now',
    match: /(^|&)sub=/,        state: /"subcat":"(?!all)/},
@@ -111,6 +122,16 @@ function fn(js, name, path) {
   throw new Error(path + ': function ' + name + ' never closes');
 }
 
+/* A helper the CANDIDATE has and the BASELINE does not, because it is new. Falls back to
+   a stub with the same meaning as "this concept did not exist yet", and says which file it
+   stubbed for, so a genuinely missing function still shows up instead of passing quietly.
+   Without this, adding any new helper to the filter layer makes the whole run throw. */
+const STUBBED = [];
+function fnOr(js, name, path, stub) {
+  if (js.indexOf('function ' + name + '(') < 0) { STUBBED.push(name + ' in ' + path); return stub; }
+  return fn(js, name, path);
+}
+
 /* The boot block is an anonymous IIFE, found by the comment above it. */
 function bootBlock(js, path) {
   const anchor = 'A shared link arrives as filter state';
@@ -133,8 +154,11 @@ function build(path) {
   const js = scriptOf(path);
   const src =
     head(js, path) +
-    // passes() reaches forward into the map section for these three.
+    // passes() reaches forward into the map section for these. Cut by name rather than
+    // by position, so moving a function does not quietly drop it out of the test.
     '\n;var SITE_R=110;' + fn(js, 'metresApart', path) + fn(js, 'siteNameFor', path) +
+    fn(js, 'metresBetween', path) + fn(js, 'dcById', path) +
+    fnOr(js, 'ringOf', path, 'function ringOf(){return null;}') +
     '\n;' + fn(js, 'renderSelects', path) +
     '\n;' + fn(js, 'renderActiveF', path) +
     '\n;' + fn(js, 'renderFCount', path) +
@@ -145,6 +169,12 @@ function build(path) {
     // them on a seed story, or the site filter would match nothing and prove nothing.
     '\n;CULTURAL=[{properties:{name:"Clayborn Temple"},geometry:{coordinates:[-90.0511,35.1365]}},' +
     '{properties:{name:"Stax"},geometry:{coordinates:[-90.0292,35.1148]}}];' +
+    // datacenters.geojson loads over the network too, so the harness supplies one site,
+    // placed on Clayborn so a 5-mile ring really does contain some seed stories and a
+    // 1-mile ring really does exclude others. A ring that matched nothing would pass
+    // every check while testing nothing.
+    '\n;var DATACENTERS=[{properties:{id:"colossus-1",operator:"Anthropic",name:"Colossus 1"},' +
+    'geometry:{coordinates:[-90.0511,35.1365]}}];' +
     '\n;return {get F(){return F;},set F(v){F=v;},passes:passes,filters:FILTERS,' +
     'renderSelects:renderSelects,renderActiveF:renderActiveF,' +
     'activeFilterCount:activeFilterCount,syncUrl:syncUrl,boot:__boot,' +
@@ -196,6 +226,11 @@ const AXES = {
   place: [null, 'church'],
   site: [null, 'Clayborn Temple'],
   dc: [null, 'colossus1'],
+  /* ONE MILE, not five. The stub site sits on Clayborn and every seed story is within
+     five miles of it, so a five-mile axis filtered nothing and the passes() check quietly
+     compared two identical lists. A one-mile ring actually excludes stories, which is the
+     only way that check means anything. */
+  ring: [null, 'colossus-1:1'],
   story: [null, 's3'],
   q: ['', 'the'],
 };
@@ -244,6 +279,7 @@ const LINKS = [
   '?q=the+blues', '?era=tomorrow', '?hood=Downtown%20%2F%20Clayborn', '?dc=nonexistent',
   '?story=s3', '?story=', '?story=nonexistent', '?story=s3&hood=Soulsville',
   '?sub=Family', '?sub=', '?sub=Civil%20Rights', '?sub=Nonsense', '?sub=Family&type=memory',
+  '?ring=colossus-1:5', '?ring=colossus-1:1', '?ring=', '?ring=nonsense', '?ring=colossus-1:abc',
   '?mode=admin&story=s3', '?story=s1&type=culture&era=civilrights',
 ];
 
@@ -380,6 +416,7 @@ for (const link of LINKS) {
 /* ---- report -------------------------------------------------------------------------- */
 console.log('compared ' + compared + ' outputs across ' + states().length + ' filter states, ' +
             LINKS.length + ' links and ' + roundTrips + ' round trips');
+if (STUBBED.length) console.log('stubbed as not-yet-existing: ' + STUBBED.join(', '));
 if (allowed.length) {
   const by = {};
   allowed.forEach(a => { (by[a.why] = by[a.why] || []).push(a.line); });
