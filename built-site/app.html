@@ -336,6 +336,12 @@
      Built by renderQueue() and renderEditor(). Saving is supaSaveStory(), which lives
      far away in JS SECTION: SUPABASE. A new field needs editing in BOTH places. */
   .deskbar{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 12px}
+  .dxbtn{font:inherit;font-size:12px;font-weight:700;padding:6px 11px;border-radius:9px;
+    border:1px solid var(--border);background:var(--panel);color:var(--primaryDark);cursor:pointer}
+  .dxbtn:hover{border-color:var(--primary);background:var(--primaryLight)}
+  /* The internal one looks different from the shareable one on purpose. */
+  .dxbtn.warn{color:var(--watch);border-color:#E8D9B0}
+  .dxbtn.warn:hover{border-color:var(--watch);background:#FBF3E2}
   .deskbar select{font:inherit;font-size:12px;padding:6px 9px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--text)}
   .deskbody{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--panel)}
   .deskbody.nodesk{display:block;border:0;background:none}
@@ -1162,6 +1168,8 @@
         <button data-tab="rejected">Rejected</button>
       </div>
       <div class="deskbar" id="deskbar">
+        <button type="button" class="dxbtn" id="dxPublic">Export for partners</button>
+        <button type="button" class="dxbtn warn" id="dxTeam">Export for the team</button>
         <select id="mfHood" aria-label="Filter by neighborhood"><option value="">All neighborhoods</option></select>
         <select id="mfEra" aria-label="Filter by era"><option value="">All eras</option></select>
         <select id="mfKind" aria-label="Filter by story type"><option value="">All types</option></select>
@@ -4309,6 +4317,14 @@ function closeData(){$("dataModal").classList.add("hidden");}
    Where the nav buttons, modal, geolocation and map events get their listeners. */
 $("navData").addEventListener("click",openData);
 $("navMethod").addEventListener("click",openMethod);
+(function(){
+  var pubBtn=$("dxPublic");if(pubBtn)pubBtn.addEventListener("click",function(){exportGeoJSON(false);});
+  var teamBtn=$("dxTeam");if(teamBtn)teamBtn.addEventListener("click",function(){
+    // The team file carries moderator notes, so it needs a moderator.
+    if(!SUPA.session){toast("Sign in first: the team export carries moderator notes.");return;}
+    exportGeoJSON(true);
+  });
+})();
 $("methodClose").addEventListener("click",closeMethod);
 $("methodModal").addEventListener("click",function(e){if(e.target===this)closeMethod();});
 $("dataClose").addEventListener("click",closeData);
@@ -5146,6 +5162,79 @@ function modSorted(list){
     var x=String(a.at||""),y=String(b.at||"");
     return modSort==="old"?x.localeCompare(y):y.localeCompare(x);
   });
+}
+/* === EXPORT ==========================================================================
+   One button that downloads a GeoJSON file. Everything else in the ask, the control
+   centre, grant applications, other RestoDev communities, is a CONSUMER of this file and
+   none of them can be designed before the file exists.
+
+   GeoJSON specifically because it opens in QGIS, ArcGIS, Felt, Mapbox, Kepler and every
+   agentic tool that touches geodata with no conversion. A CSV would need the coordinates
+   rebuilt at the other end.
+
+   AN EXPORT IS THE EASIEST WAY TO UNDO D19 BY ACCIDENT. A story object in memory carries
+   things the public never sees: `contact` (name, email, phone), `vis0`, the raw
+   display_name behind a first-name-only or anonymous choice. Deleting those on the way out
+   would mean this function has to be updated every time a field is added, and the failure
+   would be silent and permanent, because a file that has left the building cannot be
+   recalled.
+
+   So it is an ALLOWLIST. Nothing reaches the file unless it is named here. A field added
+   to a story tomorrow is absent from the export until somebody decides otherwise, which is
+   the right default for a map whose whole trust claim is consent. */
+function storyFeature(s,team){
+  var props={
+    id:s.id,
+    kind:s.kind,
+    subcategory:s.subcategory||null,
+    era:s.era,
+    era_label:eraLabel(s.era),
+    neighborhood:s.hood,
+    corner:s.corner||null,
+    story:s.story,
+    /* displayName(), NEVER the raw display_name. That function is the single decision
+       about whether a name is shown at all, and it is what makes "first name only" and
+       "anonymous" mean something. Exporting the raw column would quietly publish names
+       people asked us not to publish. D27. */
+    shared_by:displayName(s),
+    collected_at:(CAMPAIGNS[s.campaign]||{}).label||s.campaign||null,
+    submitted:s.at||null,
+    affirms:affirmCount(s),
+    media:(s.media||[]).map(function(m){return m.url;}),
+    has_voice:!!s.audio
+  };
+  if(team){
+    // Signed-in only, and it never leaves the team. The filename says so too.
+    var v=modInternal[s.id]||{};
+    props.team_workflow=(v.workflow||[]).join("; ")||null;
+    props.team_value=(v.value||[]).join("; ")||null;
+    props.team_note=v.note||null;
+  }
+  return {type:"Feature",geometry:{type:"Point",coordinates:[s.lng,s.lat]},properties:props};
+}
+function exportGeoJSON(team){
+  /* publicStories(), always, for BOTH exports. It is what filters out anything not
+     approved and anything marked heritage-record-only, so those cannot reach a file by
+     construction rather than by remembering. The team export adds columns; it does not
+     add rows. */
+  var rows=publicStories();
+  var doc={
+    type:"FeatureCollection",
+    name:"Memphis Roots"+(team?" (team, internal)":"")+" stories",
+    note:team
+      ? "INTERNAL. Contains moderator notes and tags. Do not share outside The Big We."
+      : "Approved, public stories only. Safe to share. Contains nothing the public map does not already show.",
+    generated:new Date().toISOString().slice(0,10),
+    count:rows.length,
+    features:rows.map(function(s){return storyFeature(s,team);})
+  };
+  var name="memphis-roots-"+(team?"TEAM-INTERNAL":"public")+"-"+doc.generated+".geojson";
+  var blob=new Blob([JSON.stringify(doc,null,1)],{type:"application/geo+json"});
+  var url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);a.remove();},0);
+  toast(rows.length+" "+(rows.length===1?"story":"stories")+" exported as "+name);
+  return doc;
 }
 function renderQueue(){
   var list=modVisible();
